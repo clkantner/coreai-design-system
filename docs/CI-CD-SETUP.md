@@ -139,7 +139,8 @@ provided by the hosting owners. Existing hosting requires authorization;
 moving source to GitHub does not change those access restrictions.
 The Bicep source remains at [infra/main.bicep](../infra/main.bicep) for
 separately approved infrastructure management. GitHub Actions does **not** apply it.
-Infrastructure-only changes therefore do not automatically trigger app deployment.
+Infrastructure-only merges still trigger an application redeployment, but do not
+apply infrastructure changes.
 
 The deployment job provisions the pinned Fluent story checkout, builds Storybook
 and its MCP manifests, verifies its content, then builds the docsite against that

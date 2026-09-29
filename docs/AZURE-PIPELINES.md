@@ -24,7 +24,7 @@ connection, private feed, or write token**. In-repository apps resolve
 Validation preserves formatting, zero-warning lint, workspace type checks,
 guidance-generation tests, Storybook build/content verification, docsite tests
 against the same built Storybook index, host OAuth tests, Chromium installation,
-and browser component tests. Automation safeguards have additional Node tests.
+and browser component tests.
 Fork contributions use `pull_request`, not privileged `pull_request_target`.
 
 Before dependency installation, CI runs `npm run check:public-source` and the
