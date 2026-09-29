@@ -1,7 +1,7 @@
 # CI/CD and Azure hosting setup
 
 Source and pull requests: <https://github.com/microsoft/coreai-design-system>.
-The [workflow overview and cutover checklist](AZURE-PIPELINES.md) cover CI and
+The [GitHub Actions overview](GITHUB-ACTIONS.md) covers CI and
 dependency automation. Publishing has a separate approval process documented in
 [RELEASING.md](../packages/coreai-fluentui-react/RELEASING.md).
 

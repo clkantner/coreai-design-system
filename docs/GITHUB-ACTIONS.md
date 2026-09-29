@@ -1,9 +1,7 @@
-# GitHub Actions (Azure Pipelines migration)
+# GitHub Actions
 
-The source repository and pull requests move to
-<https://github.com/microsoft/coreai-design-system>. This document retains its
-filename to preserve existing links; Azure Pipelines is no longer the automation
-entry point.
+Source, pull requests, and automation live in
+<https://github.com/microsoft/coreai-design-system>.
 
 | Workflow                | Definition                                                                | Trigger                                                                 |
 | ----------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
@@ -12,8 +10,30 @@ entry point.
 | Check Fluent UI updates | [check-fluent-updates.yml](../.github/workflows/check-fluent-updates.yml) | Monday 09:00 UTC; manual; disabled until enabled                        |
 | Publish package         | [publish-package.yml](../.github/workflows/publish-package.yml)           | See the [release guide](../packages/coreai-fluentui-react/RELEASING.md) |
 
-There is no telemetry workflow. The replaced Azure CI, deployment, dependency-update
-definitions, and Azure PR API script have been removed.
+Site deployment and npm publication are independent. Merging to main can deploy
+the authenticated sites; it does not publish a package.
+
+## Running and troubleshooting workflows
+
+Open [Actions](https://github.com/microsoft/coreai-design-system/actions), select
+the workflow, and inspect the failed job and step. For a manual run, select
+**Run workflow** and choose `main`; deployment and publishing reject other branches.
+Disabled workflows must be enabled before they can run. Enabling a workflow alone
+does not satisfy its repository-variable gates.
+
+- [Environment configuration](https://github.com/microsoft/coreai-design-system/settings/environments):
+  Azure identity/target variables belong to `azure-production`; npm credentials
+  and release approvals belong to `npm-production`.
+- [Repository variables](https://github.com/microsoft/coreai-design-system/settings/variables/actions):
+  `ENABLE_AZURE_DEPLOY`, `ENABLE_FLUENT_UPDATES`, and the separate npm release gates.
+- Set `ENABLE_AZURE_DEPLOY=false` or disable **Deploy Azure apps** to stop new
+  deployments. This does not cancel queued or running work; inspect those runs
+  separately before switching deployment systems or rolling back.
+
+Only one deployment system should write to the Azure apps. Keep the retired
+deployer disabled, even while its validation pipeline remains available for
+outstanding PRs. A manual deployment rerun uploads application content again;
+it is not a login-only check.
 
 ## Validation
 
@@ -103,23 +123,16 @@ must close and reopen the generated PR (after each automated update) to trigger
 normal required pull-request CI, then review and merge normally. A manual CI run
 on `main` is not a substitute for PR-head checks. Do not bypass branch protection.
 
-## Cutover checklist
+## Repository setup
 
-These are operator prerequisites, **not actions performed by the migration**:
-
-1. Create/approve the GitHub repository and migrate source/history through the
-   organization's normal process.
-2. Permit the pinned `actions/checkout`, `actions/setup-node`, `azure/login`,
+1. Permit the pinned `actions/checkout`, `actions/setup-node`, `azure/login`,
    and `peter-evans/create-pull-request` actions in organization policy.
-3. Run secretless PR CI and configure the `main` ruleset.
-4. Disable the retired Azure Pipelines schedules/triggers and retire obsolete
-   build-service grants, variable groups, and service-connection authorizations.
-   Deleting YAML alone does not disable existing Azure DevOps pipeline records.
-5. Configure the protected Azure environment and OIDC trust, verify the existing
+2. Run secretless PR CI and configure the `main` ruleset.
+3. Configure the main-only Azure environment and OIDC trust, verify the existing
    hosting settings, and only then opt in to deployment.
-6. Configure dependency-update permissions/labels and opt in separately.
-7. Complete the separate npm publishing approval and trusted-publisher setup in
+4. Configure dependency-update permissions/labels and opt in separately.
+5. Complete the separate npm publishing approval and authentication setup in
    [RELEASING.md](../packages/coreai-fluentui-react/RELEASING.md).
 
-No target-repository API access, pushes, publication, deployments, or cloud
-configuration changes are needed to prepare or locally validate this migration.
+Historical source handoff and retirement of the previous automation are covered
+in [the open-source preparation checklist](OPEN-SOURCE-PREPARATION.md).
