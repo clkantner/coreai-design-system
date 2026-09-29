@@ -1,0 +1,16 @@
+# Normalize line endings to LF for all text files, regardless of platform
+# or each developer's core.autocrlf setting. This matches the .prettierrc
+# "endOfLine": "lf" setting so formatting doesn't churn line endings.
+* text=auto eol=lf
+
+# Binary files should never be modified by line-ending normalization
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

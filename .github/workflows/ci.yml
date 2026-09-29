@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Test public-source safeguards
+        run: node --test scripts/check-public-source.test.mjs
+      - name: Check public source
+        run: npm run check:public-source
+      - run: npm ci --prefer-offline
+      - run: npm run format:check
+      - run: npm run lint -- --max-warnings=0
+      - run: npm run type-check
+      - name: Test automation safeguards
+        run: node --test .github/workflows/scripts/*.test.mjs
+      - name: Test guidance generation
+        run: node --test shared/guidance.test.mjs apps/docsite/test/generation.test.mjs
+      - name: Verify Storybook guidance and MCP
+        run: npm run build:storybook && npm --workspace apps/storybook run verify:build
+      - name: Test docsite against built Storybook
+        run: npm --workspace apps/docsite test
+        env:
+          STORYBOOK_INDEX_PATH: ${{ github.workspace }}/apps/storybook/storybook-static/index.json
+      - name: Test Storybook host OAuth behavior
+        run: npm --workspace apps/storybook run test:host
+      - name: Install Chromium
+        run: npm --workspace packages/coreai-fluentui-react run test:install-browser -- --with-deps
+      - name: Test components
+        run: npm --workspace packages/coreai-fluentui-react test

@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "bashmish.es6-string-css",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "unifiedjs.vscode-mdx"
+  ]
+}

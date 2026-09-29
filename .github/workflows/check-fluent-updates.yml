@@ -1,0 +1,75 @@
+name: Check Fluent UI updates
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fluent-ui-updates
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: >-
+      github.repository == 'microsoft/coreai-design-system' &&
+      github.ref == 'refs/heads/main' &&
+      vars.ENABLE_FLUENT_UPDATES == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --prefer-offline
+      - name: Update Fluent development baseline
+        id: baseline
+        run: node .github/workflows/scripts/update-fluent.mjs
+      - name: Resolve updated dependencies
+        if: steps.baseline.outputs.changed == 'true'
+        run: npm install --prefer-offline
+      - name: Install Chromium
+        if: steps.baseline.outputs.changed == 'true'
+        run: npm --workspace packages/coreai-fluentui-react run test:install-browser -- --with-deps
+      - name: Validate latest Fluent releases
+        if: steps.baseline.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash .github/workflows/scripts/validate-fluent.sh
+          npm --workspace apps/storybook run type-check
+      - name: Validate unchanged Fluent peer minimums
+        if: steps.baseline.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node .github/workflows/scripts/install-fluent-minimums.mjs
+          bash .github/workflows/scripts/validate-fluent.sh
+      - name: Create or update dependency pull request
+        if: steps.baseline.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          token: ${{ github.token }}
+          branch: chore/fluent-ui-updates
+          base: main
+          add-paths: |
+            packages/coreai-fluentui-react/package.json
+            package-lock.json
+          commit-message: 'chore: update Fluent development baseline'
+          title: 'chore: Fluent UI dependency updates'
+          body-path: .fluent-update-pr.md
+          labels: |
+            dependencies
+            fluent-ui
+          delete-branch: false

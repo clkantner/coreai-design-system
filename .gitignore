@@ -1,0 +1,43 @@
+node_modules/
+dist/
+storybook-static/
+.storybook/.cache/
+
+# Sparse-cloned Fluent stories live in their own git repo — don't track them here
+apps/storybook/fluent-stories/
+
+# Auto-generated from src/stories/templates/{Name}.tsx — see
+# apps/storybook/scripts/generate-template-docs.mjs. Never hand-edit.
+apps/storybook/src/stories/templates/**/*.mdx
+
+# Auto-generated from packages/coreai-fluentui-react/agent/SKILL.md — see
+# apps/storybook/scripts/generate-skill-doc.mjs. Never hand-edit.
+apps/storybook/src/stories/docs/AgentSkill.mdx
+apps/docsite/content/generated/
+
+# Editor
+.idea/
+*.log
+
+# OS metadata
+.DS_Store
+
+# npm + workspace tarballs
+*.tgz
+
+# Aptos is acquired separately; never commit licensed font binaries or local staging.
+.local-fonts/
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.eot
+*.ttc
+
+# build outputs
+packages/*/dist/
+apps/*/storybook-static/
+apps/*/dist/
+
+# agent files
+.playwright*

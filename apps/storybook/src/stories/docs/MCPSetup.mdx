@@ -1,0 +1,69 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta
+  title="Docs/MCP Setup"
+  summary="Client setup for the hosted CoreAI component-docs MCP server, plus fallthrough to Fluent's MCP."
+/>
+
+# MCP setup for AI agents
+
+CoreAI ships a **Model Context Protocol (MCP)** server so AI agents (VS Code Copilot, Copilot
+CLI, and other MCP-aware clients) read accurate, CoreAI-specific component knowledge — props,
+example stories, templates — instead of guessing prop names or reaching for the raw upstream
+`@fluentui/react-components` API.
+
+## Servers
+
+- **`coreai-ds-docs`** — `https://coreai-ds-storybook.azurewebsites.net/mcp` — **Primary.**
+  Hosted, always-on CoreAI component docs (props, stories, templates).
+- **`fluent-agent`** — `https://chat.fluentui.dev/mcp/server/` — **Fallthrough.** Upstream Fluent
+  knowledge base — icon/token lookup and validation, and general Fluent Q&A.
+
+Both are `http`-type MCP servers behind a Microsoft sign-in. No VPN, no headers, no secrets.
+
+> Connection setup only — for agent behavior see [Agent Skill](?path=/docs/docs-agent-skill--docs)
+> (`agent/SKILL.md` in the package).
+
+## `mcp.json`
+
+Add both servers to your MCP client config (VS Code: `.vscode/mcp.json`; Copilot CLI:
+`~/.copilot/mcp-config.json`):
+
+```json
+{
+  "servers": {
+    // Official Fluent Docs MCP - requires Microsoft Entra OAuth signin
+    // Documentation: https://chat.fluentui.dev/mcp.html & Demo: https://chat.fluentui.dev/
+    "fluent-agent": {
+      "type": "http",
+      "url": "https://chat.fluentui.dev/mcp/server/"
+    },
+
+    // CoreAI Design System MCP - requires Microsoft Entra OAuth signin
+    "coreai-ds-docs": {
+      "type": "http",
+      "url": "https://coreai-ds-storybook.azurewebsites.net/mcp"
+    }
+  },
+  "inputs": []
+}
+```
+
+Just the `url` — no headers, no secrets. Your client opens a Microsoft sign-in in your browser
+when it first connects.
+
+> **"Need admin approval" on first sign-in?** This is a one-time tenant consent issue, not
+> something you can self-serve from the client config — see the VS Code section of
+> [`docs/CI-CD-SETUP.md`](https://github.com/microsoft/coreai-design-system/blob/main/docs/CI-CD-SETUP.md)
+> if it persists.
+
+## Toolsets
+
+`coreai-ds-docs` exposes:
+
+- `list-all-documentation` — enumerate every component / docs entry (optionally with story IDs).
+- `get-documentation` — full docs for one component: prop types + the first few example stories.
+- `get-documentation-for-story` — docs for a single named story variant.
+
+`fluent-agent` exposes `ask_fluent_agent`, plus icon/token search and validation
+(`search_fluent_icons`, `validate_fluent_icon`, `search_fluent_tokens`, `validate_fluent_token`).

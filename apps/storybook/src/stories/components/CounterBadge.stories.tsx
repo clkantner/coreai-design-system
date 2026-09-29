@@ -1,0 +1,19 @@
+import { CounterBadge, type CounterBadgeProps, type JSXElement } from '@coreai/fluentui-react';
+
+import * as React from 'react';
+
+export const Default = (args: CounterBadgeProps): JSXElement => <CounterBadge {...args} />;
+
+Default.args = {
+  count: 5,
+};
+
+/**
+ * A counter badge is a badge that displays a numerical count.
+ *
+ * @summary Badge that displays a numerical count.
+ */
+export default {
+  title: 'Components/Badge/CounterBadge',
+  component: CounterBadge,
+};

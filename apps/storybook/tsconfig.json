@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"],
+    "allowJs": true,
+    "paths": {
+      "@coreai/fluentui-react": ["../../packages/coreai-fluentui-react/src/index.ts"],
+      "@coreai/fluentui-react/fonts/*": ["../../packages/coreai-fluentui-react/src/fonts/*"]
+    }
+  },
+  // Type-check covers code we own (src/ and .storybook/). The canonical Fluent
+  // story sources under ./fluent-stories/ are imported at build time by
+  // webpack (via Storybook's stories glob in .storybook/main.ts) but are NOT
+  // type-checked here — they're upstream code we don't maintain and they have
+  // pre-existing TS errors (missing subpath exports, implicit any, etc.) that
+  // would otherwise break our CI.
+  "include": ["src/**/*", ".storybook/**/*"],
+  "exclude": ["node_modules", "storybook-static"]
+}
