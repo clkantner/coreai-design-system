@@ -1,0 +1,49 @@
+{
+  "name": "coreai-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CoreAI Design System: a Fluent UI React theme package, documentation site, and Storybook with MCP.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "packageManager": "npm@10.9.0",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "storybook": "npm --workspace apps/storybook run dev",
+    "docsite": "npm --workspace apps/docsite run dev",
+    "build:storybook": "npm --workspace apps/storybook run build",
+    "build:docsite": "npm --workspace apps/docsite run build",
+    "build": "npm --workspace packages/coreai-fluentui-react run build",
+    "clean": "npm --workspaces --if-present run clean",
+    "type-check": "npm --workspaces --if-present run type-check",
+    "check:public-source": "node scripts/check-public-source.mjs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-storybook": "^0.12.0",
+    "github-slugger": "^2.0.0",
+    "globals": "^16.5.0",
+    "gray-matter": "^4.0.3",
+    "mdast-util-to-string": "^4.0.0",
+    "prettier": "^3.3.3",
+    "rehype-sanitize": "^6.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.5.4",
+    "typescript-eslint": "^8.65.0",
+    "unified": "^11.0.5"
+  }
+}

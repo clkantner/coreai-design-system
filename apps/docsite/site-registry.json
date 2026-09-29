@@ -1,0 +1,192 @@
+{
+  "updated": "2026-08-19",
+  "redirects": [
+    {
+      "from": "/guidance/",
+      "to": "/package/"
+    },
+    {
+      "from": "/accordions/",
+      "to": "/accordion/"
+    },
+    {
+      "from": "/foundational-skill/",
+      "to": "/coreai-skill/"
+    },
+    {
+      "from": "/agent-skill/",
+      "to": "/coreai-skill/"
+    },
+    {
+      "from": "/design-md/",
+      "to": "/coreai-skill/"
+    }
+  ],
+  "pages": [
+    {
+      "id": "resources",
+      "slug": "/",
+      "group": "UI Kit",
+      "navLabel": "Home",
+      "headerLabel": "Resources",
+      "title": "CoreAI design system",
+      "summary": "",
+      "eyebrow": "CoreAI design system",
+      "showInSidebar": true,
+      "showInHeader": true,
+      "anchors": [
+        {
+          "id": "get-started",
+          "label": "Get started"
+        }
+      ]
+    },
+    {
+      "id": "changelog",
+      "slug": "/changelog/",
+      "group": "Meta",
+      "navLabel": "Changelog",
+      "headerLabel": "Changelog",
+      "title": "Changelog",
+      "summary": "",
+      "eyebrow": "Release history",
+      "showInSidebar": false,
+      "showInHeader": true,
+      "anchors": [
+        {
+          "id": "release-history",
+          "label": "Release history"
+        }
+      ]
+    },
+    {
+      "id": "colors",
+      "slug": "/colors/",
+      "group": "Foundations",
+      "navLabel": "Colors",
+      "headerLabel": "Colors",
+      "title": "Colors",
+      "summary": "Palette, semantic roles, and token naming conventions.",
+      "eyebrow": "Foundation",
+      "showInSidebar": true,
+      "showInHeader": false,
+      "anchors": [
+        {
+          "id": "brand-color",
+          "label": "Brand color"
+        },
+        {
+          "id": "surface-colors",
+          "label": "Surface colors"
+        },
+        {
+          "id": "text-colors",
+          "label": "Text colors"
+        },
+        {
+          "id": "data-viz",
+          "label": "Data visualization"
+        },
+        {
+          "id": "color-accessibility",
+          "label": "Accessibility"
+        }
+      ]
+    },
+    {
+      "id": "typography",
+      "slug": "/typography/",
+      "group": "Foundations",
+      "navLabel": "Typography",
+      "headerLabel": "Typography",
+      "title": "Typography",
+      "summary": "Type scale, weight system, and readability rules.",
+      "eyebrow": "Foundation",
+      "showInSidebar": true,
+      "showInHeader": false,
+      "anchors": [
+        {
+          "id": "font-families",
+          "label": "Font families"
+        },
+        {
+          "id": "type-scale",
+          "label": "Type scale"
+        },
+        {
+          "id": "best-practices",
+          "label": "Best practices"
+        }
+      ]
+    },
+    {
+      "id": "materials",
+      "slug": "/materials/",
+      "group": "Foundations",
+      "navLabel": "Materials",
+      "headerLabel": "Materials",
+      "title": "Materials",
+      "summary": "Surface tiers, elevation, and depth layering.",
+      "eyebrow": "Foundation",
+      "showInSidebar": false,
+      "showInHeader": false,
+      "anchors": [
+        {
+          "id": "surface-tiers",
+          "label": "Surface tiers"
+        },
+        {
+          "id": "layering",
+          "label": "Layering"
+        },
+        {
+          "id": "interactive-states",
+          "label": "Interactive states"
+        },
+        {
+          "id": "usage-rules",
+          "label": "Usage rules"
+        }
+      ]
+    },
+    {
+      "id": "mcp-server",
+      "slug": "/mcp-server/",
+      "group": "Agents",
+      "navLabel": "MCP server",
+      "headerLabel": "MCP server",
+      "title": "MCP server",
+      "summary": "Connect any MCP-capable client to CoreAI component documentation and implementation guidance.",
+      "eyebrow": "UI kit",
+      "showInSidebar": true,
+      "showInHeader": false,
+      "anchors": []
+    },
+    {
+      "id": "package",
+      "slug": "/package/",
+      "group": "UI Kit",
+      "navLabel": "NPM package",
+      "headerLabel": "NPM Package",
+      "title": "NPM Package",
+      "summary": "Get access, install the package, and apply CoreAI styling to your app.",
+      "eyebrow": "UI kit",
+      "showInSidebar": true,
+      "showInHeader": false,
+      "anchors": []
+    },
+    {
+      "id": "coreai-skill",
+      "slug": "/coreai-skill/",
+      "group": "Agents",
+      "navLabel": "Package skill",
+      "headerLabel": "Package skill",
+      "title": "Package skill",
+      "summary": "Packaged CoreAI implementation guidance for coding agents and contributors.",
+      "eyebrow": "UI kit",
+      "showInSidebar": true,
+      "showInHeader": false,
+      "anchors": []
+    }
+  ]
+}

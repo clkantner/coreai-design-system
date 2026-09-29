@@ -1,0 +1,17 @@
+{
+  "name": "coreai-ds-storybook-host",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Production host for the built Storybook + self-hosted Storybook MCP server. Deployed to the coreai-ds-storybook Azure App Service.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@storybook/mcp": "0.7.0",
+    "jose": "^5.9.6"
+  }
+}

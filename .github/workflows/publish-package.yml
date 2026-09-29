@@ -1,0 +1,83 @@
+name: Publish npm package
+
+# Intentionally manual and disabled until both repository approval variables are set.
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type publish @coreai/fluentui-react@VERSION (the version already on main)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-production
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.repository == 'microsoft/coreai-design-system' &&
+      github.ref == 'refs/heads/main' &&
+      vars.OSS_RELEASE_APPROVED == 'true' &&
+      vars.NPM_PUBLISH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: npm-production
+    steps:
+      - name: Check out the approved main commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Validate release intent and metadata
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const p = JSON.parse(fs.readFileSync('packages/coreai-fluentui-react/package.json', 'utf8'));
+          assert.equal(process.env.CONFIRMATION, `publish ${p.name}@${p.version}`, 'Confirmation must match the checked-out package exactly');
+          assert.equal(p.name, '@coreai/fluentui-react');
+          assert.equal(p.private, false);
+          assert.equal(p.repository.url, 'git+https://github.com/microsoft/coreai-design-system.git');
+          assert.equal(p.publishConfig.registry, 'https://registry.npmjs.org/');
+          assert.equal(p.publishConfig.access, 'public');
+          assert.ok(p.license && p.license !== 'UNLICENSED', 'An approved open-source license is required');
+          assert.ok(fs.existsSync('LICENSE'), 'The approved license file is required');
+          assert.ok(fs.readFileSync('packages/coreai-fluentui-react/CHANGELOG.md', 'utf8').includes(`## [${p.version}] - `), 'Roll the changelog before publishing');
+          NODE
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          registry-url: https://registry.npmjs.org
+
+      - name: Install without dependency lifecycle scripts
+        run: npm ci --ignore-scripts
+
+      - name: Check tracked source for public-distribution blockers
+        run: npm run check:public-source
+
+      - name: Build and inspect the exact release tarball
+        run: |
+          npm run clean --workspace packages/coreai-fluentui-react
+          npm run build --workspace packages/coreai-fluentui-react
+          mkdir package-artifacts
+          npm pack --workspace packages/coreai-fluentui-react --ignore-scripts --pack-destination package-artifacts
+          node packages/coreai-fluentui-react/scripts/verify-package.mjs package-artifacts/*.tgz
+
+      - name: Publish the verified tarball
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$NODE_AUTH_TOKEN" || { echo 'Configure the npm-production environment NPM_TOKEN secret.' >&2; exit 1; }
+          version="$(node -p "require('./packages/coreai-fluentui-react/package.json').version")"
+          dist_tag=latest
+          if [[ "$version" == *-* ]]; then dist_tag=next; fi
+          npm publish package-artifacts/*.tgz --ignore-scripts --access public --registry https://registry.npmjs.org/ --tag "$dist_tag"

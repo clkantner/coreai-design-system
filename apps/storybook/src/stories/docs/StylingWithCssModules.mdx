@@ -1,0 +1,201 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta
+  title="Docs/Styling with CSS Modules"
+  summary="Patch Griffel to use CSS cascade layers so plain CSS/CSS Modules can override Fluent styles."
+/>
+
+# Styling with CSS Modules
+
+Fluent UI generates its styles at runtime with
+[**Griffel**](https://github.com/microsoft/griffel)
+([`@griffel/core`](https://www.npmjs.com/package/@griffel/core)) and injects them
+into the page as `<style>` rules. Because those rules are injected in an
+unpredictable order and carry atomic-class specificity, overriding a component's
+look with your own plain CSS or
+[CSS Modules](https://github.com/css-modules/css-modules) usually means fighting
+the cascade with higher specificity selectors or `!important`.
+
+A small, opt-in patch to `@griffel/core` fixes this by wrapping **every**
+Griffel rule in a
+[CSS cascade layer](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@layer)
+named `griffel`. Any **unlayered** CSS you write — a CSS Module class, a plain
+stylesheet, an inline `style` — then wins over Fluent's styles automatically,
+regardless of specificity or source order.
+
+> **Opt-in:** This is not applied by `@coreai/fluentui-react` out of the box.
+> Apply the patch in your own app if you want CSS Modules to be able to override
+> Fluent component styles. Everything below still works without it — you just
+> lose the "unlayered always wins" guarantee.
+
+---
+
+## Why cascade layers
+
+In the CSS cascade, **unlayered styles always beat layered styles**, no matter
+their specificity or source order:
+
+```css
+/* Fluent / Griffel styles — high specificity, but layered = lowest priority */
+@layer griffel {
+  .r1f29ykk {
+    /* .fui-Button */
+    background-color: var(--colorNeutralBackground1);
+    color: var(--colorNeutralForeground1);
+  }
+}
+
+/* Your CSS Module — a single class, unlayered = always wins */
+.cta {
+  background-color: hotpink;
+}
+```
+
+Even though the Fluent selector has higher specificity and could be injected
+later, `.cta` wins because unlayered rules outrank anything in a layer. So once
+Fluent's styles live inside `@layer griffel`, a single class from a CSS Module
+overrides them — no `!important`, no specificity hacks, no reliance on which
+`<style>` tag was injected last.
+
+---
+
+## The patch
+
+The patch targets [`@griffel/core`](https://www.npmjs.com/package/@griffel/core)
+and changes the DOM renderer to wrap each rule it inserts in the `griffel` layer.
+Griffel ships two builds of the renderer — CJS (`createDOMRenderer.cjs.js`) and
+ESM (`createDOMRenderer.esm.js`) — and the edit differs slightly between them
+(the CJS build calls `safeInsertRule.safeInsertRule`, the ESM build calls
+`safeInsertRule`), so both files must be patched:
+
+```diff
+diff --git a/node_modules/@griffel/core/renderer/createDOMRenderer.cjs.js b/node_modules/@griffel/core/renderer/createDOMRenderer.cjs.js
+index 50359d2..63aec99 100644
+--- a/node_modules/@griffel/core/renderer/createDOMRenderer.cjs.js
++++ b/node_modules/@griffel/core/renderer/createDOMRenderer.cjs.js
+@@ -45,12 +45,13 @@ function createDOMRenderer(targetDocument = typeof document === 'undefined' ? un
+           if (process.env.NODE_ENV !== 'production' && isDevToolsEnabled.isDevToolsEnabled) {
+             store.debugData.addCSSRule(ruleCSS);
+           }
++          const layeredRuleCSS = `@layer griffel{${ruleCSS}}`;
+           if (unstable_filterCSSRule) {
+             if (unstable_filterCSSRule(ruleCSS)) {
+-              safeInsertRule.safeInsertRule(sheet, ruleCSS);
++              safeInsertRule.safeInsertRule(sheet, layeredRuleCSS);
+             }
+           } else {
+-            safeInsertRule.safeInsertRule(sheet, ruleCSS);
++            safeInsertRule.safeInsertRule(sheet, layeredRuleCSS);
+           }
+         }
+       }
+diff --git a/node_modules/@griffel/core/renderer/createDOMRenderer.esm.js b/node_modules/@griffel/core/renderer/createDOMRenderer.esm.js
+index 5ca99a7..8351957 100644
+--- a/node_modules/@griffel/core/renderer/createDOMRenderer.esm.js
++++ b/node_modules/@griffel/core/renderer/createDOMRenderer.esm.js
+@@ -43,12 +43,13 @@ function createDOMRenderer(targetDocument = typeof document === 'undefined' ? un
+           if (process.env.NODE_ENV !== 'production' && isDevToolsEnabled) {
+             debugData.addCSSRule(ruleCSS);
+           }
++          const layeredRuleCSS = `@layer griffel{${ruleCSS}}`;
+           if (unstable_filterCSSRule) {
+             if (unstable_filterCSSRule(ruleCSS)) {
+-              safeInsertRule(sheet, ruleCSS);
++              safeInsertRule(sheet, layeredRuleCSS);
+             }
+           } else {
+-            safeInsertRule(sheet, ruleCSS);
++            safeInsertRule(sheet, layeredRuleCSS);
+           }
+         }
+       }
+```
+
+---
+
+## Applying the patch
+
+The patch is distributed as a
+[`patch-package`](https://www.npmjs.com/package/patch-package) diff.
+
+1. Generate the patch against **your** installed `@griffel/core` version rather
+   than copying an existing `.patch` verbatim. `patch-package` filenames and the
+   surrounding source (line numbers, hashes, `isDevToolsEnabled` naming) are
+   version-specific, and a mismatched diff can fail to apply or corrupt the
+   file. Apply the two edits above by hand, then run
+   `npx patch-package @griffel/core` to capture
+   `patches/@griffel+core+<version>.patch`.
+2. Pin `@griffel/core` to the patched version so the diff applies cleanly:
+
+   ```json
+   // package.json
+   "devDependencies": {
+     "@griffel/core": "1.XX.XX"
+   }
+   ```
+
+3. Run `patch-package` after install:
+
+   ```json
+   // package.json
+   "scripts": {
+     "postinstall": "patch-package"
+   }
+   ```
+
+4. Reinstall dependencies (`npm install`) so the postinstall hook applies the
+   patch.
+
+> Using pnpm or Yarn? Use their native patch tooling
+> ([pnpm patch \<pkg\>](https://pnpm.io/cli/patch) /
+> [yarn patch \<package\>](https://yarnpkg.com/cli/patch)) instead of
+> `patch-package` — the diff is the same.
+>
+> Because the patch only edits the renderer's rule-insertion path, it applies
+> cleanly across `@griffel/core` versions as long as that code is unchanged. If
+> a Griffel upgrade moves this logic, re-generate the diff against the new
+> source.
+
+---
+
+## Using it
+
+With the patch in place, style any Fluent / CoreAI component by attaching a
+class from a CSS Module. Your rule wins because it is unlayered:
+
+```css
+/* Button.module.css */
+.cta {
+  background-color: hotpink;
+  border-radius: 4px;
+}
+```
+
+```tsx
+import { Button } from '@coreai/fluentui-react';
+import styles from './Button.module.css';
+
+export function Cta() {
+  // The CSS Module class overrides Fluent's layered styles — no !important.
+  return <Button className={styles.cta}>Buy now</Button>;
+}
+```
+
+---
+
+## Caveats
+
+- **All Fluent styles drop below unlayered CSS.** Any global unlayered rule in
+  your app can now unintentionally override Fluent components. Keep your own base
+  styles scoped (CSS Modules do this for you).
+- **Version-sensitive.** The patch filename encodes the `@griffel/core` version
+  it was generated for. It applies across versions while the renderer's
+  insertion code is unchanged; when a Griffel upgrade touches that code,
+  re-generate the patch against the new source.
+- **Runtime insertion only.** The patch layers styles that Griffel injects at
+  runtime; it does not change build-time CSS extraction. If you use
+  `@griffel/vite-plugin` or another extraction tool, layer that output
+  separately.
+- **Token overrides still use `makeStyles`.** Prefer Griffel `makeStyles` +
+  design tokens for theme-aware styling; reach for CSS Modules when you need a
+  one-off visual override that the token system doesn't express.

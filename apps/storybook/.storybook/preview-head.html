@@ -1,0 +1,42 @@
+<!--
+  First-paint background for the preview iframe.
+
+  Storybook fully reloads the preview iframe on some navigations (notably
+  story <-> docs). Our React decorator in preview.tsx paints <html>/<body>
+  with the theme background, but that only runs after the bundle boots, so a
+  freshly reloaded iframe flashes the browser default (white) for a frame.
+
+  This inline style + script run before first paint. They read the active
+  `mode` global straight from the iframe URL (e.g. `?globals=theme:coreai;mode:dark`)
+  and set the background to match colorNeutralBackground1 for that mode
+  (#1f1f1f dark / #ffffff light), so there is no white flash. They also seed
+  `--sb-preparing-bg` so Storybook's own preparing overlay is correct before the
+  bundle boots; the decorator in preview.tsx then owns both once React mounts.
+-->
+<style id="pre-paint-bg">
+  html,
+  body {
+    /* keep in sync with colorNeutralBackground1 (dark) */
+    background: #1f1f1f;
+  }
+</style>
+<script>
+  (function () {
+    try {
+      var src = decodeURIComponent(window.location.search + window.location.hash);
+      var m = /mode:(light|dark)/.exec(src);
+      var isDark = !m || m[1] === 'dark';
+      // keep in sync with colorNeutralBackground1 (dark / light)
+      var bg = isDark ? '#1f1f1f' : '#ffffff';
+      document.documentElement.style.background = bg;
+      document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+      document.documentElement.style.setProperty('--sb-preparing-bg', bg);
+      var style = document.getElementById('pre-paint-bg');
+      if (style) {
+        style.textContent = 'html,body{background:' + bg + '}';
+      }
+    } catch (e) {
+      /* fall back to the dark default in the <style> above */
+    }
+  })();
+</script>
