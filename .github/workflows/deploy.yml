@@ -3,19 +3,6 @@ name: Deploy Azure apps
 on:
   push:
     branches: [main]
-    paths:
-      - apps/docsite/**
-      - apps/storybook/**
-      - shared/**
-      - packages/coreai-fluentui-react/**
-      - .github/workflows/ci.yml
-      - .github/workflows/deploy.yml
-      - .github/workflows/scripts/**
-      - scripts/check-public-source.mjs
-      - scripts/check-public-source.test.mjs
-      - .npmrc
-      - package.json
-      - package-lock.json
   workflow_dispatch:
 
 permissions:

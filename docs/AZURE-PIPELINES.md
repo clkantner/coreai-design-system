@@ -8,7 +8,7 @@ entry point.
 | Workflow                | Definition                                                                | Trigger                                                                 |
 | ----------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | CI / Validate           | [ci.yml](../.github/workflows/ci.yml)                                     | Pull requests and pushes to `main`; manual; reusable                    |
-| Deploy Azure apps       | [deploy.yml](../.github/workflows/deploy.yml)                             | Relevant pushes to `main`; manual; disabled until approved              |
+| Deploy Azure apps       | [deploy.yml](../.github/workflows/deploy.yml)                             | Every push to `main`; manual; disabled until enabled                    |
 | Check Fluent UI updates | [check-fluent-updates.yml](../.github/workflows/check-fluent-updates.yml) | Monday 09:00 UTC; manual; disabled until enabled                        |
 | Publish package         | [publish-package.yml](../.github/workflows/publish-package.yml)           | See the [release guide](../packages/coreai-fluentui-react/RELEASING.md) |
 
@@ -51,13 +51,13 @@ The deployment workflow requires all of:
    Authenticated site deployment is independent of `OSS_RELEASE_APPROVED` and
    npm publishing; keep package publishing disabled until separately approved.
 4. The reusable CI validation succeeds for the same source revision.
-5. The `azure-production` environment's protection rules approve the deployment.
+5. The `azure-production` environment permits only the `main` branch.
 
-Leave the deployment variable absent or `false` in a clean repository. GitHub
-environments do not automatically require approval: an administrator must create
-the environment, configure required reviewers and main-only deployment branches,
-and prevent self-approval **before** enabling the variable. No Azure credentials
-are available to ordinary PR CI.
+Leave the deployment variable absent or `false` in a clean repository. Before
+enabling it, create the environment with main-only deployment branches and no
+additional required reviewer or wait timer. The protected PR merge is approval:
+every push to main automatically validates and deploys that revision. No Azure
+credentials are available to ordinary PR CI.
 
 Only ZIP application content is deployed. The workflow **does not run Bicep,
 create resources, reset app settings, alter Easy Auth, or change Entra

@@ -30,9 +30,9 @@ It never changes their auth/settings or provisions infrastructure.
 Before enabling deployment, an administrator must:
 
 1. Create the GitHub environment **`azure-production`**.
-2. Configure **required reviewers**, prevent self-review, and restrict deployment
-   branches to **`main`**. Use the organization's protection policy; ensure the
-   repository plan supports the intended protection rules.
+2. Restrict environment deployment branches to **`main`**. The protected
+   pull-request merge is the deployment approval; do not add a second required
+   reviewer or wait timer to this environment. Preserve repository review rules.
 3. Verify the target hosts, identity, and auth prerequisites below.
 4. Set repository Actions variable **`ENABLE_AZURE_DEPLOY` = `true`** only after
    deployment approval and disabling the old Azure DevOps deployment pipeline.
@@ -112,18 +112,17 @@ An Azure DevOps service connection's federated credential does not authenticate 
 GitHub workflow: add the GitHub trust explicitly and retire old trust only after
 the approved cutover.
 
-### Read-only login test
+### Deploy on merge
 
-After merging [verify-azure-access.yml](../.github/workflows/verify-azure-access.yml)
-to main, manually run **Verify Azure access (read only)** on `main`. It uses the
-same environment and identity as deployment, but performs only OIDC login,
-existing hosting-authentication checks, and app metadata reads. It does not
-install dependencies, build, upload application content, or publish npm.
-It can run while `ENABLE_AZURE_DEPLOY=false`.
+Once the workflow is enabled and `ENABLE_AZURE_DEPLOY=true`, every push to
+`main` starts **Deploy Azure apps**. The workflow validates that revision, builds
+and packages both hosts, signs in with OIDC, checks existing authentication, and
+deploys the docsite followed by Storybook/MCP. It checks authentication again
+after deployment. There is no separate login-test workflow or second human approval.
 
-Environment protection rules still apply. If self-review is prevented, a run's
-initiator cannot approve that run. A successful test proves login and required
-read access, not deployment write permissions or application health after an upload.
+Manual dispatch on `main` retries the same deployment path. A failed validation,
+build, login, or preflight prevents subsequent deployment steps; inspect the failed
+step before retrying. Set `ENABLE_AZURE_DEPLOY=false` to stop new deployments.
 
 ## App & MCP hosting (Azure App Service + Entra)
 
@@ -217,15 +216,15 @@ Keep an active owner for the API app registration to meet tenant lifecycle polic
 
 ### Troubleshooting
 
-| Symptom                         | Check                                                                                                                 |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Deployment jobs skipped         | Workflow enabled, exact repository/main ref, and repository `ENABLE_AZURE_DEPLOY=true`                                |
-| Waiting for deployment          | `azure-production` required-reviewer approval                                                                         |
-| OIDC `AADSTS70021`              | Exact environment subject, issuer, audience, tenant, and client ID                                                    |
-| Azure preflight fails           | Identity read/list permissions and existing Easy Auth/MCP configuration; inspect securely in Azure, not workflow logs |
-| ZIP deploy forbidden            | Both target app scopes and publishing/configuration permissions                                                       |
-| MCP returns `401` after sign-in | Existing tenant, v2 GUID audience, delegated scope, and registration agreement                                        |
-| Bot PR has no CI                | Maintainer must close/reopen after the latest bot update; `GITHUB_TOKEN` does not trigger downstream workflows        |
+| Symptom                         | Check                                                                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Deployment jobs skipped         | Workflow enabled, exact repository/main ref, and repository `ENABLE_AZURE_DEPLOY=true`                                       |
+| Waiting for deployment          | Earlier deployment in the concurrency group; remove unintended environment reviewer/wait gates per the merge-approval policy |
+| OIDC `AADSTS70021`              | Exact environment subject, issuer, audience, tenant, and client ID                                                           |
+| Azure preflight fails           | Identity read/list permissions and existing Easy Auth/MCP configuration; inspect securely in Azure, not workflow logs        |
+| ZIP deploy forbidden            | Both target app scopes and publishing/configuration permissions                                                              |
+| MCP returns `401` after sign-in | Existing tenant, v2 GUID audience, delegated scope, and registration agreement                                               |
+| Bot PR has no CI                | Maintainer must close/reopen after the latest bot update; `GITHUB_TOKEN` does not trigger downstream workflows               |
 
 Do not work around authentication errors by disabling Easy Auth or MCP validation.
 Do not print `az webapp config appsettings list` output or enable shell tracing in

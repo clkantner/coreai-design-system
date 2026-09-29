@@ -218,11 +218,12 @@ Deployment requires all of the following:
 - The exact repository `microsoft/coreai-design-system` and branch `main`
 - Repository variable `ENABLE_AZURE_DEPLOY=true`; authenticated site deployment
   does not require OSS release approval or enable npm publishing
-- Passing CI and approval through the protected `azure-production` environment
+- Passing CI and main-only access to the `azure-production` environment;
+  the protected PR merge is approval, with no second human deployment gate
 - Azure OIDC configuration and existing host identifiers supplied through that
   environment, as documented in [CI/CD setup](../../docs/CI-CD-SETUP.md)
 
-The workflow responds to relevant main-branch changes, including this workspace,
+The workflow responds to every main-branch push,
 and supports manual dispatch subject to the same gates. It verifies existing
 hosting authentication before deploying. No monitoring workflow is included.
 
