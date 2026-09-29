@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateHostingAuth } from './check-hosting-auth.mjs';
+import { main, validateHostingAuth } from './check-hosting-auth.mjs';
 
 const auth = () => ({
   platform: { enabled: true },
@@ -70,4 +70,44 @@ test('rejects disabled MCP authentication and mismatched registrations', () => {
   const other = auth();
   other.identityProviders.azureActiveDirectory.registration.clientId = 'other-client';
   assert.throws(() => validateHostingAuth(auth(), other, settings()), /same client/);
+});
+
+test('preflight reads explicit V2 auth endpoints and existing app settings without writes', () => {
+  const calls = [];
+  main(
+    (args) => {
+      calls.push(args);
+      return args[0] === 'rest' ? { properties: auth() } : settings();
+    },
+    {
+      AZURE_SUBSCRIPTION_ID: 'subscription',
+      AZURE_RESOURCE_GROUP: 'resource group',
+      DOCSITE_APP_NAME: 'docs',
+      STORYBOOK_APP_NAME: 'storybook',
+    },
+  );
+  const url = (app) =>
+    'https://management.azure.com/subscriptions/subscription/resourceGroups/resource%20group' +
+    `/providers/Microsoft.Web/sites/${app}/config/authsettingsV2?api-version=2024-04-01`;
+  assert.deepEqual(calls, [
+    ['rest', '--method', 'get', '--url', url('docs')],
+    ['rest', '--method', 'get', '--url', url('storybook')],
+    [
+      'webapp',
+      'config',
+      'appsettings',
+      'list',
+      '--resource-group',
+      'resource group',
+      '--name',
+      'storybook',
+    ],
+  ]);
+});
+
+test('preflight requires subscription configuration before reading Azure', () => {
+  assert.throws(
+    () => main(() => assert.fail('Must not call Azure'), {}),
+    /Missing deployment variable: AZURE_SUBSCRIPTION_ID/,
+  );
 });

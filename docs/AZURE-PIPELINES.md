@@ -47,13 +47,13 @@ The deployment workflow requires all of:
 
 1. Repository is exactly `microsoft/coreai-design-system`.
 2. Ref is exactly `refs/heads/main`, including for manual runs.
-3. Repository Actions variables `OSS_RELEASE_APPROVED` and `ENABLE_AZURE_DEPLOY`
-   are both exactly `true`. The first is the shared open-source approval gate;
-   the second enables Azure deployments specifically.
+3. Repository Actions variable `ENABLE_AZURE_DEPLOY` is exactly `true`.
+   Authenticated site deployment is independent of `OSS_RELEASE_APPROVED` and
+   npm publishing; keep package publishing disabled until separately approved.
 4. The reusable CI validation succeeds for the same source revision.
 5. The `azure-production` environment's protection rules approve the deployment.
 
-Leave both repository variables absent or `false` in a clean repository. GitHub
+Leave the deployment variable absent or `false` in a clean repository. GitHub
 environments do not automatically require approval: an administrator must create
 the environment, configure required reviewers and main-only deployment branches,
 and prevent self-approval **before** enabling the variable. No Azure credentials
@@ -63,7 +63,8 @@ Only ZIP application content is deployed. The workflow **does not run Bicep,
 create resources, reset app settings, alter Easy Auth, or change Entra
 registrations**. Existing infrastructure must be prepared separately by its
 owners. The authenticated preflight reads the current auth configuration and
-fails closed if either UI or MCP authentication is missing/disabled. Responses,
+fails closed if either UI or MCP authentication is missing/disabled. The check
+reads the explicit V2 auth endpoint and runs again after deployment. Responses,
 app settings, and credentials are not printed or uploaded as artifacts.
 
 The docsite ZIP retains `dist/`, `package.json`, and `server.js` at its root.

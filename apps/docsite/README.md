@@ -216,7 +216,8 @@ Linux, with the docsite served by `npm start` / `node server.js`.
 Deployment requires all of the following:
 
 - The exact repository `microsoft/coreai-design-system` and branch `main`
-- Repository variables `OSS_RELEASE_APPROVED=true` and `ENABLE_AZURE_DEPLOY=true`
+- Repository variable `ENABLE_AZURE_DEPLOY=true`; authenticated site deployment
+  does not require OSS release approval or enable npm publishing
 - Passing CI and approval through the protected `azure-production` environment
 - Azure OIDC configuration and existing host identifiers supplied through that
   environment, as documented in [CI/CD setup](../../docs/CI-CD-SETUP.md)

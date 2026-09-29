@@ -30,7 +30,6 @@ jobs:
     if: >-
       github.repository == 'microsoft/coreai-design-system' &&
       github.ref == 'refs/heads/main' &&
-      vars.OSS_RELEASE_APPROVED == 'true' &&
       vars.ENABLE_AZURE_DEPLOY == 'true'
     uses: ./.github/workflows/ci.yml
 
@@ -39,7 +38,6 @@ jobs:
     if: >-
       github.repository == 'microsoft/coreai-design-system' &&
       github.ref == 'refs/heads/main' &&
-      vars.OSS_RELEASE_APPROVED == 'true' &&
       vars.ENABLE_AZURE_DEPLOY == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -48,6 +46,7 @@ jobs:
       contents: read
       id-token: write
     env:
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
       DOCSITE_APP_NAME: ${{ vars.DOCSITE_APP_NAME }}
       STORYBOOK_APP_NAME: ${{ vars.STORYBOOK_APP_NAME }}
@@ -104,3 +103,5 @@ jobs:
           set -euo pipefail
           az webapp deploy --resource-group "$AZURE_RESOURCE_GROUP" --name "$STORYBOOK_APP_NAME" \
             --src-path .deployment/deploy-storybook.zip --type zip --track-status false --output none
+      - name: Verify hosting authentication after deployment (read only)
+        run: node .github/workflows/scripts/check-hosting-auth.mjs
