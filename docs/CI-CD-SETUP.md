@@ -82,15 +82,20 @@ Have an Azure administrator create or reuse an Entra application/service princip
 or user-assigned managed identity in the subscription's tenant. Do not create a
 client secret. Add this federated identity credential:
 
-| Field    | Value                                                              |
-| -------- | ------------------------------------------------------------------ |
-| Issuer   | `https://token.actions.githubusercontent.com`                      |
-| Subject  | `repo:microsoft/coreai-design-system:environment:azure-production` |
-| Audience | `api://AzureADTokenExchange`                                       |
+| Field    | Value                                                                                 |
+| -------- | ------------------------------------------------------------------------------------- |
+| Issuer   | `https://token.actions.githubusercontent.com`                                         |
+| Subject  | `repo:microsoft@6154722/coreai-design-system@1386129926:environment:azure-production` |
+| Audience | `api://AzureADTokenExchange`                                                          |
 
 The environment subject is required even though deployment is restricted to main;
 `repo:…:ref:refs/heads/main` is not the claim emitted by an environment job.
 The deploy job requests `id-token: write`; ordinary CI does not.
+
+This repository uses GitHub's immutable subject format. Verify the current
+`sub_claim_prefix` with
+`gh api repos/microsoft/coreai-design-system/actions/oidc/customization/sub`
+before configuring trust; do not substitute the older name-only subject.
 
 Grant the identity **Website Contributor** on each existing App Service, including
 its configuration and publishing child operations, with sufficient read access to
@@ -106,6 +111,19 @@ The administrator must confirm the role assignment supports reading each app's
 An Azure DevOps service connection's federated credential does not authenticate a
 GitHub workflow: add the GitHub trust explicitly and retire old trust only after
 the approved cutover.
+
+### Read-only login test
+
+After merging [verify-azure-access.yml](../.github/workflows/verify-azure-access.yml)
+to main, manually run **Verify Azure access (read only)** on `main`. It uses the
+same environment and identity as deployment, but performs only OIDC login,
+existing hosting-authentication checks, and app metadata reads. It does not
+install dependencies, build, upload application content, or publish npm.
+It can run while `ENABLE_AZURE_DEPLOY=false`.
+
+Environment protection rules still apply. If self-review is prevented, a run's
+initiator cannot approve that run. A successful test proves login and required
+read access, not deployment write permissions or application health after an upload.
 
 ## App & MCP hosting (Azure App Service + Entra)
 
