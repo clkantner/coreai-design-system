@@ -31,10 +31,10 @@ Then open the PR with the `gh` CLI (`gh pr create`). Use only `gh` for this — 
 - **Assignee** — the author of the PR (assign it to themselves).
 - **Reviewers** — everyone else on this team (exclude the author or the command will fail):
   - `arniebradfo` — James Bradford - UX Engineer
-  - `???` — Owen Richard - UX Designer
-  - `???` — Alex Britez - UX Engineer
-  - `???` — Dana Lachman - UI Engineer
-  - `???` — Kham Udom - UI Engineer
+  - `Owen-Richard` — Owen Richard - UX Designer
+  - `unthinkmedia` — Alex Britez - UX Engineer
+  - `tinydinosaurs` — Dana Lachman - UI Engineer
+  - `khamudom` — Kham Udom - UI Engineer
 - **Optional reviewers** — add when the PR touches specific areas:
   - `weastler` — Will Eastler - UX Engineer - when updating anything related to build or deployment.
 
