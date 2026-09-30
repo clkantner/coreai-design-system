@@ -58,7 +58,7 @@ These are owner/reviewer decisions, not something a code change can certify:
 5. **GitHub identity:** use a personal GitHub account authorized for the Microsoft
    organization. An Enterprise Managed User account may not be able to access the
    destination. Verify the active account and exact remote before pushing.
-6. **Azure deployment:** configure the environment approvals, identity, secrets,
+6. **Azure deployment:** configure main-only environment access, identity,
    and variables described in [CI-CD-SETUP.md](CI-CD-SETUP.md). Verify existing
    authentication settings before and after the first approved deployment. Do
    not enable deployment merely to test a source migration.

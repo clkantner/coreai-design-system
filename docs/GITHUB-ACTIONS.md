@@ -1,19 +1,39 @@
-# GitHub Actions (Azure Pipelines migration)
+# GitHub Actions
 
-The source repository and pull requests move to
-<https://github.com/microsoft/coreai-design-system>. This document retains its
-filename to preserve existing links; Azure Pipelines is no longer the automation
-entry point.
+Source, pull requests, and automation live in
+<https://github.com/microsoft/coreai-design-system>.
 
 | Workflow                | Definition                                                                | Trigger                                                                 |
 | ----------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | CI / Validate           | [ci.yml](../.github/workflows/ci.yml)                                     | Pull requests and pushes to `main`; manual; reusable                    |
-| Deploy Azure apps       | [deploy.yml](../.github/workflows/deploy.yml)                             | Relevant pushes to `main`; manual; disabled until approved              |
+| Deploy Azure apps       | [deploy.yml](../.github/workflows/deploy.yml)                             | Every push to `main`; manual; disabled until enabled                    |
 | Check Fluent UI updates | [check-fluent-updates.yml](../.github/workflows/check-fluent-updates.yml) | Monday 09:00 UTC; manual; disabled until enabled                        |
 | Publish package         | [publish-package.yml](../.github/workflows/publish-package.yml)           | See the [release guide](../packages/coreai-fluentui-react/RELEASING.md) |
 
-There is no telemetry workflow. The replaced Azure CI, deployment, dependency-update
-definitions, and Azure PR API script have been removed.
+Site deployment and npm publication are independent. Merging to main can deploy
+the authenticated sites; it does not publish a package.
+
+## Running and troubleshooting workflows
+
+Open [Actions](https://github.com/microsoft/coreai-design-system/actions), select
+the workflow, and inspect the failed job and step. For a manual run, select
+**Run workflow** and choose `main`; deployment and publishing reject other branches.
+Disabled workflows must be enabled before they can run. Enabling a workflow alone
+does not satisfy its repository-variable gates.
+
+- [Environment configuration](https://github.com/microsoft/coreai-design-system/settings/environments):
+  Azure identity/target variables belong to `azure-production`; npm credentials
+  and release approvals belong to `npm-production`.
+- [Repository variables](https://github.com/microsoft/coreai-design-system/settings/variables/actions):
+  `ENABLE_AZURE_DEPLOY`, `ENABLE_FLUENT_UPDATES`, and the separate npm release gates.
+- Set `ENABLE_AZURE_DEPLOY=false` or disable **Deploy Azure apps** to stop new
+  deployments. This does not cancel queued or running work; inspect those runs
+  separately before switching deployment systems or rolling back.
+
+Only one deployment system should write to the Azure apps. Keep the retired
+deployer disabled, even while its validation pipeline remains available for
+outstanding PRs. A manual deployment rerun uploads application content again;
+it is not a login-only check.
 
 ## Validation
 
@@ -24,7 +44,7 @@ connection, private feed, or write token**. In-repository apps resolve
 Validation preserves formatting, zero-warning lint, workspace type checks,
 guidance-generation tests, Storybook build/content verification, docsite tests
 against the same built Storybook index, host OAuth tests, Chromium installation,
-and browser component tests. Automation safeguards have additional Node tests.
+and browser component tests.
 Fork contributions use `pull_request`, not privileged `pull_request_target`.
 
 Before dependency installation, CI runs `npm run check:public-source` and the
@@ -47,23 +67,24 @@ The deployment workflow requires all of:
 
 1. Repository is exactly `microsoft/coreai-design-system`.
 2. Ref is exactly `refs/heads/main`, including for manual runs.
-3. Repository Actions variables `OSS_RELEASE_APPROVED` and `ENABLE_AZURE_DEPLOY`
-   are both exactly `true`. The first is the shared open-source approval gate;
-   the second enables Azure deployments specifically.
+3. Repository Actions variable `ENABLE_AZURE_DEPLOY` is exactly `true`.
+   Authenticated site deployment is independent of `OSS_RELEASE_APPROVED` and
+   npm publishing; keep package publishing disabled until separately approved.
 4. The reusable CI validation succeeds for the same source revision.
-5. The `azure-production` environment's protection rules approve the deployment.
+5. The `azure-production` environment permits only the `main` branch.
 
-Leave both repository variables absent or `false` in a clean repository. GitHub
-environments do not automatically require approval: an administrator must create
-the environment, configure required reviewers and main-only deployment branches,
-and prevent self-approval **before** enabling the variable. No Azure credentials
-are available to ordinary PR CI.
+Leave the deployment variable absent or `false` in a clean repository. Before
+enabling it, create the environment with main-only deployment branches and no
+additional required reviewer or wait timer. The protected PR merge is approval:
+every push to main automatically validates and deploys that revision. No Azure
+credentials are available to ordinary PR CI.
 
 Only ZIP application content is deployed. The workflow **does not run Bicep,
 create resources, reset app settings, alter Easy Auth, or change Entra
 registrations**. Existing infrastructure must be prepared separately by its
 owners. The authenticated preflight reads the current auth configuration and
-fails closed if either UI or MCP authentication is missing/disabled. Responses,
+fails closed if either UI or MCP authentication is missing/disabled. The check
+reads the explicit V2 auth endpoint and runs again after deployment. Responses,
 app settings, and credentials are not printed or uploaded as artifacts.
 
 The docsite ZIP retains `dist/`, `package.json`, and `server.js` at its root.
@@ -102,23 +123,16 @@ must close and reopen the generated PR (after each automated update) to trigger
 normal required pull-request CI, then review and merge normally. A manual CI run
 on `main` is not a substitute for PR-head checks. Do not bypass branch protection.
 
-## Cutover checklist
+## Repository setup
 
-These are operator prerequisites, **not actions performed by the migration**:
-
-1. Create/approve the GitHub repository and migrate source/history through the
-   organization's normal process.
-2. Permit the pinned `actions/checkout`, `actions/setup-node`, `azure/login`,
+1. Permit the pinned `actions/checkout`, `actions/setup-node`, `azure/login`,
    and `peter-evans/create-pull-request` actions in organization policy.
-3. Run secretless PR CI and configure the `main` ruleset.
-4. Disable the retired Azure Pipelines schedules/triggers and retire obsolete
-   build-service grants, variable groups, and service-connection authorizations.
-   Deleting YAML alone does not disable existing Azure DevOps pipeline records.
-5. Configure the protected Azure environment and OIDC trust, verify the existing
+2. Run secretless PR CI and configure the `main` ruleset.
+3. Configure the main-only Azure environment and OIDC trust, verify the existing
    hosting settings, and only then opt in to deployment.
-6. Configure dependency-update permissions/labels and opt in separately.
-7. Complete the separate npm publishing approval and trusted-publisher setup in
+4. Configure dependency-update permissions/labels and opt in separately.
+5. Complete the separate npm publishing approval and authentication setup in
    [RELEASING.md](../packages/coreai-fluentui-react/RELEASING.md).
 
-No target-repository API access, pushes, publication, deployments, or cloud
-configuration changes are needed to prepare or locally validate this migration.
+Historical source handoff and retirement of the previous automation are covered
+in [the open-source preparation checklist](OPEN-SOURCE-PREPARATION.md).

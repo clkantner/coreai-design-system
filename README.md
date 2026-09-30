@@ -31,7 +31,8 @@ The existing Azure-hosted services keep their current access controls.
 
 - Consumer + extension guide: [packages/coreai-fluentui-react/README.md](packages/coreai-fluentui-react/README.md)
 - Storybook, `fluent-stories/`, and the MCP for AI agents (authoring): [apps/storybook/README.md](apps/storybook/README.md)
-- GitHub Actions and Azure app + MCP hosting/auth: [docs/CI-CD-SETUP.md](docs/CI-CD-SETUP.md)
+- GitHub Actions workflows and operations: [docs/GITHUB-ACTIONS.md](docs/GITHUB-ACTIONS.md)
+- Azure app + MCP hosting/auth: [docs/CI-CD-SETUP.md](docs/CI-CD-SETUP.md)
 - Approval and clean-source handoff checklist: [docs/OPEN-SOURCE-PREPARATION.md](docs/OPEN-SOURCE-PREPARATION.md)
 
 ## Documentation organization

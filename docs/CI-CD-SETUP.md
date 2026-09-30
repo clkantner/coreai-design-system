@@ -1,7 +1,7 @@
 # CI/CD and Azure hosting setup
 
 Source and pull requests: <https://github.com/microsoft/coreai-design-system>.
-The [workflow overview and cutover checklist](AZURE-PIPELINES.md) cover CI and
+The [GitHub Actions overview](GITHUB-ACTIONS.md) covers CI and
 dependency automation. Publishing has a separate approval process documented in
 [RELEASING.md](../packages/coreai-fluentui-react/RELEASING.md).
 
@@ -30,14 +30,19 @@ It never changes their auth/settings or provisions infrastructure.
 Before enabling deployment, an administrator must:
 
 1. Create the GitHub environment **`azure-production`**.
-2. Configure **required reviewers**, prevent self-review, and restrict deployment
-   branches to **`main`**. Use the organization's protection policy; ensure the
-   repository plan supports the intended protection rules.
+2. Restrict environment deployment branches to **`main`**. The protected
+   pull-request merge is the deployment approval; do not add a second required
+   reviewer or wait timer to this environment. Preserve repository review rules.
 3. Verify the target hosts, identity, and auth prerequisites below.
-4. Set repository Actions variables **`OSS_RELEASE_APPROVED` = `true`** and
-   **`ENABLE_AZURE_DEPLOY` = `true`** only after open-source and deployment approval.
-   These must be repository variables, not just environment variables: the
-   workflow evaluates them before starting environment jobs.
+4. Set repository Actions variable **`ENABLE_AZURE_DEPLOY` = `true`** only after
+   deployment approval and disabling the old Azure DevOps deployment pipeline.
+   This must be a repository variable, not just an environment variable: the
+   workflow evaluates it before starting environment jobs.
+
+Deploying these existing Entra-authenticated sites does not publish an npm
+package or make the sites public. It does not require `OSS_RELEASE_APPROVED`.
+Keep `OSS_RELEASE_APPROVED` and `NPM_PUBLISH_ENABLED` absent/false until the
+separate package-release approvals are complete.
 
 The exact repository and main-ref checks also prevent a copied repository or a
 manual feature-branch run from deploying. An unset/false approval variable skips
@@ -62,7 +67,6 @@ Repository variables:
 
 | Variable                | Default / effect                                                                       |
 | ----------------------- | -------------------------------------------------------------------------------------- |
-| `OSS_RELEASE_APPROVED`  | Absent/false: deployment disabled; exact `true`: shared open-source release approval   |
 | `ENABLE_AZURE_DEPLOY`   | Absent/false: deployment disabled; exact `true`: allow protected main deployments      |
 | `ENABLE_FLUENT_UPDATES` | Absent/false: update automation disabled; exact `true`: allow scheduled/manual updates |
 
@@ -78,15 +82,20 @@ Have an Azure administrator create or reuse an Entra application/service princip
 or user-assigned managed identity in the subscription's tenant. Do not create a
 client secret. Add this federated identity credential:
 
-| Field    | Value                                                              |
-| -------- | ------------------------------------------------------------------ |
-| Issuer   | `https://token.actions.githubusercontent.com`                      |
-| Subject  | `repo:microsoft/coreai-design-system:environment:azure-production` |
-| Audience | `api://AzureADTokenExchange`                                       |
+| Field    | Value                                                                                 |
+| -------- | ------------------------------------------------------------------------------------- |
+| Issuer   | `https://token.actions.githubusercontent.com`                                         |
+| Subject  | `repo:microsoft@6154722/coreai-design-system@1386129926:environment:azure-production` |
+| Audience | `api://AzureADTokenExchange`                                                          |
 
 The environment subject is required even though deployment is restricted to main;
 `repo:…:ref:refs/heads/main` is not the claim emitted by an environment job.
 The deploy job requests `id-token: write`; ordinary CI does not.
+
+This repository uses GitHub's immutable subject format. Verify the current
+`sub_claim_prefix` with
+`gh api repos/microsoft/coreai-design-system/actions/oidc/customization/sub`
+before configuring trust; do not substitute the older name-only subject.
 
 Grant the identity **Website Contributor** on each existing App Service, including
 its configuration and publishing child operations, with sufficient read access to
@@ -96,11 +105,24 @@ can narrow this further subject to the tenant's deployment policy. Do not grant
 subscription-wide Contributor or rights to administer Entra app registrations.
 Infrastructure provisioning is outside this workflow.
 
-The administrator must confirm the role assignment supports `az webapp auth show`,
+The administrator must confirm the role assignment supports reading each app's
+`config/authsettingsV2` resource through `az rest`,
 `az webapp config appsettings list`, and `az webapp deploy` for **both** apps.
 An Azure DevOps service connection's federated credential does not authenticate a
 GitHub workflow: add the GitHub trust explicitly and retire old trust only after
 the approved cutover.
+
+### Deploy on merge
+
+Once the workflow is enabled and `ENABLE_AZURE_DEPLOY=true`, every push to
+`main` starts **Deploy Azure apps**. The workflow validates that revision, builds
+and packages both hosts, signs in with OIDC, checks existing authentication, and
+deploys the docsite followed by Storybook/MCP. It checks authentication again
+after deployment. There is no separate login-test workflow or second human approval.
+
+Manual dispatch on `main` retries the same deployment path. A failed validation,
+build, login, or preflight prevents subsequent deployment steps; inspect the failed
+step before retrying. Set `ENABLE_AZURE_DEPLOY=false` to stop new deployments.
 
 ## App & MCP hosting (Azure App Service + Entra)
 
@@ -117,7 +139,8 @@ provided by the hosting owners. Existing hosting requires authorization;
 moving source to GitHub does not change those access restrictions.
 The Bicep source remains at [infra/main.bicep](../infra/main.bicep) for
 separately approved infrastructure management. GitHub Actions does **not** apply it.
-Infrastructure-only changes therefore do not automatically trigger app deployment.
+Infrastructure-only merges still trigger an application redeployment, but do not
+apply infrastructure changes.
 
 The deployment job provisions the pinned Fluent story checkout, builds Storybook
 and its MCP manifests, verifies its content, then builds the docsite against that
@@ -150,7 +173,8 @@ The Storybook `/mcp` endpoint and OAuth discovery/facade routes remain excluded
 from Easy Auth so clients receive protocol-compatible OAuth challenges rather
 than an HTML login redirect. Each facade route validates its own input.
 
-Before deploying any ZIP, the workflow reads existing auth settings into memory
+Before deploying any ZIP and again after deployment, the workflow reads existing
+V2 auth settings directly from the ARM `config/authsettingsV2` endpoint into memory
 and requires enabled Entra Easy Auth with `requireAuthentication=true` for both
 apps. It requires all of the following existing Storybook app settings and
 rejects `MCP_AUTH_ENABLED=false`:
@@ -193,15 +217,15 @@ Keep an active owner for the API app registration to meet tenant lifecycle polic
 
 ### Troubleshooting
 
-| Symptom                         | Check                                                                                                                 |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Deployment jobs skipped         | Exact repository/main ref and repository `OSS_RELEASE_APPROVED=true` plus `ENABLE_AZURE_DEPLOY=true`                  |
-| Waiting for deployment          | `azure-production` required-reviewer approval                                                                         |
-| OIDC `AADSTS70021`              | Exact environment subject, issuer, audience, tenant, and client ID                                                    |
-| Azure preflight fails           | Identity read/list permissions and existing Easy Auth/MCP configuration; inspect securely in Azure, not workflow logs |
-| ZIP deploy forbidden            | Both target app scopes and publishing/configuration permissions                                                       |
-| MCP returns `401` after sign-in | Existing tenant, v2 GUID audience, delegated scope, and registration agreement                                        |
-| Bot PR has no CI                | Maintainer must close/reopen after the latest bot update; `GITHUB_TOKEN` does not trigger downstream workflows        |
+| Symptom                         | Check                                                                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Deployment jobs skipped         | Workflow enabled, exact repository/main ref, and repository `ENABLE_AZURE_DEPLOY=true`                                       |
+| Waiting for deployment          | Earlier deployment in the concurrency group; remove unintended environment reviewer/wait gates per the merge-approval policy |
+| OIDC `AADSTS70021`              | Exact environment subject, issuer, audience, tenant, and client ID                                                           |
+| Azure preflight fails           | Identity read/list permissions and existing Easy Auth/MCP configuration; inspect securely in Azure, not workflow logs        |
+| ZIP deploy forbidden            | Both target app scopes and publishing/configuration permissions                                                              |
+| MCP returns `401` after sign-in | Existing tenant, v2 GUID audience, delegated scope, and registration agreement                                               |
+| Bot PR has no CI                | Maintainer must close/reopen after the latest bot update; `GITHUB_TOKEN` does not trigger downstream workflows               |
 
 Do not work around authentication errors by disabling Easy Auth or MCP validation.
 Do not print `az webapp config appsettings list` output or enable shell tracing in

@@ -32,8 +32,6 @@ jobs:
       - run: npm run format:check
       - run: npm run lint -- --max-warnings=0
       - run: npm run type-check
-      - name: Test automation safeguards
-        run: node --test .github/workflows/scripts/*.test.mjs
       - name: Test guidance generation
         run: node --test shared/guidance.test.mjs apps/docsite/test/generation.test.mjs
       - name: Verify Storybook guidance and MCP

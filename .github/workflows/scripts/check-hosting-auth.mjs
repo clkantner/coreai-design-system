@@ -54,21 +54,33 @@ function readAzure(args) {
   }
 }
 
-export function main() {
-  const required = ['AZURE_RESOURCE_GROUP', 'DOCSITE_APP_NAME', 'STORYBOOK_APP_NAME'];
+export function main(read = readAzure, env = process.env) {
+  const required = [
+    'AZURE_SUBSCRIPTION_ID',
+    'AZURE_RESOURCE_GROUP',
+    'DOCSITE_APP_NAME',
+    'STORYBOOK_APP_NAME',
+  ];
   for (const name of required) {
-    if (!process.env[name]) throw new Error(`Missing deployment variable: ${name}`);
+    if (!env[name]) throw new Error(`Missing deployment variable: ${name}`);
   }
-  const appArgs = (name) => ['--resource-group', process.env.AZURE_RESOURCE_GROUP, '--name', name];
+  const authUrl = (name) =>
+    `https://management.azure.com/subscriptions/${encodeURIComponent(env.AZURE_SUBSCRIPTION_ID)}` +
+    `/resourceGroups/${encodeURIComponent(env.AZURE_RESOURCE_GROUP)}` +
+    `/providers/Microsoft.Web/sites/${encodeURIComponent(name)}` +
+    '/config/authsettingsV2?api-version=2024-04-01';
   validateHostingAuth(
-    readAzure(['webapp', 'auth', 'show', ...appArgs(process.env.DOCSITE_APP_NAME)]),
-    readAzure(['webapp', 'auth', 'show', ...appArgs(process.env.STORYBOOK_APP_NAME)]),
-    readAzure([
+    read(['rest', '--method', 'get', '--url', authUrl(env.DOCSITE_APP_NAME)]),
+    read(['rest', '--method', 'get', '--url', authUrl(env.STORYBOOK_APP_NAME)]),
+    read([
       'webapp',
       'config',
       'appsettings',
       'list',
-      ...appArgs(process.env.STORYBOOK_APP_NAME),
+      '--resource-group',
+      env.AZURE_RESOURCE_GROUP,
+      '--name',
+      env.STORYBOOK_APP_NAME,
     ]),
   );
   console.log('Existing Azure authentication checks passed. Settings will not be changed.');
