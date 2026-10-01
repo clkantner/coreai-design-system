@@ -32,10 +32,10 @@ Do not treat completion of one as authorization for another.
       images, screenshots, sample content, and generated artifacts; update `NOTICE` and bundled
       license files as required.
 - [x] Document the known third-party materials and required trademark terms in the README.
-- [ ] Confirm that no proprietary fonts, product icons, or other assets without redistribution
+- [x] Confirm that no proprietary fonts, product icons, or other assets without redistribution
       rights are present in source or generated artifacts.
-  - [ ] Confirm redistribution rights for the tracked docsite PNG illustrations and CoreAI logo
-        effects under `apps/docsite/public/`.
+  - [x] Confirm redistribution rights for the tracked CoreAI branding assets and docsite material
+        illustrations.
 
 ## Source and artifact review
 
