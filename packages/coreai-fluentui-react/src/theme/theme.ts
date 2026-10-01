@@ -171,8 +171,4 @@ export const coreaiDarkTheme: CoreAITheme = {
   ...brandForegroundDarkTheme,
 };
 
-export {
-  CoreAIFluentProvider,
-  type CoreAIFluentProviderProps,
-} from '../contexts/CoreAIFluentProvider.js';
 export { useComponentDefaults as useCoreAIDefaults } from '../contexts/ComponentDefaultsContext.js';
