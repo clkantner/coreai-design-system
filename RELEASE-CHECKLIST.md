@@ -62,7 +62,7 @@ Do not treat completion of one as authorization for another.
 - [x] In the current checkout, run formatting, lint, type-check, component tests, tree-shaking and
       package tests, docsite production tests, Storybook production build verification, and
       Storybook host tests.
-- [ ] Repeat the required formatting, lint, type-check, test, package, docsite, and Storybook
+- [x] Repeat the required formatting, lint, type-check, test, package, docsite, and Storybook
       validations from a clean checkout with a fresh dependency install.
 - [x] Build the production docsite and Storybook and pass their automated output verification.
 - [ ] Manually review the production docsite and Storybook for broken links, missing assets,
