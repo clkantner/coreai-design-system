@@ -26,8 +26,11 @@ Do not treat completion of one as authorization for another.
 
 ## Legal and third-party review
 
-- [ ] Confirm that `LICENSE.txt`, `NOTICE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
-      and `SUPPORT.md` use the approved current text.
+- [x] Verify that `LICENSE.txt`, `NOTICE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
+      and `SUPPORT.md` are complete, contain no template placeholders, and use the current Microsoft
+      security, code-of-conduct, CLA, support, and MIT boilerplate where applicable.
+- [ ] Obtain final approval for the repository's license, notices, contribution terms, security
+      policy, code of conduct, and support policy.
 - [ ] Complete the third-party review for dependencies, Paper Shaders, Fluent UI stories, icons,
       images, screenshots, sample content, and generated artifacts; update `NOTICE` and bundled
       license files as required.
@@ -44,7 +47,8 @@ Do not treat completion of one as authorization for another.
       source maps, known internal URLs, common credential signatures, and analytics configuration.
 - [ ] Scan the final source, commit history, npm tarball, docsite output, and Storybook output with
       the approved security and disclosure tools.
-- [ ] Review public files and generated output for secrets, internal-only URLs or identifiers,
+- [x] Review the current public files and generated output for secrets, internal-only URLs or
+      identifiers,
       private contact information, credentials, deployment profiles, and source maps.
 - [x] Confirm that product-usage telemetry and related configuration are absent, and that any
       remaining operational diagnostics match the documented behavior.
