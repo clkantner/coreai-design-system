@@ -11,7 +11,7 @@ Do not treat completion of one as authorization for another.
 
 - [ ] Record final open-source approval for the repository, its name, license, third-party
       materials, branding, and intended distribution.
-- [ ] Confirm the maintainers responsible for community support, security response, dependency
+- [x] Confirm the maintainers responsible for community support, security response, dependency
       updates, and package releases.
 - [x] Verify that the destination is the private `microsoft/coreai-design-system` repository, its
       default branch is `main`, and the authorized Microsoft open-source GitHub account has
@@ -93,3 +93,19 @@ Do not treat completion of one as authorization for another.
 - [ ] Record the released source commit and package version in the approved tracking location.
 - [ ] Delete `RELEASE-CHECKLIST.md` after every applicable item is complete and the release record is
       stored in its permanent location.
+
+## Current maintainers of record:
+
+Primary:
+
+- `arniebradfo` - James Bradford - UX Engineer
+- `weastler` - Will Eastler - UX Engineer
+- `Owen-Richard` - Owen Richard - UX Designer
+- `PCoelho` - Paulo Coelho - UX Engineer
+
+Secondary:
+
+- `{TBD}` - Jenny Lanier Wolski - UX Designer
+- `unthinkmedia` - Alex Britez - UX Engineer
+- `tinydinosaurs` - Dana Lachman - UI Engineer
+- `khamudom` - Kham Udom - UI Engineer
