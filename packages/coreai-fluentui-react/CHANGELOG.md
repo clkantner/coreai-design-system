@@ -37,6 +37,7 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 
 ### Fixed
 
+- `CoreAIFluentProvider` is exported directly from the package entry point, removing its circular dependency with the CoreAI theme module.
 - Elevated `TabList` uses interactive hover and pressed colors, preserves selected colors across interaction states, and excludes `aria-disabled` router tabs from enabled hover and pressed styles.
 
 ## [0.11.1] - 2026-09-15

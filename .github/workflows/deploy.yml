@@ -64,6 +64,8 @@ jobs:
       - run: npm ci --prefer-offline
       - run: npm --workspace apps/storybook run stories:init
       - run: npm run build:storybook
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
       - run: npm --workspace apps/storybook run verify:build
       - run: npm run build:docsite
         env:
