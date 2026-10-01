@@ -41,3 +41,4 @@ apps/*/dist/
 
 # agent files
 .playwright*
+.vitest-attachments/
