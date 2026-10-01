@@ -19,7 +19,7 @@ Do not treat completion of one as authorization for another.
 - [x] Verify that the active organization ruleset protects `main` from deletion and force pushes,
       requires pull requests, one approval, code-owner review, and approval after the last push, and
       cannot be bypassed by the current administrator.
-- [ ] Add a `CODEOWNERS` file naming the approved maintainers so the organization rule requiring
+- [x] Add a `CODEOWNERS` file naming the approved maintainers so the organization rule requiring
       code-owner review is effective.
 - [ ] After CI is green, configure the `Validate` status check as required for `main`; the current
       organization ruleset does not require status checks and no repository-level branch protection
