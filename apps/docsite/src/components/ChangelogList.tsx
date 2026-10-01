@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text } from '@coreai/fluentui-react';
+import { Text } from '@coreai-ds/react-components';
 import { changelogEntries, type ChangelogEntry } from '../data/changelog';
 import { ChevronRight } from './Icons';
 

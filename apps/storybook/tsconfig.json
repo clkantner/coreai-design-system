@@ -5,8 +5,8 @@
     "types": ["node"],
     "allowJs": true,
     "paths": {
-      "@coreai/fluentui-react": ["../../packages/coreai-fluentui-react/src/index.ts"],
-      "@coreai/fluentui-react/fonts/*": ["../../packages/coreai-fluentui-react/src/fonts/*"]
+      "@coreai-ds/react-components": ["../../packages/react-components/src/index.ts"],
+      "@coreai-ds/react-components/fonts/*": ["../../packages/react-components/src/fonts/*"]
     }
   },
   // Type-check covers code we own (src/ and .storybook/). The canonical Fluent

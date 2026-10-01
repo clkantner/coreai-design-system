@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useId, Label, Switch, Input } from '@coreai/fluentui-react';
+import { useId, Label, Switch, Input } from '@coreai-ds/react-components';
 
 // ---------- Appearance ----------
 

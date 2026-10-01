@@ -29,9 +29,9 @@ import {
   coreaiLightTheme,
   coreaiDarkTheme,
   Button,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 // Optional: register locally installed Aptos / Aptos Mono (no font downloads).
-import '@coreai/fluentui-react/fonts/fonts.css';
+import '@coreai-ds/react-components/fonts/fonts.css';
 
 export function App() {
   return (
@@ -46,7 +46,7 @@ export function App() {
 
 <Canvas of={CoreAIFluentProviderStories.DefaultTheme} />
 
-- **Import from `@coreai/fluentui-react`**, not `@fluentui/react-components`.
+- **Import from `@coreai-ds/react-components`**, not `@fluentui/react-components`.
   The barrel re-exports every Fluent name; CoreAI-customized components shadow
   the stock ones, everything else passes through unchanged.
 - `theme` defaults to `coreaiLightTheme`. Inside the tree,
@@ -54,7 +54,7 @@ export function App() {
   branch on the active mode.
 - The theme prefers **Aptos** for proportional and numeric text, then **Inter**,
   then system fonts. Monospace text prefers **Aptos Mono** before system monospace
-  fonts. The optional `@coreai/fluentui-react/fonts/fonts.css` import registers
+  fonts. The optional `@coreai-ds/react-components/fonts/fonts.css` import registers
   **installed Aptos fonts only**. No font binaries ship in the repository or npm
   package.
 
@@ -174,8 +174,8 @@ and interactive background tokens. Use them to match the visual language of the
 Azure portal and Coherence design system without authoring a custom ramp.
 
 ```tsx
-import { CoreAIFluentProvider, azureLightTheme, azureDarkTheme } from '@coreai/fluentui-react';
-import '@coreai/fluentui-react/fonts/fonts.css';
+import { CoreAIFluentProvider, azureLightTheme, azureDarkTheme } from '@coreai-ds/react-components';
+import '@coreai-ds/react-components/fonts/fonts.css';
 
 export function App() {
   return (

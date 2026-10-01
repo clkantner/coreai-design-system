@@ -3,15 +3,15 @@
 Source and pull requests: <https://github.com/microsoft/coreai-design-system>.
 The [GitHub Actions overview](GITHUB-ACTIONS.md) covers CI and
 dependency automation. Publishing has a separate approval process documented in
-[RELEASING.md](../packages/coreai-fluentui-react/RELEASING.md).
+[RELEASING.md](../packages/react-components/RELEASING.md).
 
 ## Package consumption in CI
 
 The package targets public npm. Once an approved public release is published,
-consumers can install `@coreai/fluentui-react` from
+consumers can install `@coreai-ds/react-components` from
 `https://registry.npmjs.org/`; no Azure Artifacts credential provider, scoped
 Azure registry mapping, PAT, or Azure identity is needed for public releases.
-Remove legacy `@coreai:registry` mappings when moving to the public package.
+Remove legacy `@coreai-ds:registry` mappings when moving to the public package.
 Until the first approved public release exists, do not assume a specific version
 is available on npm. This migration itself does not publish anything.
 

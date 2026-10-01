@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { figmaDesign } from '../../utils/figma';
-import { useId, Label, Input } from '@coreai/fluentui-react';
+import { useId, Label, Input } from '@coreai-ds/react-components';
 import type { StoryObj } from '@storybook/react-vite';
 
 // CoreAI's `Input` defaults to `filled-darker`, supports an inline `label`,

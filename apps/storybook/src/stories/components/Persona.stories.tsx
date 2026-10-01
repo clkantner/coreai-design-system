@@ -1,4 +1,4 @@
-import { Persona, type JSXElement, type PersonaProps } from '@coreai/fluentui-react';
+import { Persona, type JSXElement, type PersonaProps } from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

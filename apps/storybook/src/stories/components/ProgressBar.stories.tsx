@@ -1,4 +1,9 @@
-import { Field, ProgressBar, type JSXElement, type ProgressBarProps } from '@coreai/fluentui-react';
+import {
+  Field,
+  ProgressBar,
+  type JSXElement,
+  type ProgressBarProps,
+} from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

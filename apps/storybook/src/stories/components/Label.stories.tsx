@@ -1,4 +1,4 @@
-import { Label, type JSXElement, type LabelProps } from '@coreai/fluentui-react';
+import { Label, type JSXElement, type LabelProps } from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

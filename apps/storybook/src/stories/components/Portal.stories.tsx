@@ -1,4 +1,4 @@
-import { Portal, ToggleButton } from '@coreai/fluentui-react';
+import { Portal, ToggleButton } from '@coreai-ds/react-components';
 import type { StoryObj } from '@storybook/react-vite';
 
 import * as React from 'react';

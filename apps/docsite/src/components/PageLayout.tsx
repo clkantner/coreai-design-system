@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LinkButton, Text } from '@coreai/fluentui-react';
+import { LinkButton, Text } from '@coreai-ds/react-components';
 import { getPage, type Anchor } from '../data/registry';
 
 export function PageLayout({

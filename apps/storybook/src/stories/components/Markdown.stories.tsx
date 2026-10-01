@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { type JSXElement, Markdown } from '@coreai/fluentui-react';
+import { type JSXElement, Markdown } from '@coreai-ds/react-components';
 // `Markdown` renders a Markdown string as themed Fluent UI content. Fenced code
 // blocks render through CoreAI's `CodeBlock`; links through Fluent's `Link`.
 

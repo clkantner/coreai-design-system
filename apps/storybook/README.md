@@ -1,6 +1,6 @@
-# @coreai/storybook
+# @coreai-ds/storybook
 
-Storybook playground that previews [`@coreai/fluentui-react`](../../packages/coreai-fluentui-react) against the canonical Fluent UI v9 stories.
+Storybook playground that previews [`@coreai-ds/react-components`](../../packages/react-components) against the canonical Fluent UI v9 stories.
 
 ## Quickstart
 
@@ -71,7 +71,7 @@ authored. For how the hosted server is **deployed and authenticated**, see
 **connection setup** (`mcp.json`, server URLs), see [Docs/MCP Setup](src/stories/docs/MCPSetup.mdx).
 For the **behavioral rules** an agent should follow (which server to prefer, component-ID quirks,
 offline fallback), see the distributable
-[`agent/SKILL.md`](../../packages/coreai-fluentui-react/agent/SKILL.md), mirrored to the hosted
+[`agent/SKILL.md`](../../packages/react-components/agent/SKILL.md), mirrored to the hosted
 Storybook as [Docs/Agent Skill](src/stories/docs/AgentSkill.mdx) (generated — see
 [Agent Skill mirror](#agent-skill-mirror) below).
 
@@ -107,7 +107,7 @@ Prop APIs come from Storybook's **React Component Meta (RCM)**, enabled in
 `typescript.reactDocgen: false`). RCM resolves a component's real prop types from the TypeScript
 program of the story file — which only works when the story resolves through a **working**
 tsconfig. That's why our component stories live under `src/stories/` and import from the
-`@coreai/fluentui-react` barrel (the vendored `fluent-stories/` sources sit next to broken
+`@coreai-ds/react-components` barrel (the vendored `fluent-stories/` sources sit next to broken
 upstream tsconfigs, so RCM can't resolve them — hence the fork pattern above).
 
 ### How stories reach the agent-facing manifest
@@ -170,7 +170,7 @@ the same manifest gap as any other re-export: `get-documentation-for-story` retu
 
 ### Agent Skill mirror
 
-[`packages/coreai-fluentui-react/agent/SKILL.md`](../../packages/coreai-fluentui-react/agent/SKILL.md)
+[`packages/react-components/agent/SKILL.md`](../../packages/react-components/agent/SKILL.md)
 is the single authored source for agent-behavioral guidance (MCP server precedence, component-ID
 quirks, template-vs-component, offline fallback) — it ships inside the npm package for consumers
 outside this monorepo. [`scripts/generate-skill-doc.mjs`](scripts/generate-skill-doc.mjs) mirrors
@@ -317,7 +317,7 @@ build artifact:
 #### `{Name}.tsx`
 
 Self-contained — a consumer should be able to drop it into a project with only
-`@coreai/fluentui-react` and `@fluentui/react-icons` installed. **No Storybook imports** (no
+`@coreai-ds/react-components` and `@fluentui/react-icons` installed. **No Storybook imports** (no
 `Meta`, `StoryObj`, or `@storybook/*` references). Use only `tokens.*` values in `makeStyles` —
 no hardcoded colours/sizes/spacing (exception: a `minHeight` with no matching token, commented
 as to why). Declare all styles in a single `useStyles` call at the top of the file.
@@ -328,7 +328,7 @@ Keep it minimal: a `meta` (title `Templates/{Name}`, `layout: "fullscreen"`) plu
 `StoryObj` (never a raw function-component export — see CSF3 rule below). Add extra story
 exports only for genuinely distinct, useful variants (see `EmptyState.stories.tsx` for an
 example with 4) — don't add one just to show off a prop, since the full source is one click
-away in the Source Code docs entry. All Fluent/CoreAI imports come from `@coreai/fluentui-react`
+away in the Source Code docs entry. All Fluent/CoreAI imports come from `@coreai-ds/react-components`
 (never `@fluentui/react-components`); icons from `@fluentui/react-icons`; never import
 `JSXElement` from `@fluentui/react-components` (use `React.JSX.Element` or inference). A
 full-page/edge-to-edge template opts out of the padded canvas via `parameters.fullBleed: true`
@@ -401,7 +401,7 @@ next regeneration. If the content is wrong, fix `{Name}.tsx` or the generator sc
 
 - [ ] `npm --workspace apps/storybook run type-check` and `run build` both pass
 - [ ] All story exports are `StoryObj` objects; no export name shadows a JS global
-- [ ] All component imports come from `@coreai/fluentui-react`
+- [ ] All component imports come from `@coreai-ds/react-components`
 - [ ] `{Name}.tsx` has no Storybook imports
 - [ ] `{Name}.stories.tsx` has no `?raw` import, no `parameters.docs.source.code`, no
       `tags: ["autodocs"]`, no `parameters.docs.description`

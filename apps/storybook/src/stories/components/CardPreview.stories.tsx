@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { figmaDesign } from '../../utils/figma';
-import { type JSXElement, CardPreview } from '@coreai/fluentui-react';
+import { type JSXElement, CardPreview } from '@coreai-ds/react-components';
 
 // Inline wrapper — see CardFooter.stories.tsx.
 

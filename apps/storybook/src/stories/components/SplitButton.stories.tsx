@@ -9,7 +9,7 @@ import {
   MenuPopover,
   MenuTrigger,
   SplitButton,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 // Inline wrapper — see CompoundButton.stories.tsx.
 

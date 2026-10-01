@@ -11,7 +11,7 @@ import {
   TagPickerOption,
   type JSXElement,
   type TagPickerProps,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

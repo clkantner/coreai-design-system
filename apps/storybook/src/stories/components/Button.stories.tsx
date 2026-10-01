@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { StoryObj } from '@storybook/react-vite';
 import { figmaDesign } from '../../utils/figma';
-import { Button, Text } from '@coreai/fluentui-react';
+import { Button, Text } from '@coreai-ds/react-components';
 
 export const Default: StoryObj = {
   render: () => <Button>Example</Button>,

@@ -1,6 +1,6 @@
-# @coreai/docsite
+# @coreai-ds/docsite
 
-React SPA docsite for CoreAI. Built with Vite + React 18 and themed entirely with the repo's own [`@coreai/fluentui-react`](../../packages/coreai-fluentui-react) package (wrapped Fluent UI v9), the same way `apps/storybook` consumes it (workspace symlink, no ADO feed auth needed for in-repo builds). `vite build` emits a static bundle to `dist/`, then `server.js` serves it locally or on Azure App Service.
+React SPA docsite for CoreAI. Built with Vite + React 18 and themed entirely with the repo's own [`@coreai-ds/react-components`](../../packages/react-components) package (wrapped Fluent UI v9), the same way `apps/storybook` consumes it (workspace symlink, no ADO feed auth needed for in-repo builds). `vite build` emits a static bundle to `dist/`, then `server.js` serves it locally or on Azure App Service.
 
 ## Source of truth
 

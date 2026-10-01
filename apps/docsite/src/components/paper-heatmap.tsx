@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { coreaiBrandVariants, coreaiDarkTheme, coreaiLightTheme } from '@coreai/fluentui-react';
+import {
+  coreaiBrandVariants,
+  coreaiDarkTheme,
+  coreaiLightTheme,
+} from '@coreai-ds/react-components';
 import {
   getShaderColorFromString,
   heatmapFragmentShader,

@@ -175,13 +175,13 @@ Add or update focused permanent tests for the behavior identified in Analyze. Co
 Run each changed component test first:
 
 ```sh
-npm --workspace packages/coreai-fluentui-react test -- src/components/<Component>.test.tsx
+npm --workspace packages/react-components test -- src/components/<Component>.test.tsx
 ```
 
 Install Chromium only when it is unavailable locally:
 
 ```sh
-npm --workspace packages/coreai-fluentui-react run test:install-browser
+npm --workspace packages/react-components run test:install-browser
 ```
 
 ## 4. Verify
@@ -204,13 +204,13 @@ setup. Prefer the smallest method that provides meaningful confidence.
 Run the broader package suite when multiple component test files changed, shared test utilities changed, or the tested behavior crosses shared integration boundaries.
 
 ```sh
-npm --workspace packages/coreai-fluentui-react test
+npm --workspace packages/react-components test
 ```
 
 Run type checking only when relevant to the changed test types or requested scope:
 
 ```sh
-npm --workspace packages/coreai-fluentui-react run type-check
+npm --workspace packages/react-components run type-check
 ```
 
 Do not run unrelated tools or environments.

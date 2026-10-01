@@ -1,4 +1,4 @@
-import { Rating, RatingItem, type JSXElement, type RatingProps } from '@coreai/fluentui-react';
+import { Rating, RatingItem, type JSXElement, type RatingProps } from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

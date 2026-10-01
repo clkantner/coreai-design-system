@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { figmaDesign } from '../../utils/figma';
-import { useId, Dropdown, Option } from '@coreai/fluentui-react';
+import { useId, Dropdown, Option } from '@coreai-ds/react-components';
 import type { StoryObj } from '@storybook/react-vite';
 
 // CoreAI's `Dropdown` supports an inline label rendered inside the trigger

@@ -1,4 +1,4 @@
-import { Breadcrumb, BreadcrumbDivider, BreadcrumbItem } from '@coreai/fluentui-react';
+import { Breadcrumb, BreadcrumbDivider, BreadcrumbItem } from '@coreai-ds/react-components';
 import type { Meta, StoryObj } from '@storybook/react';
 import { MemoryRouter } from 'react-router-dom';
 import { BreadcrumbLink } from './BreadcrumbLink';

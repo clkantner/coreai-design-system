@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Tab as CoreAITab, type TabProps as CoreAITabProps } from '@coreai/fluentui-react';
+import { Tab as CoreAITab, type TabProps as CoreAITabProps } from '@coreai-ds/react-components';
 import type { NavLinkProps } from 'react-router-dom';
 import { useRouterNavLinkSlot } from './RouterLinkSlots';
 

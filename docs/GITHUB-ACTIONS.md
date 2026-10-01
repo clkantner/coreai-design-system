@@ -3,12 +3,12 @@
 Source, pull requests, and automation live in
 <https://github.com/microsoft/coreai-design-system>.
 
-| Workflow                | Definition                                                                | Trigger                                                                 |
-| ----------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| CI / Validate           | [ci.yml](../.github/workflows/ci.yml)                                     | Pull requests and pushes to `main`; manual; reusable                    |
-| Deploy Azure apps       | [deploy.yml](../.github/workflows/deploy.yml)                             | Every push to `main`; manual; disabled until enabled                    |
-| Check Fluent UI updates | [check-fluent-updates.yml](../.github/workflows/check-fluent-updates.yml) | Monday 09:00 UTC; manual; disabled until enabled                        |
-| Publish package         | [publish-package.yml](../.github/workflows/publish-package.yml)           | See the [release guide](../packages/coreai-fluentui-react/RELEASING.md) |
+| Workflow                | Definition                                                                | Trigger                                                            |
+| ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| CI / Validate           | [ci.yml](../.github/workflows/ci.yml)                                     | Pull requests and pushes to `main`; manual; reusable               |
+| Deploy Azure apps       | [deploy.yml](../.github/workflows/deploy.yml)                             | Every push to `main`; manual; disabled until enabled               |
+| Check Fluent UI updates | [check-fluent-updates.yml](../.github/workflows/check-fluent-updates.yml) | Monday 09:00 UTC; manual; disabled until enabled                   |
+| Publish package         | [publish-package.yml](../.github/workflows/publish-package.yml)           | See the [release guide](../packages/react-components/RELEASING.md) |
 
 Site deployment and npm publication are independent. Merging to main can deploy
 the authenticated sites; it does not publish a package.
@@ -39,7 +39,7 @@ it is not a login-only check.
 
 CI uses Node.js 22 and public npm dependencies; it needs **no secrets, Azure
 connection, private feed, or write token**. In-repository apps resolve
-`@coreai/fluentui-react` through npm workspaces.
+`@coreai-ds/react-components` through npm workspaces.
 
 Validation preserves formatting, zero-warning lint, workspace type checks,
 guidance-generation tests, Storybook build/content verification, docsite tests
@@ -132,7 +132,7 @@ on `main` is not a substitute for PR-head checks. Do not bypass branch protectio
    hosting settings, and only then opt in to deployment.
 4. Configure dependency-update permissions/labels and opt in separately.
 5. Complete the separate npm publishing approval and authentication setup in
-   [RELEASING.md](../packages/coreai-fluentui-react/RELEASING.md).
+   [RELEASING.md](../packages/react-components/RELEASING.md).
 
 Historical source handoff and retirement of the previous automation are covered
 in [the open-source preparation checklist](OPEN-SOURCE-PREPARATION.md).

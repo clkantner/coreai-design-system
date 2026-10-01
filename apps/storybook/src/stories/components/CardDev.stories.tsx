@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, Checkbox, Card, CardHeader } from '@coreai/fluentui-react';
+import { Text, Checkbox, Card, CardHeader } from '@coreai-ds/react-components';
 
 // ---------- OutlineInteractivity ----------
 

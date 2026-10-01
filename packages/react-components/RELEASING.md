@@ -1,6 +1,6 @@
 # Releasing
 
-`@coreai/fluentui-react` is being prepared for public distribution through
+`@coreai-ds/react-components` is being prepared for public distribution through
 <https://registry.npmjs.org/> from <https://github.com/microsoft/coreai-design-system>.
 Preparation does **not** authorize publication, a version bump, tags, repository
 creation, or a change to repository visibility. Do not assume that a public npm
@@ -24,9 +24,9 @@ Before enabling either variable, the owners must:
 2. Identify **every package currently selected for private distribution**. Review
    each package's source, files, owners, consumers, license and existing access before
    explicitly selecting it for public release. This workflow selects only
-   `@coreai/fluentui-react`; other workspaces remain private. `private: false` and
+   `@coreai-ds/react-components`; other workspaces remain private. `private: false` and
    `publishConfig.access: public` are configuration, not proof of approval.
-3. Verify ownership of the npm `@coreai` scope and the package name, review the npm
+3. Verify ownership of the npm `@coreai-ds` scope and the package name, review the npm
    organization's members/teams and publish permissions, and choose an unused public
    version after reviewing the previous private release history. Do not transfer
    ownership, change an existing private package's access, or publish on assumption.
@@ -76,7 +76,7 @@ push tags, create releases, or modify repository content.
 2. **Mandatory changelog validation:** identify the last approved release tag and
    examine `git log --oneline <last-tag>..HEAD`,
    `git log --merges --first-parent <last-tag>..HEAD`, and
-   `git diff <last-tag>..HEAD -- packages/coreai-fluentui-react/src`. Reconcile every
+   `git diff <last-tag>..HEAD -- packages/react-components/src`. Reconcile every
    user-visible merged change against `[Unreleased]`; add omissions/remove stale
    entries and record why documentation/test-only changes are omitted. If this is
    the initial public release or tags are missing, explicitly establish and record
@@ -86,7 +86,7 @@ push tags, create releases, or modify repository content.
 3. Only after release authorization, choose the appropriate semver version and run:
 
    ```bash
-   npm version patch --workspace packages/coreai-fluentui-react --no-git-tag-version
+   npm version patch --workspace packages/react-components --no-git-tag-version
    ```
 
    Use `minor`, `major`, or an approved prerelease as appropriate. Review and commit
@@ -100,8 +100,8 @@ push tags, create releases, or modify repository content.
    ```bash
    npm ci --ignore-scripts
    npm run check:public-source
-   npm run test:package --workspace packages/coreai-fluentui-react
-   npm run test:tree-shaking --workspace packages/coreai-fluentui-react
+   npm run test:package --workspace packages/react-components
+   npm run test:tree-shaking --workspace packages/react-components
    ```
 
    Also require the normal CI checks. The package test cleans/builds and inspects an
@@ -123,7 +123,7 @@ push tags, create releases, or modify repository content.
    licensed font binaries and generated local CSS are excluded.
 6. Merge the authorized version/changelog PR. An authorized maintainer selects
    **Actions → Publish npm package → Run workflow**, chooses `main`, and enters
-   `publish @coreai/fluentui-react@X.Y.Z`. The environment reviewer checks the exact
+   `publish @coreai-ds/react-components@X.Y.Z`. The environment reviewer checks the exact
    commit, approval record, version and artifact policy before approving.
 
 The workflow builds and verifies a tarball, then publishes **that same tarball**
@@ -140,7 +140,7 @@ fails instead of overwriting it. If publication succeeds but the run reports fai
 inspect npm before retrying; do not automatically bump or delete releases.
 
 Consumers remove obsolete Azure scope routing from their project/user `.npmrc`,
-then run `npm install @coreai/fluentui-react`. No Azure feed membership, credential
+then run `npm install @coreai-ds/react-components`. No Azure feed membership, credential
 provider, token, or `always-auth` setting is required for public npm consumption.
 Keep credentials needed for unrelated private packages intact.
 

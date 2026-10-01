@@ -1,5 +1,5 @@
 import type { StoryObj } from '@storybook/react-vite';
-import { CopyButton } from '@coreai/fluentui-react';
+import { CopyButton } from '@coreai-ds/react-components';
 
 // `CopyButton` wraps the CoreAI `Button` with a copy icon and a "Copied"
 // tooltip that appears briefly after a successful copy.
@@ -44,10 +44,10 @@ export const Default: StoryObj = {
           </div>
 
           <div className="copy-button-example__row">
-            <code className="copy-button-example__code">npm i @coreai/fluentui-react</code>
+            <code className="copy-button-example__code">npm i @coreai-ds/react-components</code>
             <CopyButton
               aria-label="Copy install command"
-              contentToCopy="npm i @coreai/fluentui-react"
+              contentToCopy="npm i @coreai-ds/react-components"
             />
           </div>
 

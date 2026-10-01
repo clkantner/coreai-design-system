@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { type JSXElement, type ToggleButtonProps, ToggleButton } from '@coreai/fluentui-react';
+import { type JSXElement, type ToggleButtonProps, ToggleButton } from '@coreai-ds/react-components';
 
 // Inline wrapper — see CompoundButton.stories.tsx.
 

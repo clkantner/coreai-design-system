@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `@coreai/fluentui-react` are documented here.
+All notable changes to `@coreai-ds/react-components` are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -28,12 +28,13 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 
 ### Breaking
 
-- Aptos/Aptos Mono binaries are no longer redistributed. The existing `@coreai/fluentui-react/fonts/fonts.css` import now registers locally installed fonts only; remove deep `.ttf` imports and supply separately licensed assets/CSS if self-hosted fonts are required. Otherwise proportional text falls back to Inter and then system fonts.
+- The package is renamed from `@coreai/fluentui-react` to `@coreai-ds/react-components`; update package dependencies, imports, and the npm registry scope. The workspace directory is now `packages/react-components`.
+- Aptos/Aptos Mono binaries are no longer redistributed. The existing `@coreai-ds/react-components/fonts/fonts.css` import now registers locally installed fonts only; remove deep `.ttf` imports and supply separately licensed assets/CSS if self-hosted fonts are required. Otherwise proportional text falls back to Inter and then system fonts.
 
 ### Changed
 
 - Added Inter as the proportional and numeric fallback after Aptos; the hosted apps load normal and italic Inter faces at weights 400, 600, and 700 from Google Fonts.
-- Prepared public npm distribution with no consumer authentication; remove obsolete Azure Artifacts `@coreai` scope routing when migrating to an approved public release. Publication remains disabled until explicit open-source and package/access approval, and requires manual confirmation through a protected GitHub environment.
+- Prepared public npm distribution with no consumer authentication; remove obsolete Azure Artifacts `@coreai-ds` scope routing when migrating to an approved public release. Publication remains disabled until explicit open-source and package/access approval, and requires manual confirmation through a protected GitHub environment.
 - Source, issues, and pull requests target `microsoft/coreai-design-system`; GitHub Actions replaces the Azure publishing pipeline. Package tarball verification checks compiled exports and excludes source files and locally installed font assets.
 
 ### Fixed
@@ -176,7 +177,7 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 
 ### Breaking
 
-- Removed eager `export * from '@fluentui/react-menu-grid-preview'` from the barrel. The package is now an optional peer — consumers who need grid menus should `npm install @fluentui/react-menu-grid-preview` and import from it directly instead of through `@coreai/fluentui-react`. This fixes CI failures in environments whose npm feed does not mirror preview-channel Fluent packages.
+- Removed eager `export * from '@fluentui/react-menu-grid-preview'` from the barrel. The package is now an optional peer — consumers who need grid menus should `npm install @fluentui/react-menu-grid-preview` and import from it directly instead of through `@coreai-ds/react-components`. This fixes CI failures in environments whose npm feed does not mirror preview-channel Fluent packages.
 
 ### Added
 
@@ -228,20 +229,20 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 
 ### Changed
 
-- Renamed the project from its original codename **Manifold** to **CoreAI** throughout: package folder (`packages/manifold-fluentui-react` → `packages/coreai-fluentui-react`), brand text, theme keys, and docs. The published package name (`@coreai/fluentui-react`) is unchanged.
+- Renamed the project from its original codename **Manifold** to **CoreAI** throughout: package folder (`packages/manifold-fluentui-react` → the CoreAI package folder), brand text, theme keys, and docs. The published package basename was unchanged at that time.
 
 ## [0.2.0] - 2026-06-23
 
-Initial release to the Azure DevOps **coreai** Artifacts feed (org `coreaidesign`, scope `@coreai`).
+Initial release to the Azure DevOps **coreai** Artifacts feed (org `coreaidesign`, scope `@coreai-ds`).
 
 ### Added
 
 - `<CoreAIFluentProvider>` drop-in replacement for `FluentProvider` — applies the CoreAI brand ramp, light/dark token overrides, Aptos typography, per-component default props, and per-component style hooks.
 - `coreaiLightTheme` / `coreaiDarkTheme` themes built on the CoreAI brand variants.
-- Barrel export (`@coreai/fluentui-react`) that re-exports the full Fluent UI v9 surface and shadows stock components with CoreAI-wrapped versions.
+- Barrel export (`@coreai-ds/react-components`) that re-exports the full Fluent UI v9 surface and shadows stock components with CoreAI-wrapped versions.
 - `withComponentDefaults` HoC and `componentDefaults` registry for per-component default props.
 - `customStyleHooks_unstable` style-hook registry (Card, Overlay, Dialog, Table, …).
-- Aptos / Aptos Mono `@font-face` declarations shipped via `@coreai/fluentui-react/fonts/fonts.css`.
+- Aptos / Aptos Mono `@font-face` declarations shipped via `@coreai-ds/react-components/fonts/fonts.css`.
 
 [Unreleased]: #unreleased
 [0.11.1]: #0111---2026-09-15

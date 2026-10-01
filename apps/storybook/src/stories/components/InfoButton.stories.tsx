@@ -1,6 +1,6 @@
 import type { StoryObj } from '@storybook/react-vite';
 import { figmaDesign } from '../../utils/figma';
-import { Link, InfoButton } from '@coreai/fluentui-react';
+import { Link, InfoButton } from '@coreai-ds/react-components';
 
 // `InfoButton` reveals supplemental information in a Popover. Fluent no longer
 // ships it standalone, so Core AI Design System keeps a wrapped, accessibility-hardened

@@ -9,24 +9,24 @@ import {
   MessageBarBody,
   MessageBarTitle,
   Text,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { PageLayout } from '../components/PageLayout';
 import { siteLinks } from '../data/content';
 
-const installPackages = `npm install @coreai/fluentui-react --registry=https://registry.npmjs.org
+const installPackages = `npm install @coreai-ds/react-components --registry=https://registry.npmjs.org
 npm install @fluentui/react-components @fluentui/react-icons`;
 
-const usageExample = `import '@coreai/fluentui-react/fonts/fonts.css';
+const usageExample = `import '@coreai-ds/react-components/fonts/fonts.css';
 import {
   CoreAIFluentProvider,
   coreaiLightTheme,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 <CoreAIFluentProvider theme={coreaiLightTheme}>
   <App />
 </CoreAIFluentProvider>`;
 
-const packageSetupPrompt = `Read the @coreai/fluentui-react package README, then set up this project to use the package:
+const packageSetupPrompt = `Read the @coreai-ds/react-components package README, then set up this project to use the package:
 
 ${siteLinks.packageReadme}
 
@@ -92,8 +92,8 @@ export function Package() {
                 </Text>
                 <Text as="p" size={300} foreground={2}>
                   After publication, run these commands in your project. Remove any old{' '}
-                  <code>@coreai:registry</code> Azure Artifacts override from the project and user{' '}
-                  <code>.npmrc</code> files first.
+                  <code>@coreai-ds:registry</code> Azure Artifacts override from the project and
+                  user <code>.npmrc</code> files first.
                 </Text>
                 <CodeBlock code={installPackages} language="bash" />
               </div>

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, type TextPreset } from '@coreai/fluentui-react';
+import { Text, type TextPreset } from '@coreai-ds/react-components';
 
 export const Foreground = () => {
   const styles = /* css */ `

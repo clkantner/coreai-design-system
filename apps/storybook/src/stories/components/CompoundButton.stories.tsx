@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { figmaDesign } from '../../utils/figma';
-import { type JSXElement, type CompoundButtonProps, CompoundButton } from '@coreai/fluentui-react';
+import {
+  type JSXElement,
+  type CompoundButtonProps,
+  CompoundButton,
+} from '@coreai-ds/react-components';
 
 import { CalendarMonthRegular } from '@fluentui/react-icons';
 

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "noEmit": true,
     "paths": {
-      "@coreai/fluentui-react": ["../../packages/coreai-fluentui-react/src/index.ts"]
+      "@coreai-ds/react-components": ["../../packages/react-components/src/index.ts"]
     },
     "types": ["node", "vite/client"],
     "useDefineForClassFields": true

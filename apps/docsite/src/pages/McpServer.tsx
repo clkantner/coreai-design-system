@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { CodeBlock, CopyButton } from '@coreai/fluentui-react';
+import { CodeBlock, CopyButton } from '@coreai-ds/react-components';
 import {
   MessageBar,
   MessageBarActions,
   MessageBarBody,
   MessageBarTitle,
-} from '@coreai/fluentui-react';
-import { Tab, TabList, type SelectTabData, type SelectTabEvent } from '@coreai/fluentui-react';
-import { Text } from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
+import { Tab, TabList, type SelectTabData, type SelectTabEvent } from '@coreai-ds/react-components';
+import { Text } from '@coreai-ds/react-components';
 import { PageLayout } from '../components/PageLayout';
 
 const vscodeConfig = `{

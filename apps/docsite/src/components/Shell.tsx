@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text } from '@coreai/fluentui-react';
+import { Text } from '@coreai-ds/react-components';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';

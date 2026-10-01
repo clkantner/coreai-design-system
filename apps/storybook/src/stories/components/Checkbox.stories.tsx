@@ -1,4 +1,4 @@
-import { Checkbox, type CheckboxProps, type JSXElement } from '@coreai/fluentui-react';
+import { Checkbox, type CheckboxProps, type JSXElement } from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

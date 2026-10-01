@@ -15,7 +15,7 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { EmptyState } from './EmptyState';
-import { Button } from '@coreai/fluentui-react';
+import { Button } from '@coreai-ds/react-components';
 import {
   DatabaseRegular,
   SearchRegular,

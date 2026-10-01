@@ -33,7 +33,7 @@ import {
   useTableSelection,
   useTableSort,
   TableCellLayout,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { ChevronLeftRegular, ChevronRightRegular, SearchRegular } from '@fluentui/react-icons';
 
 // ─── Styles ──────────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import { Field, Input, type FieldProps, type JSXElement } from '@coreai/fluentui-react';
+import { Field, Input, type FieldProps, type JSXElement } from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

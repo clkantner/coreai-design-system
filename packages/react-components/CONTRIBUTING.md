@@ -1,4 +1,4 @@
-# Contributing to `@coreai/fluentui-react`
+# Contributing to `@coreai-ds/react-components`
 
 This document covers how the library absorbs Fluent UI upstream changes, how to submit a
 contribution, and how decisions/releases are governed. For what the library is and why it
@@ -16,7 +16,7 @@ Source, planned work, issues, and pull requests target
 > `@fluentui/*` versions are available. To check manually instead:
 >
 > ```bash
-> npm outdated --workspace packages/coreai-fluentui-react
+> npm outdated --workspace packages/react-components
 > ```
 >
 > The Fluent UI releases RSS feed (`https://github.com/microsoft/fluentui/releases.atom`) is also a
@@ -32,7 +32,7 @@ When merging a Fluent UI update:
 2. Check the [Fluent UI releases](https://github.com/microsoft/fluentui/releases) for breaking changes
 3. Run `npm install` and verify the build
 4. Check Storybook for visual regressions
-5. Address any breaking changes in `@coreai/fluentui-react` components
+5. Address any breaking changes in `@coreai-ds/react-components` components
 6. Document significant changes in `RELEASING.md` or `CHANGELOG.md`
 7. Follow the standard release process - bump version, open PR, merge to `main`
 

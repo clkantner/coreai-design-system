@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { figmaDesign } from '../../utils/figma';
-import { type JSXElement, Avatar } from '@coreai/fluentui-react';
+import { type JSXElement, Avatar } from '@coreai-ds/react-components';
 
 // `Avatar` is the CoreAI-wrapped avatar — it extends Fluent's `color` prop
 // with an additional `"neutral-alt"` value.

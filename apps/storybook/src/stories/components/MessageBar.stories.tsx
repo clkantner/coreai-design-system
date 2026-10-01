@@ -7,7 +7,7 @@ import {
   Link,
   MessageBar,
   type MessageBarIntent,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import type { StoryObj } from '@storybook/react-vite';
 
 import { DismissRegular } from '@fluentui/react-icons';

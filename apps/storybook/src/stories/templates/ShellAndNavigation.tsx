@@ -22,7 +22,7 @@ import {
   Button,
   Tooltip,
   Text,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import {
   HomeFilled,
   HomeRegular,
