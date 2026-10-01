@@ -21,9 +21,8 @@ Do not treat completion of one as authorization for another.
       cannot be bypassed by the current administrator.
 - [x] Add a `CODEOWNERS` file naming the approved maintainers so the organization rule requiring
       code-owner review is effective.
-- [ ] After CI is green, configure the `Validate` status check as required for `main`; the current
-      organization ruleset does not require status checks and no repository-level branch protection
-      is configured.
+- [x] After CI is green, configure the GitHub Actions `Validate` status check as required and
+      strictly up to date for `main`, with no bypass actors.
 
 ## Legal and third-party review
 
