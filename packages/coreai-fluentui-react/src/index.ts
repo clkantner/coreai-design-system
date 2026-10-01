@@ -3,6 +3,10 @@ export * from '@fluentui/react-components';
 export * from './theme/theme.js';
 export * from './theme/azureTheme.js';
 export { useCoreAIGlobalStyles } from './theme/globalStyles.js';
+export {
+  CoreAIFluentProvider,
+  type CoreAIFluentProviderProps,
+} from './contexts/CoreAIFluentProvider.js';
 
 // Explicit exports shadow matching names from the Fluent star export above.
 export { Button, type ButtonProps } from './components/Button.js';
