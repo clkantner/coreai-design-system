@@ -42,6 +42,13 @@ test('docsite source and shipped scripts contain no application analytics integr
   }
 });
 
+test('Storybook usage telemetry remains disabled', async () => {
+  assert.match(
+    await read('apps/storybook/.storybook/main.ts'),
+    /core:\s*\{\s*disableTelemetry:\s*true,\s*\}/,
+  );
+});
+
 test('hosting retains Entra and MCP settings without monitoring resources or configuration', async () => {
   const source = await read('infra/main.bicep');
   const parameters = await read('infra/main.bicepparam');
