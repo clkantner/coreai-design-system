@@ -10,9 +10,8 @@ does not mean the destination is already available.
 - GitHub Actions replaces the old pipeline definitions. Deployment continues to
   the existing Azure App Services; the docs site, Storybook, and MCP retain their
   existing authentication and hosting settings.
-- Product usage telemetry and telemetry-specific infrastructure are removed.
-  Ordinary server error/access diagnostics and Azure platform logs are distinct
-  from product usage analytics.
+- The docsite and MCP do not collect or transmit product usage data. Storybook's
+  upstream usage reporting is explicitly disabled.
 - Aptos remains preferred, but no font binaries are redistributed. Use the
   [opt-in setup guide](../packages/coreai-fluentui-react/src/fonts/README.md).
   Download availability is not permission to redistribute, embed, or host a font.
@@ -62,10 +61,10 @@ These are owner/reviewer decisions, not something a code change can certify:
    and variables described in [CI-CD-SETUP.md](CI-CD-SETUP.md). Verify existing
    authentication settings before and after the first approved deployment. Do
    not enable deployment merely to test a source migration.
-7. **Retired services:** source removal does not delete existing telemetry
-   resources, stored data, credentials, or already-deployed collectors. Separately
-   approve stopping old schedules, deploying the telemetry-free apps, revoking
-   unused credentials, and applying data-retention/resource-deletion policy.
+7. **Retired services:** source removal does not delete existing cloud resources,
+   stored data, credentials, or scheduled jobs. Separately approve stopping old
+   schedules, deploying the reviewed apps, revoking unused credentials, and
+   applying data-retention/resource-deletion policy.
 8. **Visibility:** repository visibility, npm publication, and public access to
    hosted services are separate approvals. Keep all three fail-closed until each
    is explicitly authorized.

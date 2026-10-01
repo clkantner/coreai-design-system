@@ -49,6 +49,8 @@ Do not treat completion of one as authorization for another.
       private contact information, credentials, deployment profiles, and source maps.
 - [x] Confirm that product-usage telemetry and related configuration are absent, and that any
       remaining operational diagnostics match the documented behavior.
+- [ ] Confirm that any legacy remote data-collection resources, schedules, credentials, and stored
+      data outside this repository are disabled or removed under the applicable retention policy.
 - [x] Confirm that Aptos and other locally supplied assets are absent from tracked files and the npm
       package.
 

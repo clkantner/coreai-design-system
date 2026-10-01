@@ -193,10 +193,11 @@ request access.
 
 ## Privacy and runtime diagnostics
 
-The docsite does not collect or forward application telemetry, load analytics
-scripts, or expose analytics configuration. Navigation search stays in the
-browser, and the saved theme preference is used only for local presentation.
-Ordinary startup logs and actionable console errors remain available.
+The docsite does not collect or transmit product usage data, load analytics
+scripts, or expose remote reporting configuration. Navigation search stays in
+the browser, and the saved theme preference is used only for local presentation.
+Ordinary startup logs and actionable console errors remain on the host; the
+application contains no code that forwards them to a remote analytics service.
 
 The unauthenticated `/healthz` endpoint returns `{"status":"ok"}` for health
 checks. The hosting template preserves the existing apps and their Entra

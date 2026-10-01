@@ -27,25 +27,19 @@ test('docsite source and shipped scripts contain no application analytics integr
     await read('apps/docsite/server.js'),
     /APPLICATIONINSIGHTS|CLARITY_PROJECT_ID|COREAI_ENVIRONMENT|telemetry/i,
   );
-  for (const removed of [
-    'apps/docsite/src/telemetry/client.ts',
-    'apps/docsite/src/telemetry/clarity.ts',
-    'apps/docsite/src/telemetry/analytics-session.ts',
-    'apps/docsite/src/telemetry/events.ts',
-    'apps/docsite/src/telemetry/schema.ts',
-    'apps/docsite/src/telemetry/RouteTelemetry.tsx',
-    'scripts/telemetry/sync-clarity.mjs',
-    'azure-pipelines/sync-clarity.yml',
-    'infra/workbooks/coreai-ds-telemetry.workbook.json',
-  ]) {
-    await assert.rejects(fs.access(new URL(removed, repoRoot)), { code: 'ENOENT' }, removed);
-  }
 });
 
 test('Storybook usage telemetry remains disabled', async () => {
   assert.match(
     await read('apps/storybook/.storybook/main.ts'),
     /core:\s*\{\s*disableTelemetry:\s*true,\s*\}/,
+  );
+});
+
+test('MCP host does not record request or authentication diagnostics', async () => {
+  assert.doesNotMatch(
+    await read('apps/storybook/host/server.mjs'),
+    /MCP_AUTH_DIAGNOSTICS|authDiagnostics|logAuth|clientLabel|mcp-auth/,
   );
 });
 

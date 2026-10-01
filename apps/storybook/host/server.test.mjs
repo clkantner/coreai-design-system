@@ -12,7 +12,6 @@ process.env.MCP_ENTRA_TENANT_ID = tenantId;
 process.env.MCP_ENTRA_AUDIENCE = clientId;
 process.env.MCP_ENTRA_SCOPE = apiScope;
 process.env.MCP_OAUTH_CLIENT_ID = clientId;
-process.env.MCP_AUTH_DIAGNOSTICS = 'false';
 delete process.env.WEBSITE_HOSTNAME;
 
 const { server } = await import('./server.mjs');
