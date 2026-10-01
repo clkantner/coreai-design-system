@@ -36,8 +36,6 @@ jobs:
         run: node --test shared/guidance.test.mjs apps/docsite/test/generation.test.mjs
       - name: Verify Storybook guidance and MCP
         run: npm run build:storybook && npm --workspace apps/storybook run verify:build
-        env:
-          NODE_OPTIONS: --max-old-space-size=6144
       - name: Test docsite against built Storybook
         run: npm --workspace apps/docsite test
         env:
