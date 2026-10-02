@@ -5,6 +5,100 @@ import { URL } from 'node:url';
 
 const repoRoot = new URL('../../../', import.meta.url);
 
+test('navigation footer casts a shell-colored upward shadow inside the sidebar', async () => {
+  const styles = await fs.readFile(
+    new URL('apps/docsite/src/styles/docsite.css', repoRoot),
+    'utf8',
+  );
+  assert.match(styles, /\.app-sidenav \{[^}]*overflow: hidden;/);
+  assert.match(
+    styles,
+    /\.app-sidenav__footer \{[^}]*z-index: 1;[^}]*background: var\(--home-backdrop-color\);[^}]*box-shadow: 0 -16px 24px -2px var\(--home-backdrop-color\);/,
+  );
+  assert.match(
+    styles,
+    /\.app-sidenav::after \{[^}]*z-index: 2;[^}]*outline: inherit;[^}]*outline-offset: inherit;[^}]*pointer-events: none;/,
+  );
+  assert.match(
+    styles,
+    /\.app-sidenav__footer::before \{[^}]*top: -1px;[^}]*height: 1px;[^}]*background: var\(--app-sidenav-border\);/,
+  );
+});
+
+test('active navigation items scroll once per route, not when browsing sections', async () => {
+  const source = await fs.readFile(
+    new URL('apps/docsite/src/components/Sidebar.tsx', repoRoot),
+    'utf8',
+  );
+  assert.match(source, /ref=\{navigationRef\}/);
+  assert.ok(source.includes('[role="tab"][aria-selected="true"]'));
+  assert.match(source, /navigation\.scrollTop \+= item\.bottom - viewport\.bottom/);
+  assert.match(source, /navigation\.scrollTop \+= item\.top - viewport\.top/);
+  assert.match(source, /\[activePagePath, openGroups, isCollapsed, isOpen, query\]/);
+  assert.match(source, /cancelAnimationFrame\(frame\)/);
+  assert.match(source, /const revealActivePageRef = React\.useRef\(true\)/);
+  assert.match(
+    source,
+    /revealActivePageRef\.current = true;[\s\S]*?\}, \[activeGroup, activePagePath\]\)/,
+  );
+  assert.match(
+    source,
+    /requestAnimationFrame\(\(\) => \{\s*if \(!revealActivePageRef\.current\) return;/,
+  );
+  assert.match(
+    source,
+    /if \(!navigation \|\| !activeTab \|\| !activeTab\.getClientRects\(\)\.length\) return;\s*revealActivePageRef\.current = false;/,
+  );
+  assert.match(
+    source,
+    /current\.includes\(activeGroup\.label\) \? current : \[\.\.\.current, activeGroup\.label\],[\s\S]*?\}, \[activeGroup, activePagePath\]\)/,
+  );
+});
+
+test('home illustration fades in only after a complete frame', async () => {
+  const [source, styles] = await Promise.all([
+    fs.readFile(new URL('apps/docsite/src/components/CoreAILogoCube.tsx', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/styles/docsite.css', repoRoot), 'utf8'),
+  ]);
+  assert.match(source, /const \[isReady, setIsReady\] = React\.useState\(false\)/);
+  assert.match(source, /\+\+startupFramesRef\.current === 2\) onReady\(\)/);
+  assert.match(source, /data-ready=\{isReady\}/);
+  assert.match(source, /onReady=\{handleReady\}/);
+  assert.match(
+    styles,
+    /\.home-visual \.coreai-logo-cube \{\s*opacity: 0;\s*transition: opacity 400ms ease-out;/,
+  );
+  assert.match(styles, /\.home-visual \.coreai-logo-cube\[data-ready='true'\] \{\s*opacity: 1;/);
+  assert.match(
+    styles,
+    /@media \(prefers-reduced-motion: reduce\) \{[^}]*transition-duration: 0s !important;/,
+  );
+});
+
+test('docsite dropdowns use CoreAI popovers instead of native selects', async () => {
+  const srcRoot = new URL('apps/docsite/src/', repoRoot);
+  const sourcePaths = await fs.readdir(srcRoot, { recursive: true });
+  for (const path of sourcePaths.filter((path) => /\.(tsx|jsx)$/.test(path))) {
+    const source = await fs.readFile(new URL(path, srcRoot), 'utf8');
+    assert.doesNotMatch(source, /<(?:select|Select|option)\b/, path);
+  }
+  const source = await fs.readFile(
+    new URL('apps/docsite/src/components/ComponentPage.tsx', repoRoot),
+    'utf8',
+  );
+  assert.match(source, /<Dropdown/);
+  assert.match(source, /selectedOptions=\{activeStoryId \? \[activeStoryId\] : \[\]\}/);
+  assert.match(
+    source,
+    /storyOptions\.find\(\(story\) => story\.storyId === activeStoryId\)\?\.label/,
+  );
+  assert.match(source, /setSelectedStoryId\(data\.optionValue\)/);
+  assert.match(
+    source,
+    /<Option key=\{story\.storyId\} value=\{story\.storyId\} text=\{story\.label\}>/,
+  );
+});
+
 test('Storybook embeds follow the resolved docsite mode without resetting story selection', async () => {
   const source = await fs.readFile(
     new URL('apps/docsite/src/components/ComponentPage.tsx', repoRoot),
@@ -98,7 +192,7 @@ test('landing page has an interactive logo alongside vertically centered content
   assert.doesNotMatch(stylesSource, /basic-grid/);
 });
 
-test('Home is in Getting started and the logo toggles a button-only desktop sidebar', async () => {
+test('Home is in Overview and the logo toggles a button-only desktop sidebar', async () => {
   const [registrySource, sidebar, styles] = await Promise.all([
     fs.readFile(new URL('apps/docsite/site-registry.json', repoRoot), 'utf8'),
     fs.readFile(new URL('apps/docsite/src/components/Sidebar.tsx', repoRoot), 'utf8'),
@@ -106,7 +200,8 @@ test('Home is in Getting started and the logo toggles a button-only desktop side
   ]);
   const home = JSON.parse(registrySource).pages.find((page) => page.slug === '/');
   assert.equal(home.navLabel, 'Home');
-  assert.equal(home.group, 'UI Kit');
+  assert.equal(home.id, 'home');
+  assert.equal(home.group, 'Overview');
   assert.equal(home.showInSidebar, true);
   assert.match(sidebar, /setIsCollapsed\(\(current\) => !current\)/);
   assert.match(sidebar, /aria-expanded=\{isOpen \|\| !isCollapsed\}/);
@@ -122,6 +217,28 @@ test('Home is in Getting started and the logo toggles a button-only desktop side
   assert.match(styles, /transition-delay: 0s !important/);
 });
 
+test('collapsed navigation overlays the page and shortcut toggles do not focus the logo', async () => {
+  const [sidebar, styles] = await Promise.all([
+    fs.readFile(new URL('apps/docsite/src/components/Sidebar.tsx', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/styles/docsite.css', repoRoot), 'utf8'),
+  ]);
+  assert.match(styles, /\.app-body \{\s*position: relative;/);
+  assert.match(
+    styles,
+    /\.app-sidenav\.is-collapsed \{[^}]*position: absolute;[^}]*top: 4px;[^}]*left: 4px;/,
+  );
+  assert.match(sidebar, /onToggleNavigation: toggleNavigationFromShortcut/);
+  assert.match(sidebar, /sidebarRef\.current\?\.contains\(focusedElement\)/);
+  assert.match(sidebar, /focusedElement\.blur\(\)/);
+  const toggle = sidebar.slice(
+    sidebar.indexOf('const toggleNavigation ='),
+    sidebar.indexOf('const toggleNavigationFromShortcut ='),
+  );
+  assert.doesNotMatch(toggle, /\.focus\(/);
+  assert.match(styles, /\.app-sidenav__nav \.fui-Tab \{\s*padding-left: 16px;/);
+  assert.match(styles, /\.app-sidenav__nav \.fui-AccordionHeader__button \{\s*padding-left: 8px;/);
+});
+
 test('illustration uses Paper dithering and stationary lights without tuning controls', async () => {
   const [home, logo, adapter, styles] = await Promise.all([
     fs.readFile(new URL('apps/docsite/src/pages/Introduction.tsx', repoRoot), 'utf8'),
@@ -130,7 +247,7 @@ test('illustration uses Paper dithering and stationary lights without tuning con
     fs.readFile(new URL('apps/docsite/src/styles/docsite.css', repoRoot), 'utf8'),
   ]);
   assert.doesNotMatch(home + styles, /LogoControls|logo-controls/);
-  assert.match(logo, /<StaticLighting \/>\s*<LogoCubeMesh/);
+  assert.match(logo, /<StaticLighting monochrome=\{monochrome\} \/>\s*<LogoCubeMesh/);
   assert.doesNotMatch(logo.match(/<group[\s\S]*?<\/group>/)?.[0] ?? '', /StaticLighting/);
   assert.match(logo, /if \(!reduceMotion\) animationTimeRef\.current \+=/);
   assert.match(logo, /scale: 1\.19 \* 1\.25/);
@@ -264,7 +381,7 @@ test('landing page reserves audience content and exposes Storybook, Figma, and n
     fs.readFile(new URL('apps/docsite/src/pages/Introduction.tsx', repoRoot), 'utf8'),
     fs.readFile(new URL('apps/docsite/site-registry.json', repoRoot), 'utf8'),
   ]);
-  assert.match(homeSource, /<PageLayout id="resources" hideTitle>/);
+  assert.match(homeSource, /<PageLayout id="home" hideTitle>/);
   assert.match(homeSource, /Audience cards will return when their supporting content is ready/);
   assert.doesNotMatch(homeSource, /className="home-audiences"/);
   assert.match(homeSource, /href=\{siteLinks\.storybook\}/);
@@ -284,7 +401,7 @@ test('landing page reserves audience content and exposes Storybook, Figma, and n
     3,
   );
   assert.doesNotMatch(homeSource, /description:|home-card__description/);
-  const home = JSON.parse(registrySource).pages.find((page) => page.id === 'resources');
+  const home = JSON.parse(registrySource).pages.find((page) => page.id === 'home');
   assert.deepEqual(
     home.anchors.map((anchor) => anchor.id),
     ['get-started'],
@@ -301,4 +418,254 @@ test('Typography retains the branded external font download without setup instru
     /<Link href=\{siteLinks\.fontDownload\} external>\s*Download Aptos from Microsoft\s*<\/Link>/,
   );
   assert.doesNotMatch(source, /Set up Aptos|siteLinks\.fontGuide/);
+});
+
+test('sidebar pages follow the Figma information architecture', async () => {
+  const { pages } = JSON.parse(
+    await fs.readFile(new URL('apps/docsite/site-registry.json', repoRoot), 'utf8'),
+  );
+  const expectedGroups = {
+    Overview: ['Home', 'Resources', 'FAQs'],
+    'For humans': ['Prototyping', 'NPM package'],
+    'For agents': ['MCP server', 'Package skill'],
+    Foundations: ['Colors', 'Typography', 'Content'],
+  };
+  for (const [group, labels] of Object.entries(expectedGroups)) {
+    assert.deepEqual(
+      pages
+        .filter((page) => page.showInSidebar && page.group === group)
+        .map((page) => page.navLabel),
+      labels,
+    );
+  }
+  assert.equal(new Set(pages.map((page) => page.id)).size, pages.length);
+  assert.equal(new Set(pages.map((page) => page.slug)).size, pages.length);
+  const registrySource = await fs.readFile(
+    new URL('apps/docsite/src/data/registry.ts', repoRoot),
+    'utf8',
+  );
+  assert.deepEqual(
+    [...registrySource.matchAll(/\{ label: '([^']+)', group:/g)].map((match) => match[1]),
+    [...Object.keys(expectedGroups), 'Components', 'Templates', 'Samples'],
+  );
+  for (const label of ['Overview', 'For humans', 'For agents']) {
+    assert.ok(
+      registrySource.includes(`{ label: '${label}', group: '${label}', layout: 'standalone' }`),
+    );
+  }
+});
+
+test('empty sections stay visible outside search and content search uses page results', async () => {
+  const [registrySource, sidebarSource, searchSource] = await Promise.all([
+    fs.readFile(new URL('apps/docsite/src/data/registry.ts', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/components/Sidebar.tsx', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/data/search.ts', repoRoot), 'utf8'),
+  ]);
+  assert.doesNotMatch(registrySource, /\.filter\(\(entry\) => entry\.items\.length > 0\)/);
+  assert.match(sidebarSource, /const groups = sidebarGroups;/);
+  assert.match(sidebarSource, /needle \? \(\s*<div className="app-search-results">/);
+  assert.match(sidebarSource, /<HighlightedText text=\{excerpt\} query=\{needle\} \/>/);
+  assert.match(searchSource, /page\.searchText/);
+  assert.match(searchSource, /authoredSearchText\.get\(page\.id\)/);
+  assert.match(
+    sidebarSource,
+    /group\.label === 'Overview' \|\| group\.label === activeGroup\?\.label/,
+  );
+});
+
+test('resources uses existing link destinations and CoreAI cards', async () => {
+  const [resources, app, registry, styles] = await Promise.all([
+    fs.readFile(new URL('apps/docsite/src/data/resources.ts', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/App.tsx', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/site-registry.json', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/styles/docsite.css', repoRoot), 'utf8'),
+  ]);
+  assert.deepEqual(
+    [...resources.matchAll(/href: siteLinks\.(\w+)/g)].map((match) => match[1]),
+    [
+      'figma',
+      'storybook',
+      'fontDownload',
+      'packageReadme',
+      'npmPackage',
+      'changelog',
+      'contact',
+      'feedback',
+    ],
+  );
+  assert.doesNotMatch(resources, /https?:\/\//);
+  assert.match(app, /className="resource-card-link"/);
+  assert.match(app, /href=\{resource\.href\}/);
+  assert.match(
+    app,
+    /<Card\s+appearance="filled-alternative"\s+focusMode="off"\s+className="resource-card"\s*>/,
+  );
+  assert.doesNotMatch(styles, /\[data-page-id='resources'\] \.site-main/);
+  assert.match(
+    styles,
+    /\.resource-card__icon \{[^}]*background: var\(--colorNeutralBackground1\);/,
+  );
+  assert.match(
+    styles,
+    /\.resource-card__destination \{[^}]*color: var\(--colorBrandForegroundLink\);/,
+  );
+  assert.match(
+    styles,
+    /\.resource-card-link:hover \.resource-card \{\s*background: var\(--colorNeutralBackground3Hover\);/,
+  );
+  assert.match(app, /aria-labelledby=\{`resource-\$\{resource\.id\}-title`\}/);
+  assert.match(app, /opens in a new tab/);
+  const page = JSON.parse(registry).pages.find((page) => page.id === 'resources');
+  assert.equal(page.slug, '/resources/');
+  assert.deepEqual(
+    page.anchors.map((anchor) => anchor.id),
+    ['assets', 'code', 'connect'],
+  );
+});
+
+test('FAQ-only contents rail uses rendered anchors and follows the page scroll region', async () => {
+  const [layout, css] = await Promise.all([
+    fs.readFile(new URL('apps/docsite/src/components/PageLayout.tsx', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/styles/docsite.css', repoRoot), 'utf8'),
+  ]);
+  assert.match(layout, /main\?\.closest<HTMLDivElement>\('\.app-page'\)/);
+  assert.match(layout, /if \(!main \|\| !scrollRegion \|\| !page \|\| id !== 'faqs'\)/);
+  assert.match(layout, /if \(id !== 'faqs'\) \{\s*return content;/);
+  assert.match(layout, /page\.anchors\.flatMap/);
+  assert.match(layout, /main\.contains\(element\)/);
+  assert.match(layout, /toc\.anchors\.length > 1/);
+  assert.match(layout, /aria-label="On this page"/);
+  assert.match(layout, /<LinkButton\s/);
+  assert.match(layout, /appearance="subtle"/);
+  assert.match(layout, /selectedSectionRef\.current = anchor\.id/);
+  assert.match(layout, /Math\.abs\(scrollRegion\.scrollTop - destination\) <= 2/);
+  assert.match(layout, /scrollingToSectionRef\.current \|\|/);
+  assert.match(layout, /scrollRegion\.removeEventListener\('scrollend', finishScroll\)/);
+  assert.match(layout, /scrollRegion\.removeEventListener\('wheel', interruptScroll\)/);
+  assert.match(layout, /href=\{`#\$\{anchor\.id\}`\}/);
+  assert.match(layout, /aria-current=\{toc\.activeId === anchor\.id \? 'location'/);
+  assert.match(layout, /scrollRegion\.removeEventListener\('scroll', scheduleUpdate\)/);
+  assert.match(layout, /resizeObserver\.disconnect\(\)/);
+  assert.match(layout, /window\.removeEventListener\('hashchange', followHash\)/);
+  assert.match(css, /\.page-toc\s*\{\s*display: none;/);
+  assert.match(css, /\.app-page:has\(\.page-layout--with-toc\)\s*\{\s*scroll-behavior: smooth;/);
+  assert.match(css, /@media \(min-width: 1440px\)/);
+  assert.match(css, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 824px\) minmax\(0, 1fr\);/);
+  assert.match(css, /\.page-layout--with-toc\s*\{[^}]*padding: 64px 16px;/);
+  assert.match(css, /\.page-layout > \.site-main\s*\{[^}]*grid-column: 2;[^}]*padding: 0;/);
+  assert.match(css, /\.page-layout--with-toc\s*\{[^}]*column-gap: 32px;/);
+  assert.match(css, /\.page-toc\s*\{[^}]*grid-column: 3;[^}]*grid-row: 1;[^}]*max-width: 200px;/);
+  assert.doesNotMatch(css, /\.page-toc__link\[aria-current='location'\]::before/);
+});
+
+test('FAQ answers retain research in the data and show optional useful links', async () => {
+  const [faqs, app, registrySource] = await Promise.all([
+    fs.readFile(new URL('apps/docsite/src/data/faqs.ts', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/App.tsx', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/site-registry.json', repoRoot), 'utf8'),
+  ]);
+  const questions = [...faqs.matchAll(/question: '([^']+)'/g)];
+  const sourceLists = [...faqs.matchAll(/sources: \[/g)];
+  assert.equal(questions.length, 13);
+  assert.equal(sourceLists.length, questions.length);
+  assert.doesNotMatch(faqs, /sources: \[\s*\]/);
+  const ids = [...faqs.matchAll(/id: '([^']+)'/g)].map((match) => match[1]);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.doesNotMatch(faqs, /teams\.microsoft\.com|sharepoint\.com|Azure Artifacts/);
+  assert.match(faqs, /docs-variations-from-fluent--docs/);
+  assert.match(faqs, /Lyb3shKi3jWCYjxajCRqmt\/History\?node-id=12-8763/);
+  assert.match(faqs, /id: 'code-as-truth'/);
+  assert.doesNotMatch(
+    faqs,
+    /id: '(region-selection|mini-foundry-compatibility|component-defaults|different-documentation-audiences|contributing-beyond-code)'/,
+  );
+  assert.match(faqs, /label: 'Feedback form', href: siteLinks\.feedback/);
+  assert.match(faqs, /links\?: FaqLink\[\]/);
+  assert.match(app, /<Accordion className="faq-list" multiple collapsible>/);
+  assert.match(app, /item\.links\?\.length/);
+  assert.match(app, /href=\{link\.href\} external/);
+  assert.doesNotMatch(app, /item\.sources|faq-sources/);
+  assert.match(app, /aria-level=\{3\}/);
+  const page = JSON.parse(registrySource).pages.find((page) => page.id === 'faqs');
+  assert.equal(page.slug, '/faqs/');
+  assert.deepEqual(
+    page.anchors.map((anchor) => anchor.id),
+    [
+      'about-coreai',
+      'getting-started',
+      'using-components',
+      'working-with-agents',
+      'help-and-feedback',
+    ],
+  );
+});
+
+test('unfinished pages retain their routes and use the shared work-in-progress state', async () => {
+  const [registrySource, appSource] = await Promise.all([
+    fs.readFile(new URL('apps/docsite/site-registry.json', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/App.tsx', repoRoot), 'utf8'),
+  ]);
+  const { pages } = JSON.parse(registrySource);
+  const blankPageIds = ['prototyping', 'content'];
+  for (const id of blankPageIds) {
+    const page = pages.find((entry) => entry.id === id);
+    assert.equal(page.slug, `/${id}/`);
+  }
+  assert.ok(
+    appSource.includes(
+      `new Set(${JSON.stringify(blankPageIds).replaceAll('"', "'").replaceAll(',', ', ')})`,
+    ),
+  );
+  assert.match(appSource, /blankPageIds\.has\(page\.id\)/);
+  assert.match(
+    appSource,
+    /<PageLayout id=\{page\.id\} hideTitle summary="">\s*<WorkInProgress key=\{page\.id\} standalone \/>/,
+  );
+});
+
+test('settings reuses Fluent controls with color mode above platform-specific shortcuts', async () => {
+  const [settings, sidebar, styles] = await Promise.all([
+    fs.readFile(new URL('apps/docsite/src/components/ThemeSwitcher.tsx', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/components/Sidebar.tsx', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/styles/docsite.css', repoRoot), 'utf8'),
+  ]);
+  assert.match(settings, /Settings20Regular.*from '@fluentui\/react-icons'/);
+  assert.match(settings, /icon=\{<Settings20Regular \/>\}/);
+  assert.match(settings, /<Popover\s+trapFocus/);
+  assert.match(settings, /positioning="below-start"/);
+  assert.doesNotMatch(settings, /Close popover or overlay/);
+  assert.match(settings, /<TabList\s+aria-label="Color mode"[\s\S]*Keyboard shortcuts/);
+  assert.match(settings, /appearance="elevated"/);
+  assert.match(settings, /<Tab value="dark">Dark<\/Tab>\s*<Tab value="light">Light<\/Tab>/);
+  assert.match(settings, /<Text size=\{200\} foreground=\{2\}>\s*\{label\}\s*<\/Text>/);
+  assert.match(styles, /\.docsite-settings__mode \{\s*align-self: flex-start;/);
+  assert.match(styles, /\.docsite-settings__shortcuts \{[^}]*border-top-color: inherit;/);
+  assert.match(settings, /isApplePlatform \? '⌥' : '⎇'/);
+  assert.match(settings, /isApplePlatform \? '⌘' : '⌃'/);
+  assert.match(settings, /<Badge\s+appearance="tint"/);
+  assert.doesNotMatch(settings, /<kbd/);
+  assert.match(settings, /className="docsite-settings__keys" aria-hidden="true"/);
+  assert.match(settings, /<span className="sr-only">\{accessibleKeys\}<\/span>/);
+  assert.doesNotMatch(settings, /<Select/);
+  assert.doesNotMatch(settings, /<Field/);
+  assert.match(styles, /\.docsite-settings \{\s*width: 280px;/);
+  assert.match(
+    settings,
+    /<section className="docsite-settings__shortcuts" aria-label="Keyboard shortcuts">/,
+  );
+  assert.doesNotMatch(settings, /as="h2"/);
+  assert.match(
+    styles,
+    /\.docsite-settings__shortcuts \{[^}]*margin-inline: calc\(-1 \* var\(--spacingHorizontalL\)\);[^}]*padding-inline: var\(--spacingHorizontalL\);/,
+  );
+  assert.match(styles, /\.docsite-settings__key-letter \{[^}]*font-size: var\(--fontSizeBase200\)/);
+  assert.match(styles, /\.docsite-settings__key-symbol \{[^}]*font-size: var\(--fontSizeBase200\)/);
+  assert.match(styles, /\.docsite-settings__keys \{[^}]*gap: 2px;[^}]*font-family: system-ui/);
+  assert.match(settings, /selectedValue=\{preference\}/);
+  assert.match(settings, /setPreference\(data\.value\)/);
+  assert.match(settings, /isApplePlatform \? 'Option' : 'Alt'/);
+  assert.match(settings, /isApplePlatform \? 'Cmd' : 'Ctrl'/);
+  assert.match(settings, /event\.key === 'Escape'[\s\S]*event\.stopPropagation\(\)/);
+  assert.match(sidebar, /!sidebarRef\.current\?\.contains\(event\.target\)/);
+  assert.match(sidebar, /isApplePlatform=\{isApplePlatform\}/);
 });

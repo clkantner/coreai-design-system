@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-19",
+  "updated": "2026-09-29",
   "redirects": [
     {
       "from": "/guidance/",
@@ -24,11 +24,11 @@
   ],
   "pages": [
     {
-      "id": "resources",
+      "id": "home",
       "slug": "/",
-      "group": "UI Kit",
+      "group": "Overview",
       "navLabel": "Home",
-      "headerLabel": "Resources",
+      "headerLabel": "Home",
       "title": "CoreAI design system",
       "summary": "",
       "eyebrow": "CoreAI design system",
@@ -40,6 +40,55 @@
           "label": "Get started"
         }
       ]
+    },
+    {
+      "id": "resources",
+      "slug": "/resources/",
+      "group": "Overview",
+      "navLabel": "Resources",
+      "headerLabel": "Resources",
+      "title": "Resources",
+      "summary": "Libraries, tools, and community links for working with CoreAI.",
+      "eyebrow": "",
+      "showInSidebar": true,
+      "showInHeader": false,
+      "anchors": [
+        { "id": "assets", "label": "Assets" },
+        { "id": "code", "label": "Code" },
+        { "id": "connect", "label": "Connect" }
+      ]
+    },
+    {
+      "id": "faqs",
+      "slug": "/faqs/",
+      "group": "Overview",
+      "navLabel": "FAQs",
+      "headerLabel": "FAQs",
+      "title": "FAQs",
+      "summary": "Answers about CoreAI, Fluent, setup, and working with agents.",
+      "eyebrow": "",
+      "showInSidebar": true,
+      "showInHeader": false,
+      "anchors": [
+        { "id": "about-coreai", "label": "About CoreAI" },
+        { "id": "getting-started", "label": "Getting started" },
+        { "id": "using-components", "label": "Using components" },
+        { "id": "working-with-agents", "label": "Working with agents" },
+        { "id": "help-and-feedback", "label": "Help and feedback" }
+      ]
+    },
+    {
+      "id": "prototyping",
+      "slug": "/prototyping/",
+      "group": "For humans",
+      "navLabel": "Prototyping",
+      "headerLabel": "Prototyping",
+      "title": "Prototyping",
+      "summary": "",
+      "eyebrow": "",
+      "showInSidebar": true,
+      "showInHeader": false,
+      "anchors": []
     },
     {
       "id": "changelog",
@@ -120,6 +169,20 @@
       ]
     },
     {
+      "id": "content",
+      "slug": "/content/",
+      "group": "Foundations",
+      "navLabel": "Content",
+      "headerLabel": "Content",
+      "title": "Content",
+      "summary": "Create product content, review it in context, and get the right level of support.",
+      "eyebrow": "",
+      "showInSidebar": true,
+      "showInHeader": false,
+      "anchors": [],
+      "searchText": "Write clear useful content for the reader. Lead with the action. Write like a person. Make content easy to scan and use. Use simple words, active voice, short sentences, descriptive headings, meaningful links, and accessible instructions. Review bad and better examples. Before publishing, check clarity, action, structure, tone, and value. Write real product content, refine the draft with the Content Design Copilot, review it in context, and get help from the content design desk."
+    },
+    {
       "id": "materials",
       "slug": "/materials/",
       "group": "Foundations",
@@ -152,7 +215,7 @@
     {
       "id": "mcp-server",
       "slug": "/mcp-server/",
-      "group": "Agents",
+      "group": "For agents",
       "navLabel": "MCP server",
       "headerLabel": "MCP server",
       "title": "MCP server",
@@ -165,7 +228,7 @@
     {
       "id": "package",
       "slug": "/package/",
-      "group": "UI Kit",
+      "group": "For humans",
       "navLabel": "NPM package",
       "headerLabel": "NPM Package",
       "title": "NPM Package",
@@ -178,7 +241,7 @@
     {
       "id": "coreai-skill",
       "slug": "/coreai-skill/",
-      "group": "Agents",
+      "group": "For agents",
       "navLabel": "Package skill",
       "headerLabel": "Package skill",
       "title": "Package skill",

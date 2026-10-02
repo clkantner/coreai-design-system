@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {
+  Dropdown,
   Link,
   Menu,
   MenuButton,
@@ -8,9 +9,7 @@ import {
   MenuList,
   MenuPopover,
   MenuTrigger,
-  MessageBar,
-  MessageBarBody,
-  Select,
+  Option,
   Text,
 } from '@coreai/fluentui-react';
 import { Copy20Regular, DocumentText20Regular } from '@fluentui/react-icons';
@@ -24,6 +23,7 @@ import { useThemeMode } from '../theme/ThemeProvider';
 import { ExternalIcon, FigmaLogo, FluentLogo, StorybookLogo } from './Icons';
 import { EmbedFrame } from './EmbedFrame';
 import { PageLayout } from './PageLayout';
+import { WorkInProgress } from './work-in-progress';
 
 function SourceIcon({ source }: { source: ComponentSource }) {
   if (source.kind === 'storybook') {
@@ -165,31 +165,28 @@ export function ComponentPage({ content, html }: { content: ComponentContent; ht
       }
     >
       <div className="component-guidance">
-        {content.status === 'under-construction' ? (
-          <MessageBar intent="warning">
-            <MessageBarBody>Page under construction.</MessageBarBody>
-          </MessageBar>
-        ) : null}
+        {content.status === 'under-construction' ? <WorkInProgress /> : null}
         {embedUrl ? (
           <section className="component-demo" aria-label={`Interactive ${content.title} example`}>
             {storyOptions && storyOptions.length > 1 ? (
               <div className="component-demo__toolbar">
-                <Select
+                <Dropdown
                   id={storySelectId}
                   aria-label="Story"
                   appearance="filled-darker"
                   size="small"
-                  value={activeStoryId}
-                  onChange={(_event, data) => {
-                    setSelectedStoryId(data.value);
+                  selectedOptions={activeStoryId ? [activeStoryId] : []}
+                  value={storyOptions.find((story) => story.storyId === activeStoryId)?.label ?? ''}
+                  onOptionSelect={(_event, data) => {
+                    setSelectedStoryId(data.optionValue);
                   }}
                 >
                   {storyOptions.map((story) => (
-                    <option key={story.storyId} value={story.storyId}>
+                    <Option key={story.storyId} value={story.storyId} text={story.label}>
                       {story.label}
-                    </option>
+                    </Option>
                   ))}
-                </Select>
+                </Dropdown>
               </div>
             ) : null}
             <EmbedFrame
@@ -197,6 +194,7 @@ export function ComponentPage({ content, html }: { content: ComponentContent; ht
               title={`Interactive ${content.title} example`}
               loadingLabel="Loading preview"
               allow="clipboard-write"
+              signInUrl={storyUrl}
             />
           </section>
         ) : figmaEmbedUrl ? (

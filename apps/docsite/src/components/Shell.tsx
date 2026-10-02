@@ -3,7 +3,6 @@ import { Text } from '@coreai/fluentui-react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
-import { useDocsiteInteractions } from '../hooks/useDocsiteInteractions';
 
 export function Shell() {
   const location = useLocation();
@@ -13,7 +12,9 @@ export function Shell() {
   const pageRef = React.useRef<HTMLDivElement>(null);
   const [navigationOpen, setNavigationOpen] = React.useState(false);
 
-  useDocsiteInteractions();
+  const openNavigation = React.useCallback(() => {
+    setNavigationOpen(true);
+  }, []);
 
   const closeNavigation = React.useCallback(() => {
     setNavigationOpen(false);
@@ -60,12 +61,12 @@ export function Shell() {
         Skip to content
       </a>
       <div className="app-body">
-        <Sidebar isOpen={navigationOpen} onClose={closeNavigation} />
+        <Sidebar isOpen={navigationOpen} onOpen={openNavigation} onClose={closeNavigation} />
         <div className={isHome ? 'app-content app-content--home' : 'app-content'}>
           <Header
             menuButtonRef={menuButtonRef}
             navigationOpen={navigationOpen}
-            onNavigationOpen={() => setNavigationOpen(true)}
+            onNavigationOpen={openNavigation}
           />
           <div
             className={isHome ? 'app-page app-page--home' : 'app-page'}

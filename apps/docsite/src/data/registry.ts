@@ -11,15 +11,14 @@ export const redirects = registry.redirects;
 
 export const pageById = new Map(pages.map((page) => [page.id, page]));
 
+export function normalizeRoutePath(pathname: string): string {
+  return pathname.replace(/\/+$/, '') || '/';
+}
+
 export function getPage(id: string): RegistryPage | undefined {
   return pageById.get(id);
 }
 
-/**
- * Sidebar navigation groups. Preserves the IA from the previous docsite:
- * Navigation groups and section boundaries, in registry order. Only pages flagged
- * `showInSidebar` appear.
- */
 export interface SidebarGroup {
   label: string;
   items: RegistryPage[];
@@ -31,16 +30,17 @@ const SIDEBAR_ORDER: Array<{
   group: string;
   layout: SidebarGroup['layout'];
 }> = [
-  { label: 'Getting started', group: 'UI Kit', layout: 'standalone' },
-  { label: 'For agents', group: 'Agents', layout: 'standalone' },
-  { label: 'Design Language', group: 'Foundations', layout: 'standalone' },
-  { label: 'Components', group: 'Components', layout: 'combined' },
-  { label: 'Templates', group: 'Templates', layout: 'combined' },
-  { label: 'Assets', group: 'Assets', layout: 'combined' },
+  { label: 'Overview', group: 'Overview', layout: 'standalone' },
+  { label: 'For humans', group: 'For humans', layout: 'standalone' },
+  { label: 'For agents', group: 'For agents', layout: 'standalone' },
+  { label: 'Foundations', group: 'Foundations', layout: 'standalone' },
+  { label: 'Components', group: 'Components', layout: 'standalone' },
+  { label: 'Templates', group: 'Templates', layout: 'standalone' },
+  { label: 'Samples', group: 'Samples', layout: 'standalone' },
 ];
 
 export const sidebarGroups: SidebarGroup[] = SIDEBAR_ORDER.map(({ label, group, layout }) => ({
   label,
   layout,
   items: pages.filter((page) => page.showInSidebar && page.group === group),
-})).filter((entry) => entry.items.length > 0);
+}));

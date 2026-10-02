@@ -10,12 +10,15 @@ import { SearchBox } from '@coreai/fluentui-react';
 import { TabList, Tab, type SelectTabData, type SelectTabEvent } from '@coreai/fluentui-react';
 import { Link } from '@coreai/fluentui-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { sidebarGroups } from '../data/registry';
+import { normalizeRoutePath, pages, sidebarGroups } from '../data/registry';
+import { searchPages } from '../data/search';
 import { siteLinks } from '../data/content';
 import { CoreAILogo, ExternalIcon } from './Icons';
 import { ThemeSwitcher } from './ThemeSwitcher';
+import { useDocsiteInteractions } from '../hooks/useDocsiteInteractions';
 
 const sidebarStorageKey = 'coreai-docsite-sidebar-collapsed';
+const navigationPages = sidebarGroups.flatMap((group) => group.items);
 
 const logoEffectFrames = [
   '/logo-effects/single-logo-effect1-white.png',
@@ -26,23 +29,156 @@ const logoEffectFrames = [
 
 interface SidebarProps {
   isOpen: boolean;
+  onOpen: () => void;
   onClose: () => void;
 }
 
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  const parts: React.ReactNode[] = [];
+  const normalizedText = text.toLowerCase();
+  let cursor = 0;
+  let matchIndex = normalizedText.indexOf(query);
+
+  while (matchIndex >= 0) {
+    if (matchIndex > cursor) {
+      parts.push(text.slice(cursor, matchIndex));
+    }
+    const matchEnd = matchIndex + query.length;
+    parts.push(
+      <mark key={`${matchIndex}-${text.slice(matchIndex, matchEnd)}`}>
+        {text.slice(matchIndex, matchEnd)}
+      </mark>,
+    );
+    cursor = matchEnd;
+    matchIndex = normalizedText.indexOf(query, cursor);
+  }
+
+  if (cursor < text.length) {
+    parts.push(text.slice(cursor));
+  }
+
+  return <>{parts}</>;
+}
+
+export function Sidebar({ isOpen, onOpen, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const sidebarRef = React.useRef<HTMLElement>(null);
+  const navigationRef = React.useRef<HTMLElement>(null);
+  const revealActivePageRef = React.useRef(true);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const logoButtonRef = React.useRef<HTMLButtonElement>(null);
   const [isCollapsed, setIsCollapsed] = React.useState(
     () => typeof localStorage !== 'undefined' && localStorage.getItem(sidebarStorageKey) === 'true',
   );
   const [query, setQuery] = React.useState('');
+  const toggleNavigation = React.useCallback(() => {
+    if (sidebarRef.current && getComputedStyle(sidebarRef.current).position === 'fixed') {
+      if (isOpen) {
+        onClose();
+      } else {
+        onOpen();
+      }
+    } else {
+      setIsCollapsed((current) => !current);
+    }
+  }, [isOpen, onClose, onOpen]);
+
+  const toggleNavigationFromShortcut = React.useCallback(() => {
+    const focusedElement = document.activeElement;
+    if (focusedElement instanceof HTMLElement && sidebarRef.current?.contains(focusedElement)) {
+      focusedElement.blur();
+    }
+    toggleNavigation();
+  }, [toggleNavigation]);
+
   const isApplePlatform =
     typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.platform);
-  const [openGroups, setOpenGroups] = React.useState<string[]>(() =>
-    sidebarGroups.map((group) => group.label),
+  const activePagePath = normalizeRoutePath(location.pathname);
+  const activeGroup = sidebarGroups.find((group) =>
+    group.items.some((page) => normalizeRoutePath(page.slug) === activePagePath),
   );
+  const [openGroups, setOpenGroups] = React.useState<string[]>(() =>
+    sidebarGroups
+      .filter((group) => group.label === 'Overview' || group.label === activeGroup?.label)
+      .map((group) => group.label),
+  );
+
+  const collapseNavigation = React.useCallback(() => {
+    if (sidebarRef.current?.contains(document.activeElement)) {
+      logoButtonRef.current?.focus();
+    }
+    setQuery('');
+    setOpenGroups([]);
+  }, []);
+
+  const expandNavigation = React.useCallback(() => {
+    setQuery('');
+    setOpenGroups(sidebarGroups.map((group) => group.label));
+  }, []);
+
+  const navigatePage = React.useCallback(
+    (direction: -1 | 1) => {
+      const currentIndex = navigationPages.findIndex(
+        (page) => normalizeRoutePath(page.slug) === activePagePath,
+      );
+      const nextPage = currentIndex >= 0 ? navigationPages[currentIndex + direction] : undefined;
+      if (!nextPage) return;
+      setQuery('');
+      navigate(nextPage.slug);
+      onClose();
+      requestAnimationFrame(() => document.getElementById('main-content')?.focus());
+    },
+    [activePagePath, navigate, onClose],
+  );
+
+  const focusSearch = React.useCallback(() => {
+    if (sidebarRef.current && getComputedStyle(sidebarRef.current).position === 'fixed') {
+      onOpen();
+    }
+    setIsCollapsed(false);
+    requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    });
+  }, [onOpen]);
+
+  useDocsiteInteractions({
+    onToggleNavigation: toggleNavigationFromShortcut,
+    onCollapseNavigation: collapseNavigation,
+    onExpandNavigation: expandNavigation,
+    onNavigatePage: navigatePage,
+    onFocusSearch: focusSearch,
+    isApplePlatform,
+  });
+
+  React.useEffect(() => {
+    revealActivePageRef.current = true;
+    if (!activeGroup) return;
+    setOpenGroups((current) =>
+      current.includes(activeGroup.label) ? current : [...current, activeGroup.label],
+    );
+  }, [activeGroup, activePagePath]);
+
+  React.useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      if (!revealActivePageRef.current) return;
+      const navigation = navigationRef.current;
+      const activeTab = navigation?.querySelector<HTMLElement>(
+        '[role="tab"][aria-selected="true"]',
+      );
+      if (!navigation || !activeTab || !activeTab.getClientRects().length) return;
+      revealActivePageRef.current = false;
+      const viewport = navigation.getBoundingClientRect();
+      const item = activeTab.getBoundingClientRect();
+      if (item.bottom > viewport.bottom) {
+        navigation.scrollTop += item.bottom - viewport.bottom;
+      } else if (item.top < viewport.top) {
+        navigation.scrollTop += item.top - viewport.top;
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [activePagePath, openGroups, isCollapsed, isOpen, query]);
 
   React.useEffect(() => {
     if (typeof localStorage === 'undefined') return;
@@ -61,20 +197,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   );
 
   const needle = query.trim().toLowerCase();
-  const groups = sidebarGroups
-    .map((group) => ({
-      ...group,
-      items: needle
-        ? group.items.filter((page) => page.navLabel.toLowerCase().includes(needle))
-        : group.items,
-    }))
-    .filter((group) => group.items.length > 0);
+  const searchResults = React.useMemo(() => searchPages(pages, needle), [needle]);
+  const resultCount = searchResults.length;
+  const groups = sidebarGroups;
   const standaloneGroups = groups.filter((group) => group.layout === 'standalone');
   const combinedGroups = groups.filter((group) => group.layout === 'combined');
 
-  // While searching, force matching groups open so results are visible;
-  // otherwise reflect the user's expand/collapse state.
-  const openItems = needle ? groups.map((group) => group.label) : openGroups;
+  const openItems = openGroups;
   const createSectionToggleHandler =
     (sectionGroups: typeof groups): AccordionToggleEventHandler =>
     (_event, data) => {
@@ -95,11 +224,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           vertical
           appearance="subtle"
           size="medium"
-          selectedValue={location.pathname}
+          selectedValue={activePagePath}
           onTabSelect={onTabSelect}
         >
           {group.items.map((page) => (
-            <Tab key={page.id} value={page.slug}>
+            <Tab key={page.id} value={normalizeRoutePath(page.slug)}>
               {page.navLabel}
             </Tab>
           ))}
@@ -108,25 +237,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     </AccordionItem>
   );
 
-  React.useEffect(() => {
-    const focusSearch = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== 'k' || (!event.metaKey && !event.ctrlKey)) {
-        return;
-      }
-      if (sidebarRef.current && getComputedStyle(sidebarRef.current).visibility === 'hidden') {
-        return;
-      }
-      event.preventDefault();
-      setIsCollapsed(false);
-      requestAnimationFrame(() => {
-        searchInputRef.current?.focus();
-        searchInputRef.current?.select();
-      });
-    };
-
-    document.addEventListener('keydown', focusSearch);
-    return () => document.removeEventListener('keydown', focusSearch);
-  }, []);
+  const selectSearchResult = React.useCallback(
+    (slug: string) => {
+      setQuery('');
+      navigate(slug);
+      onClose();
+    },
+    [navigate, onClose],
+  );
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -137,6 +255,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       searchInputRef.current?.focus();
     });
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.target instanceof Node && !sidebarRef.current?.contains(event.target)) {
+        return;
+      }
       if (event.key === 'Escape') {
         event.preventDefault();
         onClose();
@@ -189,18 +310,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <div className="app-sidenav__header">
         <div className="app-sidenav__search-row">
           <button
+            ref={logoButtonRef}
             type="button"
             className="app-sidenav__search-logo"
             aria-label={isOpen || !isCollapsed ? 'Hide navigation' : 'Show navigation'}
             aria-expanded={isOpen || !isCollapsed}
             aria-controls="app-navigation-links"
-            onClick={() => {
-              if (sidebarRef.current && getComputedStyle(sidebarRef.current).position === 'fixed') {
-                onClose();
-              } else {
-                setIsCollapsed((current) => !current);
-              }
-            }}
+            aria-keyshortcuts="Alt+s"
+            title={`Toggle navigation (${isApplePlatform ? 'Option' : 'Alt'}+S)`}
+            onClick={toggleNavigation}
           >
             <span className="app-sidenav__search-logo-static">
               <CoreAILogo />
@@ -233,7 +351,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </span>
             }
           />
-          <ThemeSwitcher />
+          <ThemeSwitcher
+            key={`${location.pathname}:${isCollapsed}:${isOpen}`}
+            isApplePlatform={isApplePlatform}
+          />
           <button
             type="button"
             className="app-sidenav__dismiss"
@@ -247,31 +368,71 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
       </div>
 
-      <nav id="app-navigation-links" className="app-sidenav__nav" aria-label="Section navigation">
-        {standaloneGroups.map((group) => (
-          <div className="app-sidenav__section-shell" key={group.label}>
-            <Accordion
-              multiple
-              collapsible
-              openItems={openItems.filter((item) => item === group.label)}
-              onToggle={createSectionToggleHandler([group])}
-            >
-              {renderGroup(group)}
-            </Accordion>
+      <nav
+        ref={navigationRef}
+        id="app-navigation-links"
+        className="app-sidenav__nav"
+        aria-label="Section navigation"
+      >
+        {needle ? (
+          <div className="app-search-results">
+            <div className="app-search-results__header" role="status">
+              {resultCount} {resultCount === 1 ? 'result' : 'results'} for “{query.trim()}”
+            </div>
+            {searchResults.length > 0 ? (
+              <ul className="app-search-results__list">
+                {searchResults.map(({ page, excerpt }) => (
+                  <li key={page.id}>
+                    <button
+                      type="button"
+                      className="app-search-result"
+                      onClick={() => selectSearchResult(normalizeRoutePath(page.slug))}
+                    >
+                      <span className="app-search-result__path">{page.slug}</span>
+                      <span className="app-search-result__title">
+                        <HighlightedText text={page.title} query={needle} />
+                      </span>
+                      <span className="app-search-result__excerpt">
+                        <HighlightedText text={excerpt} query={needle} />
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="app-search-results__empty">Try a different word or phrase.</p>
+            )}
           </div>
-        ))}
-        {combinedGroups.map((group) => (
-          <div className="app-sidenav__section-shell" key={group.label}>
-            <Accordion
-              multiple
-              collapsible
-              openItems={openItems.filter((item) => item === group.label)}
-              onToggle={createSectionToggleHandler([group])}
-            >
-              {renderGroup(group)}
-            </Accordion>
-          </div>
-        ))}
+        ) : (
+          <>
+            {combinedGroups.length > 0 ? (
+              <div className="app-sidenav__section-shell">
+                <Accordion
+                  multiple
+                  collapsible
+                  openItems={openItems.filter((item) =>
+                    combinedGroups.some((group) => group.label === item),
+                  )}
+                  onToggle={createSectionToggleHandler(combinedGroups)}
+                >
+                  {combinedGroups.map(renderGroup)}
+                </Accordion>
+              </div>
+            ) : null}
+            {standaloneGroups.map((group) => (
+              <div className="app-sidenav__section-shell" key={group.label}>
+                <Accordion
+                  multiple
+                  collapsible
+                  openItems={openItems.filter((item) => item === group.label)}
+                  onToggle={createSectionToggleHandler([group])}
+                >
+                  {renderGroup(group)}
+                </Accordion>
+              </div>
+            ))}
+          </>
+        )}
       </nav>
 
       <div className="app-sidenav__footer">

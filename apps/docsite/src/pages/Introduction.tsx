@@ -10,7 +10,7 @@ const CoreAILogoCube = React.lazy(() =>
 
 export function Introduction() {
   return (
-    <PageLayout id="resources" hideTitle>
+    <PageLayout id="home" hideTitle>
       <div className="home-landing">
         <div className="home-foreground">
           <header className="home-heading">

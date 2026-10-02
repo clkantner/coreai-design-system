@@ -74,18 +74,152 @@ Because it is a client-rendered SPA, `server.js` includes an SPA fallback (serve
 
 ### Navigation
 
-The sidebar's **Home** item under **Getting started** opens the landing page.
+The sidebar follows this order:
+
+- **Overview:** Home, Resources, FAQs.
+- **For humans:** Prototyping, NPM package.
+- **For agents:** MCP server, Package skill.
+- **Foundations:** Colors, Typography, Content.
+- **Components**, then **Templates:** existing guidance pages.
+- **Samples:** an empty section after Templates.
+
+Each group has its own section with a bottom divider, including Overview,
+For humans, and For agents. On initial load or reload, Overview starts open and all
+other sections start collapsed unless the current page belongs to that group.
+Empty sections remain visible outside search.
+Search shows and opens only groups with matching pages.
+
+**Home** keeps the existing landing page at `/`.
+Resources (`/resources/`) groups nine link cards into Assets, Code, and Connect.
+Each card is one native link, composed with the existing CoreAI Card and Text controls.
+Cards use the `filled-alternative` appearance. Content uses the standard page max-width.
+Icon backgrounds use the lighter `colorNeutralBackground1` surface. Destination
+labels and external-link icons use `colorBrandForegroundLink`.
+Titles, descriptions, destination labels, and icons live in
+[`src/data/resources.ts`](src/data/resources.ts); URLs reuse `siteLinks`.
+Cards open in a new tab, announce that behavior, and support keyboard focus.
+The grid adapts to the available width in both themes.
+FAQs (`/faqs/`) contains 13 answers in five topic groups, using the
+existing CoreAI Accordion, Text, and Link controls. Questions, answers, links,
+research sources, and the review date live in [`src/data/faqs.ts`](src/data/faqs.ts).
+The page renders only optional `links` to resources mentioned in an answer,
+such as setup guides and the feedback form. The `sources` stay in the data for
+editorial traceability; they are not rendered as citation lists.
+The research combines live Storybook documentation, the package README, and
+selected CoreAI DS Community threads. Community history was only partially
+available, so this is not a frequency-ranked or exhaustive list.
+Mini Foundry background was checked against the existing
+`proto/jabradford/mini-foundry-history-slides` source at `ca0ea4f7`
+(`app/slides/ExampleSlideDeck.tsx`); the deployed deck required sign-in.
+Additional rationale comes from the September 22 Apogee Loop recording transcript
+retrieved through WorkIQ and speaker notes read directly from the Figma `History`
+deck (`Lyb3shKi3jWCYjxajCRqmt`, slides 13, 15, 16, and 17). The transcript excerpts
+had no timestamps, so retained recording references point to the whole recording.
+Historical migration plans and unconfirmed component delivery dates are not current guidance.
+Prototyping (`/prototyping/`) and Content (`/content/`) use the shared "Page under construction" state
+in [`src/components/work-in-progress.tsx`](src/components/work-in-progress.tsx).
+It is centered in the page with no separate page header or summary.
+Empty state (`/empty-state/`), Page header (`/page-header/`), and Top nav
+(`/top-nav/`) show only this state, centered in the page without a page header,
+preview, resources, or guidance. Their source content remains intact for later use.
+Other component pages marked `under-construction` show the state above their
+existing previews, resources, and guidance.
+The state uses a miniature monochrome version of the spinning home logo,
+with neutral lighting, dithering, and no purple heatmap. Drag the logo to rotate it.
+Reduced motion stops automatic rotation but keeps dragging available.
+It has a static logo while the canvas loads.
+On entry, the logo, heading, description, and button fade in over 320ms each,
+staggered by 70ms. This repeats when switching template pages.
+Reduced motion shows all elements immediately.
+"Share a suggestion" opens the existing `siteLinks.feedback` intake in a new tab.
+Its label and 16px external-link icon use the purple link colors, including hover
+and pressed states. Supporting copy reads "We're still working on this page."
+Content's authored guidance remains intact in `src/pages/Content.tsx`; removing
+`content` from `blankPageIds` restores it. Existing page URLs stay unchanged.
+Materials and Changelog remain available at their existing URLs without sidebar entries.
+
+Storybook previews include a small "Preview not loading?" help row.
+"Sign in to Storybook" opens the current story in a new tab. After signing in,
+"Reload preview" reloads only that iframe, preserving the selected story and theme.
+Figma previews do not show this help row.
+This is recovery guidance, not an authentication check: the docsite does not read
+the cross-origin iframe, infer sign-in status from its load event, or change
+Storybook's server or Azure authentication configuration.
+
+At viewport widths of 1440px and above, only FAQs shows a sticky "On this page"
+rail using its rendered registry anchors. The content stays centered with the same
+824px usable width as other pages (920px maximum minus 48px padding on each side).
+The TOC sits in the right margin rather than taking space from the content.
+It grows to 200px wide as room allows; longer labels wrap at smaller desktop widths.
+The rail aligns with the FAQ title, has a 32px gap from the content, and uses existing CoreAI `LinkButton`
+controls with a filled active row, native fragment links, and standard hover/focus states.
+It highlights the current section within the page scroll region and updates when
+content expands or the viewport changes. Clicking a section keeps that section
+selected even when the scroll position is limited by the bottom of the page;
+scrolling away resumes automatic section tracking.
+TOC clicks scroll smoothly and keep the chosen section highlighted during the transition.
+Reduced-motion preferences disable smooth scrolling. Direct section URLs load at their target.
+It does not expand FAQ answers. All other pages retain their layout without a rail.
+Below 1440px, the rail is hidden and the existing single-column layout is unchanged.
+
 On desktop, the logo button hides or shows the sidebar. The collapsed sidebar
-shows only that button. Its size eases between states while the contents fade,
-without wrapping during the transition. Reduced motion disables the transition.
+shows only that button, overlaid on the page without reserving a sidebar gutter.
+The contents fade without wrapping during the transition.
+Reduced motion disables the transition. The toggle shortcut does not focus the
+logo button; normal Tab navigation keeps its visible focus indicator.
+Docsite-only styles set navigation item left padding to 16px and section heading
+left padding to 8px.
+The footer has a soft upward shadow in the shell background color, clipped inside
+the sidebar, to separate its links from scrolling navigation items.
+The outer outline and footer divider paint above the shadow so their strokes stay visible.
 The desktop open/closed state persists across reloads in `localStorage` under
 `coreai-docsite-sidebar-collapsed`. The mobile overlay still starts closed.
 Cmd/Ctrl+K expands it and focuses search. On mobile,
 the logo closes the existing navigation overlay.
 
+| Action | Mac | Windows |
+| --- | --- | --- |
+| Show/hide navigation | Option+S | Alt+S |
+| Previous page | Option+Up | Alt+Up |
+| Next page | Option+Down | Alt+Down |
+| Collapse all navigation sections | Cmd+Shift+Up | Ctrl+Shift+Up |
+| Expand all navigation sections | Cmd+Shift+Down | Ctrl+Shift+Down |
+| Switch theme | Option+M | Alt+M |
+| Search navigation | Cmd+K | Ctrl+K |
+| Close mobile navigation | Esc | Esc |
+
+Previous/next follows sidebar order, including collapsed groups, without wrapping
+at the ends. After a page change, the navigation scrolls just enough to reveal the active page,
+waiting for its group to open if needed. Opening or closing sections manually
+does not scroll back to the active page. This does not move focus or scroll the page body.
+Pages outside the sidebar do not participate. Collapse-all closes
+the groups, not the whole sidebar. The next page change reopens only the destination
+group, even when the previous page was in that same group.
+Plain N and M no longer trigger actions.
+Shortcuts ignore typing fields, held keys, text composition, and AltGr.
+Search and Escape remain available while typing. Search also opens mobile navigation.
+Option letter shortcuts use physical key codes so macOS-generated characters
+do not prevent recognition. Shortcuts apply to the docsite, not embedded previews.
+
+The settings gear in the sidebar opens a popover with an elevated **Dark / Light**
+tablist sized to its content above the shortcut list. The popover opens below
+the gear, aligned to its left edge. The complete menu, including padding and
+borders, is 280px wide. Shortcut labels use type-ramp size 200 and foreground 2.
+CoreAI Badges contain system-UI shortcut glyphs. Letters, modifiers, and arrows
+use size 200, with a 2px gap between keys and no text spaces.
+The edge-to-edge divider matches the popover border.
+Shortcut badges use platform-specific symbols without plus signs;
+full key names remain available to screen readers and on hover.
+Escape is not listed in the popover, but still closes the popover first,
+without closing an open mobile navigation overlay. The popover reuses CoreAI
+controls and Fluent's settings icon; shared components are unchanged.
+
 ### Illustration shaders
 
 The pipeline is **lit 3D X → Paper Heatmap → Paper Image Dithering → CSS radial fade**.
+
+The home illustration stays hidden until its first complete rendered frame, then
+fades in over 400ms. Reduced-motion preferences disable the fade.
 
 [`src/components/paper-heatmap.tsx`](src/components/paper-heatmap.tsx) uses Paper's
 published Heatmap fragment shader with a ten-stop palette: the first two stops
@@ -139,6 +273,11 @@ The Apache 2.0 license and Paper notice ship in
 orientation, transparency, resizing, display density, theme switching, and dragging.
 
 ## Updating component guidance
+
+Story selectors on all component pages use CoreAI's popover-based `Dropdown`
+and `Option` controls, not native browser selects. Selection updates both the
+embedded preview and its Storybook resource link. Shared components and controls
+inside embedded previews are unchanged.
 
 Edit the `.md` files in [content/components](content/components); use
 [Accordion.md](content/components/Accordion.md) as an example. Don't edit generated output.

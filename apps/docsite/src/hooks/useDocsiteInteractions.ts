@@ -12,14 +12,34 @@ function isEditableTarget(target: EventTarget | null): boolean {
     return false;
   }
   const tag = target.tagName;
-  return tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable;
+  return (
+    tag === 'INPUT' ||
+    tag === 'TEXTAREA' ||
+    tag === 'SELECT' ||
+    target.isContentEditable ||
+    Boolean(target.closest('[role="textbox"], [role="combobox"]'))
+  );
 }
 
 /**
  * Ports the document-level interactions from the original vanilla docsite.js:
- * scrollbar fade-on-idle, copy-to-clipboard toast, and `M` theme cycle.
+ * scrollbar fade-on-idle, copy-to-clipboard toast, and keyboard shortcuts.
  */
-export function useDocsiteInteractions(): void {
+export function useDocsiteInteractions({
+  onToggleNavigation,
+  onCollapseNavigation,
+  onExpandNavigation,
+  onNavigatePage,
+  onFocusSearch,
+  isApplePlatform,
+}: {
+  onToggleNavigation: () => void;
+  onCollapseNavigation: () => void;
+  onExpandNavigation: () => void;
+  onNavigatePage: (direction: -1 | 1) => void;
+  onFocusSearch: () => void;
+  isApplePlatform: boolean;
+}): void {
   const { preference, setPreference } = useThemeMode();
 
   // Keep the latest preference in a ref so the keydown handler (bound once)
@@ -108,13 +128,32 @@ export function useDocsiteInteractions(): void {
     };
   }, []);
 
-  // Keyboard shortcut: `M` cycles theme.
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const action = getShortcutAction(event, {
         editable: isEditableTarget(event.target),
+        isApplePlatform,
       });
+      if (action) event.preventDefault();
       switch (action) {
+        case 'toggle-navigation':
+          onToggleNavigation();
+          break;
+        case 'collapse-navigation':
+          onCollapseNavigation();
+          break;
+        case 'expand-navigation':
+          onExpandNavigation();
+          break;
+        case 'previous-page':
+          onNavigatePage(-1);
+          break;
+        case 'next-page':
+          onNavigatePage(1);
+          break;
+        case 'focus-search':
+          onFocusSearch();
+          break;
         case 'cycle-theme':
           setPreference(THEME_CYCLE[preferenceRef.current] ?? 'dark');
           break;
@@ -123,5 +162,13 @@ export function useDocsiteInteractions(): void {
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [setPreference]);
+  }, [
+    isApplePlatform,
+    onToggleNavigation,
+    onCollapseNavigation,
+    onExpandNavigation,
+    onNavigatePage,
+    onFocusSearch,
+    setPreference,
+  ]);
 }
