@@ -1,6 +1,6 @@
 /* CoreAI docsite layout + surface styles.
    Ported verbatim from the original hand-tuned stylesheet (git HEAD:apps/docsite/src/assets/docsite.css).
-   Aptos / Aptos Mono are preferred when locally installed; no font binaries are bundled.
+   Aptos / Aptos Mono are preferred, with Inter as the proportional fallback.
    Atomic component styling stays with Fluent; these rules own page layout, spacing, surfaces, and composed cards. */
 
 /* ==========================================================================

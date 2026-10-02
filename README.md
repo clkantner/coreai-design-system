@@ -72,9 +72,12 @@ npm run storybook         # http://localhost:6006
 ```
 
 Aptos is the preferred typeface but is **not redistributed** in this repository or
-the npm package. Development and builds work with system-font fallbacks. To use
-Aptos, follow the opt-in [font setup guide](packages/coreai-fluentui-react/src/fonts/README.md)
-and review Microsoft's license for your intended use.
+the npm package. Inter is the proportional fallback, followed by system fonts. To
+use Aptos, follow the opt-in
+[font setup guide](packages/coreai-fluentui-react/src/fonts/README.md) and review
+Microsoft's license for your intended use. **Only Microsoft-hosted projects may
+host Aptos font files. Non-Microsoft projects must not host Aptos and should load
+Inter instead.**
 
 ## Common scripts
 

@@ -52,10 +52,22 @@ export function App() {
 - `theme` defaults to `coreaiLightTheme`. Inside the tree,
   `useFluentThemeMode()` returns `'light' | 'dark'` so your own components can
   branch on the active mode.
-- The theme prefers **Aptos / Aptos Mono**, then system fonts. The optional
-  `@coreai/fluentui-react/fonts/fonts.css` import registers **installed fonts only**.
-  No font binaries ship in the repository or npm package, and no font downloads
-  occur during installation, development, builds, or CI.
+- The theme prefers **Aptos** for proportional and numeric text, then **Inter**,
+  then system fonts. Monospace text prefers **Aptos Mono** before system monospace
+  fonts. The optional `@coreai/fluentui-react/fonts/fonts.css` import registers
+  **installed Aptos fonts only**. No font binaries ship in the repository or npm
+  package.
+
+To load the supported Inter fallback faces from Google Fonts, request normal and
+italic styles at weights 400, 600, and 700:
+
+```css
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
+```
+
+**Only Microsoft-hosted projects may host Aptos font files. If your project is
+not Microsoft-hosted, do not publish or serve Aptos; use the Inter fallback
+above instead.**
 
 ### Set up Aptos
 
@@ -80,8 +92,8 @@ supplied Microsoft terms explicitly withheld distribution rights. Review the ter
 that accompany your own source and obtain appropriate rights before serving fonts
 to other people; neither the package license nor the setup script grants them.
 
-Only if you independently hold web-hosting rights, you can generate a consumer-owned
-asset directory and URL-based stylesheet:
+For a Microsoft-hosted project that independently holds appropriate web-hosting
+rights, you can generate a project-owned asset directory and URL-based stylesheet:
 
 ```sh
 node scripts/setup-fonts.mjs --source "<licensed-font-directory>" --accept-license --output "<consumer-project>/public/fonts/aptos" --allow-web-hosting
