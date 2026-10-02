@@ -18,8 +18,7 @@ import {
   azureDarkTheme,
   CoreAIFluentProvider,
 } from '@coreai/fluentui-react';
-// Register locally installed Aptos / Aptos Mono only; never bundle licensed font files.
-import '@coreai/fluentui-react/fonts/fonts.css';
+import './fonts.css';
 
 // Storybook's docs code blocks only bundle a curated set of Prism/refractor
 // languages (bash, css, graphql, js, json, jsx, tsx, ...). `diff` is not among

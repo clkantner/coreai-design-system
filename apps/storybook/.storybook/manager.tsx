@@ -3,7 +3,7 @@ import {
   coreaiLightTheme,
 } from '../../../packages/coreai-fluentui-react/src/index.js';
 import type { Theme } from '@fluentui/react-components';
-import '../../../packages/coreai-fluentui-react/src/fonts/fonts.css';
+import './fonts.css';
 import { addons } from 'storybook/manager-api';
 import { create } from 'storybook/theming';
 import { logoDark, logoLight } from './assets/logos';
