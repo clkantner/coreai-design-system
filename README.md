@@ -35,6 +35,16 @@ The existing Azure-hosted services keep their current access controls.
 - Azure app + MCP hosting/auth: [docs/CI-CD-SETUP.md](docs/CI-CD-SETUP.md)
 - Approval and clean-source handoff checklist: [docs/OPEN-SOURCE-PREPARATION.md](docs/OPEN-SOURCE-PREPARATION.md)
 
+## Contributing and support
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to set up the repository and submit changes. By
+participating in this project, you agree to follow the
+[Microsoft Open Source Code of Conduct](CODE_OF_CONDUCT.md).
+
+Use [GitHub Issues](https://github.com/microsoft/coreai-design-system/issues) for bugs, feature
+requests, and usage questions. See [SUPPORT.md](SUPPORT.md) for the support policy and
+[SECURITY.md](SECURITY.md) for private vulnerability reporting.
+
 ## Documentation organization
 
 To keep a single source of truth and avoid drift/duplication, every doc in this repo belongs to
@@ -98,3 +108,21 @@ configuration are complete**. See the
 [release guide](packages/coreai-fluentui-react/RELEASING.md) for the gated workflow
 and the [CI/CD guide](docs/CI-CD-SETUP.md) for repository configuration. Do not run a
 manual publish to bypass approval.
+
+## Third-party materials
+
+This project builds on Fluent UI and other open-source packages declared in its package manifests
+and lockfile. The docsite uses Paper Shaders under the Apache License 2.0; its license and upstream
+notice are included in [apps/docsite/public/third-party](apps/docsite/public/third-party) and
+summarized in [NOTICE](NOTICE). Storybook development can provision a pinned, sparse checkout of
+upstream Fluent UI stories; that checkout is not tracked in this repository. See the
+[Storybook authoring guide](apps/storybook/README.md) for details.
+
+## Trademarks
+
+This project may contain trademarks or logos for projects, products, or services. Authorized use
+of Microsoft trademarks or logos is subject to and must follow
+[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
+Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion
+or imply Microsoft sponsorship. Any use of third-party trademarks or logos is subject to those
+third-party policies.

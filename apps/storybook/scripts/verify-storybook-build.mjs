@@ -3,7 +3,8 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const indexPath = path.join(root, 'storybook-static', 'index.json');
+const buildRoot = path.join(root, 'storybook-static');
+const indexPath = path.join(buildRoot, 'index.json');
 
 if (!fs.existsSync(indexPath)) {
   throw new Error(`Storybook index is missing: ${indexPath}`);
@@ -50,4 +51,40 @@ if (missingSources.length > 0) {
 const fluentStoryCount = normalizedImportPaths.filter((importPath) =>
   importPath.includes('/fluent-stories/'),
 ).length;
+
+const publicArtifactRules = [
+  ['internal Azure DevOps URL', /(?:dev\.azure\.com|[\w-]+\.visualstudio\.com)\//i],
+  ['private key', /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/],
+  ['GitHub credential', /\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})\b/],
+  ['npm credential', /\bnpm_[A-Za-z0-9]{30,}\b/],
+];
+const textArtifactPattern = /\.(?:css|html|js|json|md|mjs|txt)$/i;
+const disclosureFindings = [];
+
+for (const relativePath of fs.readdirSync(buildRoot, { recursive: true })) {
+  const filePath = path.join(buildRoot, relativePath);
+  if (!fs.statSync(filePath).isFile()) {
+    continue;
+  }
+  if (filePath.endsWith('.map')) {
+    disclosureFindings.push(`${relativePath}: source map`);
+    continue;
+  }
+  if (!textArtifactPattern.test(filePath)) {
+    continue;
+  }
+  const content = fs.readFileSync(filePath, 'utf8');
+  for (const [label, pattern] of publicArtifactRules) {
+    if (pattern.test(content)) {
+      disclosureFindings.push(`${relativePath}: ${label}`);
+    }
+  }
+}
+
+if (disclosureFindings.length > 0) {
+  throw new Error(
+    `Storybook build contains public-disclosure findings:\n${disclosureFindings.join('\n')}`,
+  );
+}
+
 console.log(`Verified Storybook build with ${fluentStoryCount} canonical Fluent story entries.`);

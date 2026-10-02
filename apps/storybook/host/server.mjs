@@ -103,22 +103,6 @@ function normalizePathname(pathname) {
   return trimmed === '' ? '/' : trimmed;
 }
 
-// Temporary, opt-in via MCP_AUTH_DIAGNOSTICS. Logs only shapes and booleans —
-// never tokens, auth codes, verifiers, or request bodies.
-const authDiagnostics = process.env.MCP_AUTH_DIAGNOSTICS === 'true';
-
-function logAuth(event, fields = {}) {
-  if (!authDiagnostics) return;
-  const pairs = Object.entries(fields).map(
-    ([key, value]) => `${key}=${JSON.stringify(String(value))}`,
-  );
-  process.stdout.write(`[mcp-auth] ${event} ${pairs.join(' ')}\n`);
-}
-
-function clientLabel(request) {
-  return request.headers['user-agent'] || 'unknown';
-}
-
 const contentTypes = {
   '.css': 'text/css; charset=utf-8',
   '.gif': 'image/gif',
@@ -194,40 +178,19 @@ function authorizationServerMetadata(request) {
 async function verifyBearer(request) {
   const header = request.headers.authorization || '';
   const match = /^Bearer\s+(.+)$/i.exec(header);
-  if (!match) {
-    logAuth('verify', { ua: clientLabel(request), result: 'no_bearer_header' });
-    return false;
-  }
+  if (!match) return false;
   try {
     const { payload } = await jwtVerify(match[1], jwks, {
       issuer: authIssuer,
       audience: authAudiences,
     });
     // Single-tenant lockdown: require the Microsoft tenant claim.
-    if (payload.tid !== authTenantId) {
-      logAuth('verify', { ua: clientLabel(request), result: 'tenant_mismatch' });
-      return false;
-    }
+    if (payload.tid !== authTenantId) return false;
     // Load-bearing, not defence in depth: v2 access tokens carry the resource's
     // client ID as `aud`, which an ID token for the same client also carries.
     // The `scp` check is what distinguishes them, since ID tokens have no `scp`.
-    if (!hasDelegatedScope(payload, authScope)) {
-      logAuth('verify', { ua: clientLabel(request), result: 'missing_delegated_scope' });
-      return false;
-    }
-    logAuth('verify', {
-      ua: clientLabel(request),
-      result: 'ok',
-      aud: String(payload.aud),
-      remaining_s: payload.exp ? payload.exp - Math.floor(Date.now() / 1000) : '',
-    });
-    return true;
-  } catch (error) {
-    logAuth('verify', {
-      ua: clientLabel(request),
-      result: 'jwt_invalid',
-      code: error?.code ?? error?.name ?? 'unknown',
-    });
+    return hasDelegatedScope(payload, authScope);
+  } catch {
     return false;
   }
 }
@@ -250,18 +213,10 @@ async function handleOAuthRegistration(request, response) {
 
   try {
     const registration = JSON.parse((await readRequestBody(request)).toString('utf8'));
-    logAuth('register', {
-      ua: clientLabel(request),
-      client_name: registration?.client_name ?? '',
-      redirect_uris: JSON.stringify(registration?.redirect_uris ?? []),
-      scope: registration?.scope ?? '',
-      grant_types: JSON.stringify(registration?.grant_types ?? []),
-    });
     const result = registerOAuthClient(registration, oauthClientId, clientScope);
     response.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
     response.end(JSON.stringify(result));
   } catch (error) {
-    logAuth('register_rejected', { ua: clientLabel(request), reason: error?.message ?? 'unknown' });
     const status = error?.message === 'payload_too_large' ? 413 : 400;
     sendJson(response, status, {
       error: error?.message === 'invalid_client_metadata' ? error.message : 'invalid_request',
@@ -277,15 +232,6 @@ function handleOAuthAuthorization(request, response) {
   }
 
   const requestUrl = `${resolveOrigin(request)}${request.url}`;
-  const requested = new URL(requestUrl).searchParams;
-  logAuth('authorize', {
-    ua: clientLabel(request),
-    scope: requested.get('scope') ?? '',
-    has_offline_access: (requested.get('scope') ?? '').split(/\s+/).includes('offline_access'),
-    redirect_uri: requested.get('redirect_uri') ?? '',
-    has_code_challenge: Boolean(requested.get('code_challenge')),
-    resource: requested.get('resource') ?? '',
-  });
 
   try {
     const target = createEntraAuthorizationUrl(requestUrl, {
@@ -295,11 +241,7 @@ function handleOAuthAuthorization(request, response) {
     });
     response.writeHead(302, { Location: target.toString() });
     response.end();
-  } catch (error) {
-    logAuth('authorize_rejected', {
-      ua: clientLabel(request),
-      reason: error?.message ?? 'unknown',
-    });
+  } catch {
     response.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
     response.end(JSON.stringify({ error: 'invalid_request' }));
   }
@@ -320,7 +262,6 @@ async function handleOAuthToken(request, response) {
       clientScope,
     );
   } catch (error) {
-    logAuth('token_rejected', { ua: clientLabel(request), reason: error?.message ?? 'unknown' });
     const status = error?.message === 'payload_too_large' ? 413 : 400;
     sendJson(response, status, { error: 'invalid_request' }, { 'Cache-Control': 'no-store' });
     return;
@@ -337,7 +278,6 @@ async function handleOAuthToken(request, response) {
       signal: AbortSignal.timeout(10_000),
     });
     const payload = Buffer.from(await tokenResponse.arrayBuffer());
-    logTokenExchange(request, parameters, tokenResponse.status, payload);
     response.writeHead(tokenResponse.status, {
       'Content-Type':
         tokenResponse.headers.get('content-type') || 'application/json; charset=utf-8',
@@ -347,29 +287,8 @@ async function handleOAuthToken(request, response) {
   } catch (error) {
     // Upstream failure, not caller error — never collapse this into a 400.
     process.stderr.write(`Entra token request failed: ${error?.name}: ${error?.message}\n`);
-    logAuth('token_upstream_error', { ua: clientLabel(request), code: error?.name ?? 'unknown' });
     sendJson(response, 502, { error: 'temporarily_unavailable' }, { 'Cache-Control': 'no-store' });
   }
-}
-
-function logTokenExchange(request, parameters, status, payload) {
-  if (!authDiagnostics) return;
-  let body;
-  try {
-    body = JSON.parse(payload.toString('utf8')) ?? {};
-  } catch {
-    body = {};
-  }
-  logAuth('token', {
-    ua: clientLabel(request),
-    grant_type: parameters.get('grant_type') ?? '',
-    requested_scope: parameters.get('scope') ?? '',
-    status,
-    has_refresh_token: Boolean(body.refresh_token),
-    granted_scope: body.scope ?? '',
-    expires_in: body.expires_in ?? '',
-    error: body.error ?? '',
-  });
 }
 
 function resolvePath(urlPathname) {

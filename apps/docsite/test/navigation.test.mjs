@@ -216,7 +216,6 @@ test('search selection clears the filter, navigates, and closes the sidebar with
   assert.match(sidebarSource, /onChange=\{\(_event, data\) => setQuery\(data\.value\)\}/);
   assert.match(appSource, /<Navigate to=\{redirect\.to\} replace \/>/);
   assert.match(appSource, /<Route path="\*" element=\{<NotFound \/>\} \/>/);
-  assert.doesNotMatch(sidebarSource + appSource, /trackDocsiteEvent|RouteTelemetry|data-clarity/);
 });
 
 test('Figma previews and resources coexist with Storybook and Markdown actions', async () => {

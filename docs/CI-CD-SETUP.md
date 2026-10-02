@@ -73,8 +73,8 @@ Repository variables:
 **Secrets required for these workflows: none.** Azure login uses OIDC, and the
 dependency workflow uses GitHub's automatically supplied `GITHUB_TOKEN`.
 Do not create Azure client secrets, publish profiles, PATs, private-feed tokens,
-or telemetry tokens for these workflows. The npm publishing workflow has its own
-prerequisites in the release guide.
+or other long-lived credentials for these workflows. The npm publishing workflow
+has its own prerequisites in the release guide.
 
 ### Federated identity and Azure permissions
 

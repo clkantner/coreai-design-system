@@ -339,7 +339,13 @@ const config: StorybookConfig = {
       enforce: 'pre',
       transform(code, id) {
         if (id.split('?')[0].endsWith('.md')) {
-          return { code: `export default ${JSON.stringify(code)};`, map: null };
+          const publicMarkdown = id.replace(/\\/g, '/').includes('/fluent-stories/')
+            ? code.replace(
+                /\[([^\]]+)\]\(https?:\/\/(?:[^/)]+\.)?(?:visualstudio\.com|dev\.azure\.com)\/[^)]+\)/gi,
+                '$1',
+              )
+            : code;
+          return { code: `export default ${JSON.stringify(publicMarkdown)};`, map: null };
         }
         return null;
       },

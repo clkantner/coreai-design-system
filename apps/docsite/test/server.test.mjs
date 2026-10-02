@@ -6,18 +6,13 @@ import test from 'node:test';
 import { clearTimeout, setTimeout } from 'node:timers';
 import { URL } from 'node:url';
 
-test('production server serves content and navigation without exposing analytics configuration', async (t) => {
+test('production server serves content and navigation', async (t) => {
   const port = 19000 + Math.floor(Math.random() * 1000);
-  const connectionString =
-    'InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://example.invalid/';
   const child = spawn(process.execPath, ['server.js'], {
     cwd: new URL('..', import.meta.url),
     env: {
       ...process.env,
       PORT: String(port),
-      APPLICATIONINSIGHTS_CONNECTION_STRING: connectionString,
-      CLARITY_PROJECT_ID: 'unused-project',
-      COREAI_ENVIRONMENT: 'test',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -37,18 +32,6 @@ test('production server serves content and navigation without exposing analytics
     ]);
   } finally {
     clearTimeout(startupTimer);
-  }
-
-  for (const method of ['GET', 'HEAD', 'POST']) {
-    const response = await globalThis.fetch(`http://127.0.0.1:${port}/telemetry-config.json`, {
-      method,
-    });
-    assert.equal(response.status, 404, method);
-    assert.equal(response.headers.get('content-type'), 'text/plain; charset=utf-8', method);
-    assert.doesNotMatch(
-      await response.text(),
-      /InstrumentationKey|unused-project|connectionString/,
-    );
   }
 
   for (const route of ['/', '/colors', '/colors/', '/accordion/']) {
