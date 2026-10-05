@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Link, Text } from '@coreai/fluentui-react';
+import { Button, Link, Text } from '@coreai-ds/react-components';
 
 interface EmbedFrameProps {
   src: string;

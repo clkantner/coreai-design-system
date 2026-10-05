@@ -11,7 +11,7 @@ import {
   Text,
   type SelectTabData,
   type SelectTabEvent,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { PageLayout } from '../components/PageLayout';
 
 interface ContentStep {

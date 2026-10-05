@@ -7,7 +7,7 @@ import {
   Card,
   Link,
   Text,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { Navigate, Routes, Route } from 'react-router-dom';
 import { Shell } from './components/Shell';
 import { PageLayout } from './components/PageLayout';
