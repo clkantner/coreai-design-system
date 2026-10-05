@@ -21,7 +21,7 @@ import {
   Spinner,
   TableCellLayout,
   Text,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 // ---------- Shared Default layout ----------
 

@@ -14,22 +14,22 @@ The existing Azure-hosted services keep their current access controls.
 
 ## Live links
 
-| Resource                              | URL                                                                              |
-| ------------------------------------- | -------------------------------------------------------------------------------- |
-| 🏠 Docsite (landing)                  | https://coreai-ds.azurewebsites.net                                              |
-| 📚 Storybook (Entra-authenticated)    | https://coreai-ds-storybook.azurewebsites.net                                    |
-| 🤖 MCP endpoint (Entra-authed)        | https://coreai-ds-storybook.azurewebsites.net/mcp                                |
-| 📦 Package (npm; publication pending) | [`@coreai/fluentui-react`](https://www.npmjs.com/package/@coreai/fluentui-react) |
+| Resource                              | URL                                                                                        |
+| ------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 🏠 Docsite (landing)                  | https://coreai-ds.azurewebsites.net                                                        |
+| 📚 Storybook (Entra-authenticated)    | https://coreai-ds-storybook.azurewebsites.net                                              |
+| 🤖 MCP endpoint (Entra-authed)        | https://coreai-ds-storybook.azurewebsites.net/mcp                                          |
+| 📦 Package (npm; publication pending) | [`@coreai-ds/react-components`](https://www.npmjs.com/package/@coreai-ds/react-components) |
 
 ## Workspaces
 
-| Path                                                             | Package                       | Purpose                                                                                         |
-| ---------------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------- |
-| [apps/docsite](apps/docsite)                                     | `@coreai/docsite` (private)   | Infrastructure scaffold for static docsite build/serve and Azure App Service deployment wiring. |
-| [packages/coreai-fluentui-react](packages/coreai-fluentui-react) | `@coreai/fluentui-react`      | The publishable theme package. Drop-in `<CoreAIFluentProvider>` + CoreAI-wrapped components.    |
-| [apps/storybook](apps/storybook)                                 | `@coreai/storybook` (private) | Storybook playground that previews the theme against Fluent UI's canonical stories.             |
+| Path                                                   | Package                          | Purpose                                                                                         |
+| ------------------------------------------------------ | -------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [apps/docsite](apps/docsite)                           | `@coreai-ds/docsite` (private)   | Infrastructure scaffold for static docsite build/serve and Azure App Service deployment wiring. |
+| [packages/react-components](packages/react-components) | `@coreai-ds/react-components`    | The publishable theme package. Drop-in `<CoreAIFluentProvider>` + CoreAI-wrapped components.    |
+| [apps/storybook](apps/storybook)                       | `@coreai-ds/storybook` (private) | Storybook playground that previews the theme against Fluent UI's canonical stories.             |
 
-- Consumer + extension guide: [packages/coreai-fluentui-react/README.md](packages/coreai-fluentui-react/README.md)
+- Consumer + extension guide: [packages/react-components/README.md](packages/react-components/README.md)
 - Storybook, `fluent-stories/`, and the MCP for AI agents (authoring): [apps/storybook/README.md](apps/storybook/README.md)
 - GitHub Actions workflows and operations: [docs/GITHUB-ACTIONS.md](docs/GITHUB-ACTIONS.md)
 - Azure app + MCP hosting/auth: [docs/CI-CD-SETUP.md](docs/CI-CD-SETUP.md)
@@ -51,13 +51,13 @@ To keep a single source of truth and avoid drift/duplication, every doc in this 
 exactly one of these categories. Before adding new documentation, place it per this table and
 **cross-link** to the owning doc instead of restating its content:
 
-| Category             | Covers                                                                                                                                                                         | Home                                                                                                                                                                                                                                                                                                                                                                                                            |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Operational docs** | Build, release process, CI/CD auth, contribution process/governance, deploy                                                                                                    | Each package/app's own `README.md`, plus additional scoped docs alongside it when a topic needs more depth (e.g. `RELEASING.md`, `CONTRIBUTING.md`) — always specific to the package/app they describe, never a generic repo-wide doc for one workspace's process. Concerns that genuinely span multiple workspaces (e.g. shared CI/CD auth, app hosting) live in the repo-root [`docs/`](docs) folder instead. |
-| **Usage docs**       | Component/theme usage, API behavior, MCP consumption, template-authoring conventions                                                                                           | Storybook docs ([`apps/storybook/src/stories/docs/*.mdx`](apps/storybook/src/stories/docs) "Docs" pages + JSDoc-driven autodocs) — single source, live at the hosted Storybook, and addressable by the MCP tools                                                                                                                                                                                                |
-| **Changelog**        | Version history                                                                                                                                                                | Each publishable package's own `CHANGELOG.md`                                                                                                                                                                                                                                                                                                                                                                   |
-| **Workflow skills**  | Procedural steps for an agent to execute a task **in this monorepo** (PR/commit conventions, release steps)                                                                    | [`.github/skills/*/SKILL.md`](.github/skills) — numbered steps, checklists only; no conceptual/reference content — link out to whichever doc above owns it                                                                                                                                                                                                                                                      |
-| **Agent skill**      | Distributable, concise operating rules for an agent _consuming_ `@coreai/fluentui-react` (MCP server precedence, component-ID quirks, template-vs-component, offline fallback) | [`packages/coreai-fluentui-react/agent/SKILL.md`](packages/coreai-fluentui-react/agent/SKILL.md) — ships inside the published npm package (works for consumers outside this monorepo, with no MCP access needed) and is mirrored into a generated Storybook doc page so it's also addressable by the MCP tools; see [apps/storybook/README.md](apps/storybook/README.md#agent-skill-mirror)                     |
+| Category             | Covers                                                                                                                                                                              | Home                                                                                                                                                                                                                                                                                                                                                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Operational docs** | Build, release process, CI/CD auth, contribution process/governance, deploy                                                                                                         | Each package/app's own `README.md`, plus additional scoped docs alongside it when a topic needs more depth (e.g. `RELEASING.md`, `CONTRIBUTING.md`) — always specific to the package/app they describe, never a generic repo-wide doc for one workspace's process. Concerns that genuinely span multiple workspaces (e.g. shared CI/CD auth, app hosting) live in the repo-root [`docs/`](docs) folder instead. |
+| **Usage docs**       | Component/theme usage, API behavior, MCP consumption, template-authoring conventions                                                                                                | Storybook docs ([`apps/storybook/src/stories/docs/*.mdx`](apps/storybook/src/stories/docs) "Docs" pages + JSDoc-driven autodocs) — single source, live at the hosted Storybook, and addressable by the MCP tools                                                                                                                                                                                                |
+| **Changelog**        | Version history                                                                                                                                                                     | Each publishable package's own `CHANGELOG.md`                                                                                                                                                                                                                                                                                                                                                                   |
+| **Workflow skills**  | Procedural steps for an agent to execute a task **in this monorepo** (PR/commit conventions, release steps)                                                                         | [`.github/skills/*/SKILL.md`](.github/skills) — numbered steps, checklists only; no conceptual/reference content — link out to whichever doc above owns it                                                                                                                                                                                                                                                      |
+| **Agent skill**      | Distributable, concise operating rules for an agent _consuming_ `@coreai-ds/react-components` (MCP server precedence, component-ID quirks, template-vs-component, offline fallback) | [`packages/react-components/agent/SKILL.md`](packages/react-components/agent/SKILL.md) — ships inside the published npm package (works for consumers outside this monorepo, with no MCP access needed) and is mirrored into a generated Storybook doc page so it's also addressable by the MCP tools; see [apps/storybook/README.md](apps/storybook/README.md#agent-skill-mirror)                               |
 
 This is distinct from the **Workflow skills** row above: those describe how an agent should
 _contribute to this repo_; the **Agent skill** describes how an agent should _use the package_,
@@ -74,7 +74,7 @@ npm run storybook         # http://localhost:6006
 Aptos is the preferred typeface but is **not redistributed** in this repository or
 the npm package. Inter is the proportional fallback, followed by system fonts. To
 use Aptos, follow the opt-in
-[font setup guide](packages/coreai-fluentui-react/src/fonts/README.md) and review
+[font setup guide](packages/react-components/src/fonts/README.md) and review
 Microsoft's license for your intended use. **Only Microsoft-hosted projects may
 host Aptos font files. Non-Microsoft projects must not host Aptos and should load
 Inter instead.**
@@ -93,22 +93,22 @@ Run these from the repo root.
 | `npm run type-check`      | Run `tsc --noEmit` across every workspace.                     |
 | `npm run clean`           | Remove each workspace's build output.                          |
 
-To run a script in just one workspace, use `npm -w <workspace> run <script>` — for example `npm -w packages/coreai-fluentui-react run build`. The Storybook app also exposes `stories:init` and `stories:update` for managing the sparse-checked [apps/storybook/fluent-stories/](apps/storybook/fluent-stories/) sibling repo (see [apps/storybook/README.md](apps/storybook/README.md)). The docsite and Storybook (with its self-hosted MCP endpoint) deploy through [GitHub Actions](.github/workflows) to their existing Azure App Services. Deployment is gated and does not change the services' authentication settings. See the [CI/CD guide](docs/CI-CD-SETUP.md) for setup.
+To run a script in just one workspace, use `npm -w <workspace> run <script>` — for example `npm -w packages/react-components run build`. The Storybook app also exposes `stories:init` and `stories:update` for managing the sparse-checked [apps/storybook/fluent-stories/](apps/storybook/fluent-stories/) sibling repo (see [apps/storybook/README.md](apps/storybook/README.md)). The docsite and Storybook (with its self-hosted MCP endpoint) deploy through [GitHub Actions](.github/workflows) to their existing Azure App Services. Deployment is gated and does not change the services' authentication settings. See the [CI/CD guide](docs/CI-CD-SETUP.md) for setup.
 
 ## Consuming the react package
 
 After publication is approved, consumers will install from the public npm registry
 without Azure Artifacts credentials. See the
-[package README](packages/coreai-fluentui-react/README.md#install) for installation,
+[package README](packages/react-components/README.md#install) for installation,
 optional Aptos setup, and provider configuration.
 
-> Inside this monorepo you don't need any of the above — `@coreai/fluentui-react` resolves via the workspace symlink, so a plain `npm install` at the root works.
+> Inside this monorepo you don't need any of the above — `@coreai-ds/react-components` resolves via the workspace symlink, so a plain `npm install` at the root works.
 
 ## Publishing
 
 Public npm publishing is **disabled until open-source approval and release
 configuration are complete**. See the
-[release guide](packages/coreai-fluentui-react/RELEASING.md) for the gated workflow
+[release guide](packages/react-components/RELEASING.md) for the gated workflow
 and the [CI/CD guide](docs/CI-CD-SETUP.md) for repository configuration. Do not run a
 manual publish to bypass approval.
 

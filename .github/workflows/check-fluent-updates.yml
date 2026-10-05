@@ -41,7 +41,7 @@ jobs:
         run: npm install --prefer-offline
       - name: Install Chromium
         if: steps.baseline.outputs.changed == 'true'
-        run: npm --workspace packages/coreai-fluentui-react run test:install-browser -- --with-deps
+        run: npm --workspace packages/react-components run test:install-browser -- --with-deps
       - name: Validate latest Fluent releases
         if: steps.baseline.outputs.changed == 'true'
         shell: bash
@@ -64,7 +64,7 @@ jobs:
           branch: chore/fluent-ui-updates
           base: main
           add-paths: |
-            packages/coreai-fluentui-react/package.json
+            packages/react-components/package.json
             package-lock.json
           commit-message: 'chore: update Fluent development baseline'
           title: 'chore: Fluent UI dependency updates'

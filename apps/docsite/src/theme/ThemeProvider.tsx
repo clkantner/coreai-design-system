@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { CoreAIFluentProvider, coreaiLightTheme, coreaiDarkTheme } from '@coreai/fluentui-react';
+import {
+  CoreAIFluentProvider,
+  coreaiLightTheme,
+  coreaiDarkTheme,
+} from '@coreai-ds/react-components';
 import '../styles/fonts.css';
 
 export type ThemeMode = 'light' | 'dark';

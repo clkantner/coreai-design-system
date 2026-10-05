@@ -175,7 +175,7 @@ const exposeComponentContent: Plugin = {
   },
 };
 
-const themeBarrel = path.resolve(__dirname, '../../packages/coreai-fluentui-react/src/index.ts');
+const themeBarrel = path.resolve(__dirname, '../../packages/react-components/src/index.ts');
 
 export default defineConfig({
   plugins: [
@@ -186,7 +186,7 @@ export default defineConfig({
     exposeComponentContent,
   ],
   resolve: {
-    alias: [{ find: /^@coreai\/fluentui-react$/, replacement: themeBarrel }],
+    alias: [{ find: /^@coreai-ds\/react-components$/, replacement: themeBarrel }],
   },
   server: {
     port: 8080,
@@ -199,7 +199,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      '@coreai/fluentui-react',
+      '@coreai-ds/react-components',
       'scheduler',
       'use-sync-external-store',
       'use-sync-external-store/shim',

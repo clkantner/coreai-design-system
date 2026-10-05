@@ -13,7 +13,7 @@ does not mean the destination is already available.
 - The docsite and MCP do not collect or transmit product usage data. Storybook's
   upstream usage reporting is explicitly disabled.
 - Aptos remains preferred, but no font binaries are redistributed. Use the
-  [opt-in setup guide](../packages/coreai-fluentui-react/src/fonts/README.md).
+  [opt-in setup guide](../packages/react-components/src/fonts/README.md).
   Download availability is not permission to redistribute, embed, or host a font.
   Microsoft affiliation alone is not a substitute for checking the applicable
   license and intended use.
@@ -50,7 +50,7 @@ These are owner/reviewer decisions, not something a code change can certify:
    settings, or generated artifacts; run it after staging intended additions.
    Figma links are allowed by this guard; they still require the disclosure and
    sharing review above.
-4. **npm ownership:** confirm authorization for `@coreai/fluentui-react`, choose an
+4. **npm ownership:** confirm authorization for `@coreai-ds/react-components`, choose an
    unused public version, and configure the approved publishing identity and
    protected environment. Historical internal versions in the changelog do not
    imply those releases exist on public npm.
@@ -94,5 +94,5 @@ branches, tags, or history.
 6. Submit the private destination for the required Microsoft review. Enable
    public visibility and publishing only after their respective approvals.
 
-See [RELEASING.md](../packages/coreai-fluentui-react/RELEASING.md) for package
+See [RELEASING.md](../packages/react-components/RELEASING.md) for package
 release validation and [CI-CD-SETUP.md](CI-CD-SETUP.md) for deployment setup.

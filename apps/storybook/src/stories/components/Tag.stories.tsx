@@ -1,4 +1,4 @@
-import { Tag, type JSXElement, type TagProps } from '@coreai/fluentui-react';
+import { Tag, type JSXElement, type TagProps } from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

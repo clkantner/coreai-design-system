@@ -7,7 +7,7 @@ import {
   Text,
   Skeleton,
   SkeletonItem,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import type { StoryObj } from '@storybook/react-vite';
 
 /**
@@ -17,7 +17,7 @@ import type { StoryObj } from '@storybook/react-vite';
  */
 export const Default: StoryObj = {
   render: () => {
-    const tsSample = `import { Button } from "@coreai/fluentui-react";
+    const tsSample = `import { Button } from "@coreai-ds/react-components";
 
 export function Save(): JSX.Element {
   // Click to persist the current document.
@@ -73,7 +73,7 @@ export function Save(): JSX.Element {
  */
 export const Appearance: StoryObj = {
   render: () => {
-    const appearanceSample = `import { Button } from "@coreai/fluentui-react";
+    const appearanceSample = `import { Button } from "@coreai-ds/react-components";
 
 export function Save(): JSX.Element {
   return <Button appearance="primary">Save</Button>;
@@ -159,7 +159,7 @@ features:
       yaml: 'YAML',
       markdown: 'Markdown',
     };
-    const tsSample = `import { Button } from "@coreai/fluentui-react";
+    const tsSample = `import { Button } from "@coreai-ds/react-components";
 
 export function Save(): JSX.Element {
   // Click to persist the current document.
@@ -239,7 +239,7 @@ import {
   CardHeader,
   Input,
   Text,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 type ProfileFormProps = {
   initialName: string;

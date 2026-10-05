@@ -1,4 +1,4 @@
-import type { TextPreset } from '@coreai/fluentui-react';
+import type { TextPreset } from '@coreai-ds/react-components';
 
 export interface ColorRow {
   name: string;

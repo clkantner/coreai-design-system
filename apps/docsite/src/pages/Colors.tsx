@@ -1,15 +1,15 @@
 import * as React from 'react';
-import { azureBrandVariants, azureDarkTheme, azureLightTheme } from '@coreai/fluentui-react';
-import { Card } from '@coreai/fluentui-react';
-import { CoreAIFluentProvider } from '@coreai/fluentui-react';
+import { azureBrandVariants, azureDarkTheme, azureLightTheme } from '@coreai-ds/react-components';
+import { Card } from '@coreai-ds/react-components';
+import { CoreAIFluentProvider } from '@coreai-ds/react-components';
 import {
   coreaiBrandVariants,
   coreaiDarkTheme,
   coreaiLightTheme,
   type CoreAITheme,
-} from '@coreai/fluentui-react';
-import { Tab, TabList, type SelectTabData, type SelectTabEvent } from '@coreai/fluentui-react';
-import { Text } from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
+import { Tab, TabList, type SelectTabData, type SelectTabEvent } from '@coreai-ds/react-components';
+import { Text } from '@coreai-ds/react-components';
 import type { BrandVariants } from '@fluentui/react-components';
 import { PageLayout } from '../components/PageLayout';
 import { Section } from '../components/Section';

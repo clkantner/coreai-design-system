@@ -14,7 +14,7 @@ import {
   CardPreview,
   type CardProps,
   type CardFloatingActionPosition,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 import { MoreHorizontal20Regular, ArrowReplyRegular, ShareRegular } from '@fluentui/react-icons';
 // CoreAI's `Card` defaults to `filled-alternative` and adds the

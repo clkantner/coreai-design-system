@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   MenuItemLink as CoreAIMenuItemLink,
   type MenuItemLinkProps as CoreAIMenuItemLinkProps,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { useHref, type LinkProps as RouterLinkProps } from 'react-router-dom';
 import { useRouterLinkSlot } from './RouterLinkSlots';
 

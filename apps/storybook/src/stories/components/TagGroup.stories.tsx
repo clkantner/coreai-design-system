@@ -1,4 +1,4 @@
-import { InteractionTag, InteractionTagPrimary, Tag, TagGroup } from '@coreai/fluentui-react';
+import { InteractionTag, InteractionTagPrimary, Tag, TagGroup } from '@coreai-ds/react-components';
 import type { StoryObj } from '@storybook/react-vite';
 
 /**

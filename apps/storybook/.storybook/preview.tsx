@@ -17,7 +17,7 @@ import {
   azureLightTheme,
   azureDarkTheme,
   CoreAIFluentProvider,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import './fonts.css';
 
 // Storybook's docs code blocks only bundle a curated set of Prism/refractor

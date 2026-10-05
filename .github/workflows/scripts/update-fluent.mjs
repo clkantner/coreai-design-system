@@ -4,7 +4,7 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export const packages = ['@fluentui/react-components', '@fluentui/react-icons'];
-export const manifestPath = 'packages/coreai-fluentui-react/package.json';
+export const manifestPath = 'packages/react-components/package.json';
 
 export function updateBaseline(manifest, latest) {
   const updated = globalThis.structuredClone(manifest);

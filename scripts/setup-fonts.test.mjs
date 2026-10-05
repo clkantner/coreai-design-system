@@ -110,7 +110,7 @@ test('rejects ambiguous duplicates instead of choosing an arbitrary source', asy
 
 test('shipped font CSS has only installed-font sources and theme retains Aptos-first fallbacks', async () => {
   const css = await readFile(
-    path.join(root, 'packages', 'coreai-fluentui-react', 'src', 'fonts', 'fonts.css'),
+    path.join(root, 'packages', 'react-components', 'src', 'fonts', 'fonts.css'),
     'utf8',
   );
   assert.doesNotMatch(css, /url\s*\(/i);
@@ -119,7 +119,7 @@ test('shipped font CSS has only installed-font sources and theme retains Aptos-f
   assert.match(css, /local\('Aptos'\)/);
   assert.match(css, /local\('Aptos Mono'\)/);
   const theme = await readFile(
-    path.join(root, 'packages', 'coreai-fluentui-react', 'src', 'theme', 'theme.ts'),
+    path.join(root, 'packages', 'react-components', 'src', 'theme', 'theme.ts'),
     'utf8',
   );
   assert.match(theme, /fontFamilyBase: 'Aptos, "Segoe UI", system-ui,.*sans-serif'/);
@@ -129,6 +129,6 @@ test('shipped font CSS has only installed-font sources and theme retains Aptos-f
     path.join(root, 'apps', 'docsite', 'src', 'styles', 'fonts.css'),
     'utf8',
   );
-  assert.match(docsiteCss, /@import '@coreai\/fluentui-react\/fonts\/fonts.css'/);
+  assert.match(docsiteCss, /@import '@coreai-ds\/react-components\/fonts\/fonts.css'/);
   assert.doesNotMatch(docsiteCss, /url\s*\(/i);
 });

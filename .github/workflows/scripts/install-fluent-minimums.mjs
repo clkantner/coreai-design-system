@@ -32,13 +32,13 @@ export function main() {
       '--no-save',
       '--package-lock=false',
       '--prefix',
-      'packages/coreai-fluentui-react',
+      'packages/react-components',
       '--workspaces=false',
       ...Object.entries(minimums).map(([name, version]) => `${name}@${version}`),
     ],
     { stdio: 'inherit' },
   );
-  const require = createRequire(path.resolve('packages/coreai-fluentui-react/minimum-check.cjs'));
+  const require = createRequire(path.resolve('packages/react-components/minimum-check.cjs'));
   for (const [name, expected] of Object.entries(minimums)) {
     let packagePath;
     try {

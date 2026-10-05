@@ -1,4 +1,4 @@
-import { Select, useId, type JSXElement, type SelectProps } from '@coreai/fluentui-react';
+import { Select, useId, type JSXElement, type SelectProps } from '@coreai-ds/react-components';
 
 import * as React from 'react';
 

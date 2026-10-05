@@ -31,11 +31,11 @@ test('docsite destinations follow the repository README', async () => {
   assert.doesNotMatch(links, /components-accordion--default/);
   assert.match(
     links,
-    /packageReadme: `\$\{repo\}\/blob\/main\/packages\/coreai-fluentui-react\/README\.md`/,
+    /packageReadme: `\$\{repo\}\/blob\/main\/packages\/react-components\/README\.md`/,
   );
   assert.match(
     links,
-    /changelog: `\$\{repo\}\/blob\/main\/packages\/coreai-fluentui-react\/CHANGELOG\.md`/,
+    /changelog: `\$\{repo\}\/blob\/main\/packages\/react-components\/CHANGELOG\.md`/,
   );
 
   assert.match(resources, /href: siteLinks\.repo/);
@@ -48,13 +48,13 @@ test('docsite destinations follow the repository README', async () => {
 
   assert.match(
     packagePage,
-    /const installPackages = `npm install @coreai\/fluentui-react\nnpm install @fluentui\/react-components @fluentui\/react-icons # peer dependencies as needed`/,
+    /const installPackages = `npm install @coreai-ds\/react-components\nnpm install @fluentui\/react-components @fluentui\/react-icons # peer dependencies as needed`/,
   );
   assert.doesNotMatch(packagePage, /--registry=https:\/\/registry\.npmjs\.org/);
   assert.match(packagePage, />\s*View package README\s*</);
   assert.match(mcpPage, /"url": "\$\{siteLinks\.mcp\}"/);
   assert.doesNotMatch(mcpPage, /coreai-ds-storybook\.azurewebsites\.net/);
-  assert.match(skillPage, /\.github\/skills\/coreai-fluentui-react\/SKILL\.md/);
-  assert.doesNotMatch(skillPage, /\.github\/skills\/coreai-ds-fluentui-react\/SKILL\.md/);
+  assert.match(skillPage, /\.github\/skills\/react-components\/SKILL\.md/);
+  assert.doesNotMatch(skillPage, /\.github\/skills\/coreai-ds-react-components\/SKILL\.md/);
   assert.match(homePage, /<span>npm \(pending\)<\/span>/);
 });

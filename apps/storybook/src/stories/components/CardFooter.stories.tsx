@@ -1,5 +1,5 @@
 import type { StoryObj } from '@storybook/react-vite';
-import { Button, CardFooter } from '@coreai/fluentui-react';
+import { Button, CardFooter } from '@coreai-ds/react-components';
 
 import {
   ArrowReply16Regular,

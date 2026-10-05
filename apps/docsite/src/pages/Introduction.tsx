@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link, Text } from '@coreai/fluentui-react';
+import { Link, Text } from '@coreai-ds/react-components';
 import { PageLayout } from '../components/PageLayout';
 import { ExternalIcon, FigmaLogo, NpmLogo, StorybookLogo } from '../components/Icons';
 import { siteLinks } from '../data/content';

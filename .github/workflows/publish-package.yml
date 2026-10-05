@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: 'Type publish @coreai/fluentui-react@VERSION (the version already on main)'
+        description: 'Type publish @coreai-ds/react-components@VERSION (the version already on main)'
         required: true
         type: string
 
@@ -39,16 +39,16 @@ jobs:
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import fs from 'node:fs';
-          const p = JSON.parse(fs.readFileSync('packages/coreai-fluentui-react/package.json', 'utf8'));
+          const p = JSON.parse(fs.readFileSync('packages/react-components/package.json', 'utf8'));
           assert.equal(process.env.CONFIRMATION, `publish ${p.name}@${p.version}`, 'Confirmation must match the checked-out package exactly');
-          assert.equal(p.name, '@coreai/fluentui-react');
+          assert.equal(p.name, '@coreai-ds/react-components');
           assert.equal(p.private, false);
           assert.equal(p.repository.url, 'git+https://github.com/microsoft/coreai-design-system.git');
           assert.equal(p.publishConfig.registry, 'https://registry.npmjs.org/');
           assert.equal(p.publishConfig.access, 'public');
           assert.ok(p.license && p.license !== 'UNLICENSED', 'An approved open-source license is required');
           assert.ok(fs.existsSync('LICENSE'), 'The approved license file is required');
-          assert.ok(fs.readFileSync('packages/coreai-fluentui-react/CHANGELOG.md', 'utf8').includes(`## [${p.version}] - `), 'Roll the changelog before publishing');
+          assert.ok(fs.readFileSync('packages/react-components/CHANGELOG.md', 'utf8').includes(`## [${p.version}] - `), 'Roll the changelog before publishing');
           NODE
 
       - name: Set up Node.js
@@ -65,11 +65,11 @@ jobs:
 
       - name: Build and inspect the exact release tarball
         run: |
-          npm run clean --workspace packages/coreai-fluentui-react
-          npm run build --workspace packages/coreai-fluentui-react
+          npm run clean --workspace packages/react-components
+          npm run build --workspace packages/react-components
           mkdir package-artifacts
-          npm pack --workspace packages/coreai-fluentui-react --ignore-scripts --pack-destination package-artifacts
-          node packages/coreai-fluentui-react/scripts/verify-package.mjs package-artifacts/*.tgz
+          npm pack --workspace packages/react-components --ignore-scripts --pack-destination package-artifacts
+          node packages/react-components/scripts/verify-package.mjs package-artifacts/*.tgz
 
       - name: Publish the verified tarball
         env:
@@ -77,7 +77,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$NODE_AUTH_TOKEN" || { echo 'Configure the npm-production environment NPM_TOKEN secret.' >&2; exit 1; }
-          version="$(node -p "require('./packages/coreai-fluentui-react/package.json').version")"
+          version="$(node -p "require('./packages/react-components/package.json').version")"
           dist_tag=latest
           if [[ "$version" == *-* ]]; then dist_tag=next; fi
           npm publish package-artifacts/*.tgz --ignore-scripts --access public --registry https://registry.npmjs.org/ --tag "$dist_tag"

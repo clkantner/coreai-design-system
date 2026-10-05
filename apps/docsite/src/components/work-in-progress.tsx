@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LinkButton, Text } from '@coreai/fluentui-react';
+import { LinkButton, Text } from '@coreai-ds/react-components';
 import { Open16Filled } from '@fluentui/react-icons';
 import { siteLinks } from '../data/content';
 import { CoreAILogo } from './Icons';

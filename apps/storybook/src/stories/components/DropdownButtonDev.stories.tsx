@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { DropdownButton, Option } from '@coreai/fluentui-react';
+import { DropdownButton, Option } from '@coreai-ds/react-components';
 
 const sortOptions = ['Newest', 'Oldest', 'Most popular', 'Trending'];
 const filterOptions = ['All', 'Active', 'Archived'];

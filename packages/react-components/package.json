@@ -1,5 +1,5 @@
 {
-  "name": "@coreai/fluentui-react",
+  "name": "@coreai-ds/react-components",
   "version": "0.11.1",
   "description": "CoreAI Design System — a Fluent UI v9 theme and extension for Azure and CoreAI products",
   "license": "UNLICENSED",
@@ -7,7 +7,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/microsoft/coreai-design-system.git",
-    "directory": "packages/coreai-fluentui-react"
+    "directory": "packages/react-components"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",

@@ -8,10 +8,10 @@ import {
   Text,
   type SelectTabData,
   type SelectTabEvent,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { ArrowDownload20Regular } from '@fluentui/react-icons';
 import { PageLayout } from '../components/PageLayout';
-import agentSkill from '../../../../packages/coreai-fluentui-react/agent/SKILL.md?raw';
+import agentSkill from '../../../../packages/react-components/agent/SKILL.md?raw';
 
 function stripFrontmatter(source: string) {
   const match = source.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
@@ -49,7 +49,7 @@ export function CoreAISkill() {
           </Text>
           <Text as="p" foreground={2}>
             Download <code>SKILL.md</code>, then add it to the consuming repository at{' '}
-            <code>.github/skills/coreai-fluentui-react/SKILL.md</code>. Coding agents that support
+            <code>.github/skills/react-components/SKILL.md</code>. Coding agents that support
             workspace skills load it automatically; for other clients, use the equivalent skills
             directory.
           </Text>
@@ -76,7 +76,7 @@ export function CoreAISkill() {
             language="markdown"
             header={
               <Text preset="heading6" foreground={3}>
-                .github/skills/coreai-fluentui-react/SKILL.md
+                .github/skills/react-components/SKILL.md
               </Text>
             }
             headerAppearance="subtle"

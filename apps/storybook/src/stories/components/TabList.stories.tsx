@@ -8,7 +8,7 @@ import {
   type SelectTabData,
   type SelectTabEvent,
   type TabValue,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 // ---------- Shared layout ----------
 

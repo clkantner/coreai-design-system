@@ -15,7 +15,7 @@ stock Fluent default  <  CoreAI theme (.styles.ts)  <  consumer instance classNa
 ```
 
 i.e. the CoreAI theme should override Fluent's stock look, but a consumer of
-`@coreai/fluentui-react` must always be able to override the CoreAI theme by
+`@coreai-ds/react-components` must always be able to override the CoreAI theme by
 passing their own `className`/slot props to a component instance.
 
 ### The pattern
@@ -86,7 +86,7 @@ Both of the above are 2-tier merges and were bugs found in this codebase
 ## Independently tree-shakeable exports
 
 Every component exported from the package root must be independently
-tree-shakeable. Importing one component from `@coreai/fluentui-react` must not
+tree-shakeable. Importing one component from `@coreai-ds/react-components` must not
 make unrelated CoreAI components or their third-party dependencies reachable
 in the consumer's bundle.
 
@@ -128,7 +128,7 @@ Changes to root exports, wrapper factories, module boundaries, dependencies,
 or `sideEffects` must run:
 
 ```sh
-npm --workspace packages/coreai-fluentui-react run test:tree-shaking
+npm --workspace packages/react-components run test:tree-shaking
 ```
 
 The Vite fixture bundles public root imports and asserts against Rollup module

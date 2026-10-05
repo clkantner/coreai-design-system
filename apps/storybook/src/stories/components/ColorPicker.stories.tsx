@@ -10,7 +10,7 @@ import {
   type ColorPickerProps,
   type SpinButtonChangeEvent,
   type SpinButtonOnChangeData,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import type { StoryObj } from '@storybook/react-vite';
 import { figmaDesign } from '../../utils/figma';
 

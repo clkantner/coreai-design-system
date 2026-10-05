@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { type JSXElement, Markdown } from '@coreai/fluentui-react';
+import { type JSXElement, Markdown } from '@coreai-ds/react-components';
 
 const headings = `
 # Heading 1

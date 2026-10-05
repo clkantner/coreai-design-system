@@ -9,24 +9,24 @@ import {
   MessageBarBody,
   MessageBarTitle,
   Text,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { PageLayout } from '../components/PageLayout';
 import { siteLinks } from '../data/content';
 
-const installPackages = `npm install @coreai/fluentui-react
+const installPackages = `npm install @coreai-ds/react-components
 npm install @fluentui/react-components @fluentui/react-icons # peer dependencies as needed`;
 
-const usageExample = `import '@coreai/fluentui-react/fonts/fonts.css';
+const usageExample = `import '@coreai-ds/react-components/fonts/fonts.css';
 import {
   CoreAIFluentProvider,
   coreaiLightTheme,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 <CoreAIFluentProvider theme={coreaiLightTheme}>
   <App />
 </CoreAIFluentProvider>`;
 
-const packageSetupPrompt = `Read the @coreai/fluentui-react package README, then set up this project to use the package:
+const packageSetupPrompt = `Read the @coreai-ds/react-components package README, then set up this project to use the package:
 
 ${siteLinks.packageReadme}
 
@@ -92,9 +92,10 @@ export function Package() {
                 </Text>
                 <Text as="p" size={300} foreground={2}>
                   After publication, run these commands in your project. Remove any old{' '}
-                  <code>@coreai:registry</code> Azure Artifacts override from the project and user{' '}
-                  <code>.npmrc</code> files first. If your project uses a custom default registry,
-                  follow the package README to route the <code>@coreai</code> scope to npm.
+                  <code>@coreai-ds:registry</code> Azure Artifacts override from the project and
+                  user <code>.npmrc</code> files first. If your project uses a custom default
+                  registry, follow the package README to route the <code>@coreai-ds</code> scope to
+                  npm.
                 </Text>
                 <CodeBlock code={installPackages} language="bash" />
               </div>

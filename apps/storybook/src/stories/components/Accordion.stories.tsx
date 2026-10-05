@@ -6,7 +6,7 @@ import {
   AccordionHeader,
   AccordionItem,
   AccordionPanel,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 export const Default = (): JSXElement => (
   <Accordion>

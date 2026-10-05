@@ -7,7 +7,7 @@ import {
   AvatarGroupItem,
   AvatarGroupPopover,
   partitionAvatarGroupItems,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 // Inline wrapper so RCM resolves AvatarGroup (+ subcomponent) props and this
 // meta owns `Default` (the fork-id dedup in main.ts drops the vendored duplicate).

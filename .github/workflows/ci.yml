@@ -45,6 +45,6 @@ jobs:
       - name: Test Storybook host OAuth behavior
         run: npm --workspace apps/storybook run test:host
       - name: Install Chromium
-        run: npm --workspace packages/coreai-fluentui-react run test:install-browser -- --with-deps
+        run: npm --workspace packages/react-components run test:install-browser -- --with-deps
       - name: Test components
-        run: npm --workspace packages/coreai-fluentui-react test
+        run: npm --workspace packages/react-components test

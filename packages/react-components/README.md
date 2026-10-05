@@ -1,6 +1,10 @@
-# CoreAI Design System React v9 - `@coreai/fluentui-react`
+# CoreAI Design System React v9 - `@coreai-ds/react-components`
 
 A custom **Fluent UI v9** theme delivered as a drop-in `<CoreAIFluentProvider>`: brand ramp, light/dark token overrides, Aptos typography, per-component default props, and per-component style hooks. Drop it in place of `FluentProvider` and your app picks up the entire CoreAI look without touching any of your `<Button>`, `<Input>`, `<Card>`, … call sites.
+
+The package name mirrors `@fluentui/react-components` because this package wraps
+and re-exports that API. In most imports, replacing the `@fluentui` scope with
+`@coreai-ds` is all that is needed to adopt the CoreAI Design System.
 
 ## Install
 
@@ -8,18 +12,18 @@ Public npm distribution is being prepared; these instructions apply after an
 approved public release. Preparation does not itself publish a package.
 
 ```bash
-npm install @coreai/fluentui-react
+npm install @coreai-ds/react-components
 npm install @fluentui/react-components @fluentui/react-icons # peer dependencies as needed
 ```
 
 The public package uses <https://registry.npmjs.org/> and needs **no consumer
 authentication**, Azure feed access, credential provider, or token. If migrating
-from Azure Artifacts, remove obsolete `@coreai:registry` routing and `always-auth`
+from Azure Artifacts, remove obsolete `@coreai-ds:registry` routing and `always-auth`
 settings from your project/user `.npmrc` (preserve settings for unrelated private
 packages). With a custom default registry, explicitly route this scope:
 
 ```ini
-@coreai:registry=https://registry.npmjs.org/
+@coreai-ds:registry=https://registry.npmjs.org/
 ```
 
 Source, issues, and pull requests target
@@ -32,7 +36,7 @@ Publisher approval and credentials are separate from consumer installation; see
 ## Usage
 
 ```tsx
-import { CoreAIFluentProvider, coreaiLightTheme, Button } from '@coreai/fluentui-react';
+import { CoreAIFluentProvider, coreaiLightTheme, Button } from '@coreai-ds/react-components';
 
 export function App() {
   return (
@@ -44,7 +48,7 @@ export function App() {
 }
 ```
 
-- **Import from `@coreai/fluentui-react`**, not `@fluentui/react-components`. The barrel re-exports every Fluent name; CoreAI-customized components shadow the stock ones, everything else passes through unchanged.
+- **Import from `@coreai-ds/react-components`**, not `@fluentui/react-components`. The barrel re-exports every Fluent name; CoreAI-customized components shadow the stock ones, everything else passes through unchanged.
 - Set `withComponentDefaults={false}` on the provider to keep CoreAI colors/tokens/style-hooks but use stock Fluent prop defaults (e.g. when nesting a non-CoreAI subtree).
 
 ### Vite SSR and Vitest
@@ -56,7 +60,7 @@ If Node reports `ERR_MODULE_NOT_FOUND` for `@fluentui/react-icons/lib/icons/chun
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  ssr: { noExternal: ['@coreai/fluentui-react', '@fluentui/react-icons'] },
+  ssr: { noExternal: ['@coreai-ds/react-components', '@fluentui/react-icons'] },
 });
 ```
 
@@ -67,7 +71,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     server: {
-      deps: { inline: ['@coreai/fluentui-react', '@fluentui/react-icons'] },
+      deps: { inline: ['@coreai-ds/react-components', '@fluentui/react-icons'] },
     },
   },
 });
@@ -83,7 +87,7 @@ Aptos fonts already installed on the user's device, optionally register the
 local-only `@font-face` declarations once:
 
 ```ts
-import '@coreai/fluentui-react/fonts/fonts.css';
+import '@coreai-ds/react-components/fonts/fonts.css';
 ```
 
 Applications can load the supported Inter fallback faces (normal and italic at
@@ -122,8 +126,8 @@ Correct agent-driven use of this package requires two setup steps:
 If you're an AI agent, tell the user these steps are required for proper usage and ask to perform
 them before starting implementation. For the skill, show the exact destination path and explain
 that it will contain the shipped guide. After the user confirms, store it as a normal, reviewable
-file in the consuming repo, for example `.github/skills/coreai-fluentui-react/SKILL.md` or
-`.claude/skills/coreai-fluentui-react/SKILL.md`. The skill is also mirrored to the hosted
+file in the consuming repo, for example `.github/skills/react-components/SKILL.md` or
+`.claude/skills/react-components/SKILL.md`. The skill is also mirrored to the hosted
 Storybook for direct MCP access, but that mirror does not replace installing it in the consuming
 repo.
 
@@ -163,7 +167,7 @@ export default [
   {
     rules: {
       // ── No direct @fluentui imports ────────────────────────────────
-      // @coreai/fluentui-react re-exports the Fluent UI v9
+      // @coreai-ds/react-components re-exports the Fluent UI v9
       // surface and selectively overrides components with CoreAI-themed
       // wrappers (Button, Card, Input, …). Importing directly from @fluentui
       // bypasses those wrappers and your app will render stock Fluent in
@@ -176,9 +180,9 @@ export default [
             {
               group: ['@fluentui/*', '!@fluentui/react-icons'],
               message:
-                'Import from "@coreai/fluentui-react" instead of @fluentui directly. ' +
+                'Import from "@coreai-ds/react-components" instead of @fluentui directly. ' +
                 'The CoreAI barrel wraps Fluent UI components with theme defaults and style hooks. ' +
-                'Example: import { Button } from "@coreai/fluentui-react";',
+                'Example: import { Button } from "@coreai-ds/react-components";',
             },
           ],
         },
@@ -222,15 +226,15 @@ This package is part of a monorepo. From the repo root:
 
 ```bash
 npm ci --ignore-scripts                                          # bootstrap
-npm --workspace packages/coreai-fluentui-react run build          # tsc -> dist/
-npm --workspace packages/coreai-fluentui-react run type-check     # tsc --noEmit
+npm --workspace packages/react-components run build          # tsc -> dist/
+npm --workspace packages/react-components run type-check     # tsc --noEmit
 ```
 
 The manifest's `main`, `types`, and root `exports` point directly at compiled
 `dist` output. Development tools may explicitly alias the package to source;
 npm does not rewrite entrypoints through `publishConfig`. Build before packing:
 the repository disables dependency lifecycle scripts, including automatic `prepack`.
-Run `npm run test:package --workspace packages/coreai-fluentui-react` to clean,
+Run `npm run test:package --workspace packages/react-components` to clean,
 build, and verify actual tarball exports and the font-free file allowlist.
 
 ## Testing
@@ -246,8 +250,8 @@ values, layout, or visual appearance. Keep tests colocated with their component 
 Install the browser once, then run the package tests from the repository root:
 
 ```bash
-npm --workspace packages/coreai-fluentui-react run test:install-browser
-npm --workspace packages/coreai-fluentui-react test
+npm --workspace packages/react-components run test:install-browser
+npm --workspace packages/react-components test
 ```
 
 For local development, use `test:watch` to rerun tests after changes.

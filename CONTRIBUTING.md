@@ -36,12 +36,12 @@ Run the smallest relevant build or test while developing. Common commands includ
 npm run build
 npm run build:storybook
 npm run build:docsite
-npm test --workspace packages/coreai-fluentui-react
+npm test --workspace packages/react-components
 ```
 
 See the root [README](README.md) for the repository layout and additional scripts. Changes to
-`@coreai/fluentui-react` should also follow its package-specific
-[contribution and governance guide](packages/coreai-fluentui-react/CONTRIBUTING.md). Storybook
+`@coreai-ds/react-components` should also follow its package-specific
+[contribution and governance guide](packages/react-components/CONTRIBUTING.md). Storybook
 changes should follow the [Storybook authoring guide](apps/storybook/README.md).
 
 ## Pull requests

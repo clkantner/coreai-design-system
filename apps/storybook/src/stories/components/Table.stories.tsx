@@ -10,7 +10,7 @@ import {
   TableSelectionCell,
   type JSXElement,
   type PresenceBadgeStatus,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 import * as React from 'react';
 import {

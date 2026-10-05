@@ -1,4 +1,4 @@
-import { Label, SpinButton, useId } from '@coreai/fluentui-react';
+import { Label, SpinButton, useId } from '@coreai-ds/react-components';
 import type { StoryObj } from '@storybook/react-vite';
 import { figmaDesign } from '../../utils/figma';
 

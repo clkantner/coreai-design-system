@@ -1,4 +1,4 @@
-import { type JSXElement, LinkButton } from '@coreai/fluentui-react';
+import { type JSXElement, LinkButton } from '@coreai-ds/react-components';
 import { ArrowRightRegular } from '@fluentui/react-icons';
 import { StoryObj } from '@storybook/react-vite';
 

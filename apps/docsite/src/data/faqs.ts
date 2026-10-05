@@ -114,7 +114,7 @@ export const faqGroups: FaqGroup[] = [
         id: 'package-access',
         question: 'How do I install the npm package?',
         answer: [
-          'Public npm publication is pending open-source approval. After an approved release, install @coreai/fluentui-react from npm, then follow the package README for provider, font, and usage guidance.',
+          'Public npm publication is pending open-source approval. After an approved release, install @coreai-ds/react-components from npm, then follow the package README for provider, font, and usage guidance.',
         ],
         sources: [sources.package],
         links: [{ label: 'View the npm destination', href: siteLinks.npmPackage }, sources.package],
@@ -123,7 +123,7 @@ export const faqGroups: FaqGroup[] = [
         id: 'coreai-appearance',
         question: 'Why does my app still look like stock Fluent?',
         answer: [
-          'Import components from @coreai/fluentui-react instead of @fluentui/react-components, then wrap the app in CoreAIFluentProvider. Icons can still come from @fluentui/react-icons.',
+          'Import components from @coreai-ds/react-components instead of @fluentui/react-components, then wrap the app in CoreAIFluentProvider. Icons can still come from @fluentui/react-icons.',
           'Check that withComponentDefaults has not been set to false. The optional fonts.css import only registers Aptos fonts already installed on the device. The theming guide covers the provider, fonts, and defaults.',
         ],
         sources: [sources.theming, sources.skill],

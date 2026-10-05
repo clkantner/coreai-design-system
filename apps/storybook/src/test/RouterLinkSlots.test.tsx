@@ -7,7 +7,7 @@ import { CardLink } from '../stories/templates/react-router/CardLink';
 import { LinkButton } from '../stories/templates/react-router/LinkButton';
 import { TabLinkList } from '../stories/templates/react-router/TabLinkList';
 import { useRouterLinkSlot } from '../stories/templates/react-router/RouterLinkSlots';
-import { renderCoreAIComponent } from '../../../../packages/coreai-fluentui-react/src/test-utils';
+import { renderCoreAIComponent } from '../../../../packages/react-components/src/test-utils';
 
 afterEach(cleanup);
 

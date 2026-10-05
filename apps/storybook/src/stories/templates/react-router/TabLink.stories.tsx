@@ -1,4 +1,4 @@
-import { TabList } from '@coreai/fluentui-react';
+import { TabList } from '@coreai-ds/react-components';
 import type { Meta, StoryObj } from '@storybook/react';
 import { MemoryRouter } from 'react-router-dom';
 import { TabLink } from './TabLink';

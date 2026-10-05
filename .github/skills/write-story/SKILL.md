@@ -29,7 +29,7 @@ dev-only stories, and templates. Follow the relevant sections exactly.
 5. Do not write behavior tests in StoryObj `play` functions. Put component
    behavior tests in the owning package's colocated `.test.tsx` file; stories
    are documentation and visual examples only.
-6. Import CoreAI and Fluent components through `@coreai/fluentui-react` and
+6. Import CoreAI and Fluent components through `@coreai-ds/react-components` and
    icons through `@fluentui/react-icons`, following the README exceptions.
 7. Run `npm --workspace apps/storybook run type-check`. Preview changed
    stories and run the Storybook build when the change affects indexing,

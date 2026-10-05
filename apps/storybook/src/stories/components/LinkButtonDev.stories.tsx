@@ -1,4 +1,4 @@
-import { LinkButton } from '@coreai/fluentui-react';
+import { LinkButton } from '@coreai-ds/react-components';
 
 export const Variants = () => {
   const styles = /* css */ `

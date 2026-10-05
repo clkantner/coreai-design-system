@@ -12,7 +12,7 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { DetailsList } from './DetailsList';
-import { Button, Card, Divider, Link, Text } from '@coreai/fluentui-react';
+import { Button, Card, Divider, Link, Text } from '@coreai-ds/react-components';
 
 // ─── Stories ──────────────────────────────────────────────────────────────────
 

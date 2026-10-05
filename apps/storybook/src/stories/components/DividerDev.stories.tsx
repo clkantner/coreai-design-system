@@ -1,4 +1,4 @@
-import { Divider } from '@coreai/fluentui-react';
+import { Divider } from '@coreai-ds/react-components';
 
 export const DefaultDev = () => {
   const styles = /* css */ `
