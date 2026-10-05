@@ -77,19 +77,30 @@ See Vite's [`ssr.noExternal`](https://vite.dev/config/ssr-options.html#ssr-noext
 
 ### Font registration
 
-The theme prefers Aptos / Aptos Mono and falls back to system fonts when they are
-unavailable. To recognize fonts already installed on the user's device, optionally
-register the local-only `@font-face` declarations once:
+The theme prefers Aptos for proportional and numeric text, then Inter, then system
+fonts. Monospace text prefers Aptos Mono before system monospace fonts. To recognize
+Aptos fonts already installed on the user's device, optionally register the
+local-only `@font-face` declarations once:
 
 ```ts
 import '@coreai/fluentui-react/fonts/fonts.css';
 ```
 
+Applications can load the supported Inter fallback faces (normal and italic at
+weights 400, 600, and 700) from Google Fonts:
+
+```css
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
+```
+
+**Only Microsoft-hosted projects may host Aptos font files. Non-Microsoft
+projects must not self-host Aptos; use the Inter fallback above instead.**
+
 **Font binaries are not distributed in this package.** Applications that need
-self-hosted Aptos must obtain the fonts under appropriate terms and provide their
-own licensed font assets and CSS. The repository's optional local font setup is
-for authorized local previews, not a license to redistribute; see the
-[font setup and licensing guide](src/fonts/README.md).
+hosted Aptos must be Microsoft-hosted, obtain the fonts under appropriate terms,
+and provide their own licensed font assets and CSS. The repository's optional
+local font setup is for authorized local previews, not a license to redistribute;
+see the [font setup and licensing guide](src/fonts/README.md).
 Existing imports of `fonts/fonts.css` remain valid, but no longer download font
 files. Remove any deep imports of bundled `.ttf` files.
 

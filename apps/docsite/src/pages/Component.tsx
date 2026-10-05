@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { ComponentPage } from '../components/ComponentPage';
+import { PageLayout } from '../components/PageLayout';
+import { WorkInProgress } from '../components/work-in-progress';
 import { getComponentContent } from '../data/components';
+
+const unfinishedTemplateIds = new Set(['empty-state', 'page-header', 'top-nav']);
 
 const pages = import.meta.glob<string>('../../content/generated/pages/*.html', {
   query: '?raw',
@@ -25,6 +29,13 @@ const renderedPages = new Map(
 );
 
 export function Component({ componentId }: { componentId: string }) {
+  if (unfinishedTemplateIds.has(componentId)) {
+    return (
+      <PageLayout id={componentId} hideTitle summary="">
+        <WorkInProgress key={componentId} standalone />
+      </PageLayout>
+    );
+  }
   const Page = renderedPages.get(componentId);
   if (!Page) {
     throw new Error(`No component content registered for "${componentId}".`);

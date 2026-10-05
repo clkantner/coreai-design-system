@@ -1,2 +1,2 @@
-/* Registers installed fonts only; clean builds never request font assets. */
-@import '@coreai/fluentui-react/fonts/fonts.css';
+@import url('https://coreai-ds-resources.azurewebsites.net/fonts/aptos/v1/fonts.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');

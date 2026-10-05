@@ -63,20 +63,33 @@ function useCanvasRuntime() {
   };
 }
 
-function StaticLighting() {
+function StaticLighting({ monochrome = false }: { monochrome?: boolean }) {
   return (
     <>
       <ambientLight intensity={0.22} />
-      <hemisphereLight args={['#FFFFFF', '#09070D', 0.6]} />
+      <hemisphereLight args={['#FFFFFF', monochrome ? '#090909' : '#09070D', 0.6]} />
       <pointLight position={[-4.5, 5.5, 8]} intensity={110} distance={24} decay={2} />
-      <directionalLight position={[4, -3, 2]} intensity={0.25} color="#D8C9FF" />
+      <directionalLight
+        position={[4, -3, 2]}
+        intensity={0.25}
+        color={monochrome ? '#FFFFFF' : '#D8C9FF'}
+      />
       <directionalLight position={[-2, 4, -5]} intensity={0.65} />
     </>
   );
 }
 
-function LogoCubeMesh({ reduceMotion }: { reduceMotion: boolean }) {
+function LogoCubeMesh({
+  reduceMotion,
+  onReady,
+  color,
+}: {
+  reduceMotion: boolean;
+  onReady: () => void;
+  color: string;
+}) {
   const groupRef = React.useRef<Group>(null);
+  const startupFramesRef = React.useRef(0);
   const animationTimeRef = React.useRef(0);
   const camera = useThree((state) => state.camera);
   const width = useThree((state) => state.size.width);
@@ -88,6 +101,8 @@ function LogoCubeMesh({ reduceMotion }: { reduceMotion: boolean }) {
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
+    // Wait until the composer has rendered a complete frame before revealing the canvas.
+    if (startupFramesRef.current < 2 && ++startupFramesRef.current === 2) onReady();
     if (!reduceMotion) animationTimeRef.current += Math.min(delta, 0.1);
     const animationTime = animationTimeRef.current;
     const accelerationTime = 1.3;
@@ -115,7 +130,7 @@ function LogoCubeMesh({ reduceMotion }: { reduceMotion: boolean }) {
           creaseAngle={0.75}
         >
           <meshPhysicalMaterial
-            color="#FFFFFF"
+            color={color}
             clearcoat={0.08}
             clearcoatRoughness={0.55}
             metalness={0}
@@ -127,9 +142,11 @@ function LogoCubeMesh({ reduceMotion }: { reduceMotion: boolean }) {
   );
 }
 
-export function CoreAILogoCube() {
+export function CoreAILogoCube({ monochrome = false }: { monochrome?: boolean }) {
   const { mode } = useThemeMode();
   const { containerRef, shouldRender } = useCanvasRuntime();
+  const [isReady, setIsReady] = React.useState(false);
+  const handleReady = React.useCallback(() => setIsReady(true), []);
   const reduceMotion = React.useMemo(
     () => matchMedia('(prefers-reduced-motion: reduce)').matches,
     [],
@@ -143,10 +160,12 @@ export function CoreAILogoCube() {
   return (
     <div
       ref={containerRef}
-      className="coreai-logo-cube"
+      className={`coreai-logo-cube${monochrome ? ' coreai-logo-cube--mini' : ''}`}
+      data-ready={isReady}
       style={style}
       role="img"
       aria-label="Interactive 3D CoreAI cube logo"
+      title={monochrome ? 'Drag to rotate' : undefined}
     >
       <Canvas
         flat
@@ -156,12 +175,22 @@ export function CoreAILogoCube() {
         frameloop={shouldRender ? 'always' : 'never'}
         gl={{ alpha: true, antialias: true }}
       >
-        <StaticLighting />
-        <LogoCubeMesh reduceMotion={reduceMotion} />
-        <EffectComposer multisampling={0}>
-          <PaperHeatmap reduceMotion={reduceMotion} lightMode={mode === 'light'} />
-          <PaperDithering />
-        </EffectComposer>
+        <StaticLighting monochrome={monochrome} />
+        <LogoCubeMesh
+          reduceMotion={reduceMotion}
+          onReady={handleReady}
+          color={monochrome && mode === 'light' ? '#242424' : '#FFFFFF'}
+        />
+        {monochrome ? (
+          <EffectComposer multisampling={0}>
+            <PaperDithering />
+          </EffectComposer>
+        ) : (
+          <EffectComposer multisampling={0}>
+            <PaperHeatmap reduceMotion={reduceMotion} lightMode={mode === 'light'} />
+            <PaperDithering />
+          </EffectComposer>
+        )}
         <OrbitControls enableDamping dampingFactor={0.08} enablePan={false} enableZoom={false} />
       </Canvas>
     </div>

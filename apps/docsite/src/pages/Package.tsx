@@ -115,8 +115,9 @@ export function Package() {
                   for your intended use.
                 </Text>
                 <Text as="p" size={300} foreground={2}>
-                  The package also works without Aptos using system-font fallbacks. Do not commit
-                  downloaded fonts or redistribute them without the applicable rights.
+                  Without Aptos, proportional text falls back to Inter and then system fonts. Do not
+                  commit downloaded fonts. Only Microsoft-hosted projects may host Aptos;
+                  non-Microsoft projects must use Inter instead.
                 </Text>
               </div>
             </div>

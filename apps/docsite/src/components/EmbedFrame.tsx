@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Button, Link, Text } from '@coreai/fluentui-react';
 
 interface EmbedFrameProps {
   src: string;
@@ -7,6 +8,7 @@ interface EmbedFrameProps {
   className?: string;
   allow?: string;
   allowFullScreen?: boolean;
+  signInUrl?: string;
 }
 
 export function EmbedFrame({
@@ -16,8 +18,10 @@ export function EmbedFrame({
   className = '',
   allow,
   allowFullScreen,
+  signInUrl,
 }: EmbedFrameProps) {
   const [ready, setReady] = React.useState(false);
+  const [reloadKey, setReloadKey] = React.useState(0);
   const revealTimer = React.useRef<number>();
 
   React.useEffect(() => {
@@ -27,7 +31,7 @@ export function EmbedFrame({
         window.clearTimeout(revealTimer.current);
       }
     };
-  }, [src]);
+  }, [src, reloadKey]);
 
   const reveal = () => {
     if (revealTimer.current) {
@@ -37,20 +41,38 @@ export function EmbedFrame({
   };
 
   return (
-    <div className="component-demo__surface component-demo__surface--embed">
-      <div className={`component-embed__loading${ready ? ' is-hidden' : ''}`} aria-hidden={ready}>
-        <span className="component-embed__loading-mark" aria-hidden="true" />
-        <span>{loadingLabel}</span>
+    <>
+      <div className="component-demo__surface component-demo__surface--embed">
+        <div className={`component-embed__loading${ready ? ' is-hidden' : ''}`} aria-hidden={ready}>
+          <span className="component-embed__loading-mark" aria-hidden="true" />
+          <span>{loadingLabel}</span>
+        </div>
+        <iframe
+          key={`${src}-${reloadKey}`}
+          className={`component-embed${className ? ` ${className}` : ''}${ready ? ' is-ready' : ''}`}
+          src={src}
+          title={title}
+          loading="lazy"
+          allow={allow}
+          allowFullScreen={allowFullScreen}
+          onLoad={reveal}
+        />
       </div>
-      <iframe
-        className={`component-embed${className ? ` ${className}` : ''}${ready ? ' is-ready' : ''}`}
-        src={src}
-        title={title}
-        loading="lazy"
-        allow={allow}
-        allowFullScreen={allowFullScreen}
-        onLoad={reveal}
-      />
-    </div>
+      {signInUrl ? (
+        <div className="component-embed__help">
+          <Text size={200} foreground={2}>
+            Preview not loading?{' '}
+            <Link href={signInUrl} external>
+              Sign in to Storybook
+              <span className="sr-only"> (opens in a new tab)</span>
+            </Link>
+            , then reload the preview.
+          </Text>
+          <Button appearance="subtle" size="small" onClick={() => setReloadKey((key) => key + 1)}>
+            Reload preview
+          </Button>
+        </div>
+      ) : null}
+    </>
   );
 }

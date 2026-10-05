@@ -155,8 +155,11 @@ Public npm distribution is prepared but requires maintainer approval before the
 first release. Use the package README for current installation status. The package
 contains compiled JavaScript/types, not source TS or licensed Aptos binaries.
 `@coreai/fluentui-react/fonts/fonts.css` only registers fonts already installed on
-the user's device. Keep system fallbacks or ask the user to supply independently
-licensed assets and CSS; do not download, bundle, or redistribute Aptos on assumption.
+the user's device. The proportional stack falls back to Inter and then system fonts;
+applications may load Inter from Google Fonts. Ask the user to supply independently
+licensed assets and CSS for Aptos. Only Microsoft-hosted projects may host Aptos;
+non-Microsoft projects must use Inter instead. Do not download, bundle, host, or
+redistribute Aptos on assumption.
 
 ## Translating a Storybook URL into an MCP call
 

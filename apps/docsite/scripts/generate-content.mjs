@@ -53,6 +53,18 @@ function resourceSource(resource, index) {
   return { id: `resource-${index}`, kind, ...resource };
 }
 
+function markdownToSearchText(markdown) {
+  return markdown
+    .replace(/^---[\s\S]*?---\s*/, '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/[`*_>#|~-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export async function generateContent({
   outputDirectory = path.join(appRoot, 'content/generated'),
   snapshotPath = defaultSnapshotPath,
@@ -142,6 +154,7 @@ export async function generateContent({
       ...(preview === 'figma' ? { figmaPreviewSourceId: figmaSource.id } : {}),
       resourceSourceIds: sources.map((source) => source.id),
       anchors,
+      searchText: markdownToSearchText(markdown),
     });
     await Promise.all([
       writeIfChanged(path.join(pagesDirectory, `${record.id}.html`), html),

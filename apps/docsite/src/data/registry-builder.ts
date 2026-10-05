@@ -17,6 +17,7 @@ export interface RegistryPage {
   showInSidebar: boolean;
   showInHeader: boolean;
   anchors: Anchor[];
+  searchText?: string;
 }
 
 export interface RouteRedirect {

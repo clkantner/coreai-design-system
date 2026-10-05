@@ -2,7 +2,8 @@
 
 CoreAI prefers Aptos and Aptos Mono. `fonts.css` only registers fonts already
 installed on the reader's device, with no remote URLs or bundled binaries.
-If unavailable, the theme uses system sans-serif and monospace fallbacks.
+For proportional and numeric text, the theme falls back to Inter when available
+and then system sans-serif fonts. Aptos Mono falls back to system monospace fonts.
 
 ## Local development
 
@@ -36,24 +37,31 @@ development servers nor builds load it. No setup runs automatically in npm hooks
 or CI. Installing the fonts on your own device is the recommended way to preview
 Aptos without distributing it.
 
-## Consumer-owned web fonts: separate rights required
+## Web hosting: Microsoft-hosted projects only
 
 The npm package remains usable without this repository or setup script. Install
 Aptos on the client devices, or supply your own appropriately licensed web fonts.
 Do not assume that desktop-use rights, Microsoft 365 access, or the CoreAI package
 license allow embedding, sublicensing, web hosting, or redistribution.
 
-Only after obtaining appropriate web-hosting rights, use the repository script
-to create consumer-owned assets:
+**Only Microsoft-hosted projects may host Aptos font files. If your project is
+not Microsoft-hosted, do not publish or serve Aptos from your application or
+infrastructure. Use Inter instead.** The CoreAI proportional font stack selects
+Inter automatically when Aptos is unavailable; load the supported Inter faces
+from Google Fonts as documented in the package README.
+
+For a Microsoft-hosted project with appropriate web-hosting rights, use the
+repository script to create project-owned assets:
 
 ```sh
 node scripts/setup-fonts.mjs --source "<licensed-directory>" --accept-license --output "<consumer-project>/public/fonts/aptos" --allow-web-hosting
 ```
 
-This creates a `fonts.css` with relative URLs next to the copied fonts. Load it with
-your application's own stylesheet/link URL (including any deployment base path).
-The explicit destination must be outside this repository, and the script refuses
-repository source/build directories. No package-managed files are patched.
+This creates a `fonts.css` with relative URLs next to the copied fonts. Load it
+with the Microsoft-hosted application's own stylesheet/link URL (including any
+deployment base path). The explicit destination must be outside this repository,
+and the script refuses repository source/build directories. No package-managed
+files are patched.
 
 Add the consumer's font directory to both `.gitignore` and its publication
 exclusions, verify `npm pack --dry-run`, and comply with your license before

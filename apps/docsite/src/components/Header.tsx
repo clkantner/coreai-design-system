@@ -17,6 +17,7 @@ export function Header({ menuButtonRef, navigationOpen, onNavigationOpen }: Head
           aria-label="Open navigation"
           aria-controls="app-navigation"
           aria-expanded="false"
+          aria-keyshortcuts="Alt+s"
           onClick={onNavigationOpen}
         >
           <span />

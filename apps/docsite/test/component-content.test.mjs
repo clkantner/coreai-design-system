@@ -65,6 +65,10 @@ test('authored Markdown drives every human and agent component page', async () =
   );
   for (const { fileName, content } of records) {
     assert.match(content.id, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, fileName);
+    assert.ok(
+      content.searchText.length > content.summary.text.length,
+      `${fileName} has no search text`,
+    );
     assert.ok(content.summary.text.length <= 200, `${fileName} summary exceeds 200 characters`);
     assert.ok(
       [...sentenceSegmenter.segment(content.summary.text)].length <= 2,
@@ -255,25 +259,30 @@ test('component routes are generic rather than registered per component', async 
   assert.doesNotMatch(appSource, /pages\/Accordion/);
   assert.match(componentPageSource, /content\.figmaPreviewSourceId/);
   assert.match(componentPageSource, /Code work in progress/);
-  assert.match(componentPageSource, /content\.status === 'under-construction'/);
-  assert.match(componentPageSource, /Page under construction\./);
+  assert.match(
+    componentPageSource,
+    /content\.status === 'under-construction' \? <WorkInProgress \/>/,
+  );
+  const constructionState = await fs.readFile(
+    new URL('src/components/work-in-progress.tsx', appRoot),
+    'utf8',
+  );
+  assert.match(constructionState, /Page under construction/);
+  assert.match(constructionState, /href=\{siteLinks\.feedback\}/);
 });
 
 test('templates follow components in sidebar navigation', async () => {
   const registrySource = await fs.readFile(new URL('src/data/registry.ts', appRoot), 'utf8');
   const sidebarSource = await fs.readFile(new URL('src/components/Sidebar.tsx', appRoot), 'utf8');
   const docsiteStyles = await fs.readFile(new URL('src/styles/docsite.css', appRoot), 'utf8');
-  assert.match(
-    registrySource,
-    /label: 'Components'[\s\S]*label: 'Templates'[\s\S]*label: 'Assets'/,
-  );
+  assert.match(registrySource, /label: 'Components'[\s\S]*label: 'Templates'/);
   assert.match(docsiteStyles, /\.app-sidenav__section-shell\s*\{[^}]*border-bottom:/);
   assert.match(
     docsiteStyles,
     /\.app-sidenav__nav\s*\{[^}]*scrollbar-color:\s*transparent transparent/,
   );
   assert.match(docsiteStyles, /\.app-sidenav__nav\.is-scrolling\s*\{[^}]*scrollbar-color:/);
-  assert.match(sidebarSource, /combinedGroups\.map\(\(group\) =>/);
+  assert.match(sidebarSource, /standaloneGroups\.map\(\(group\) =>/);
   assert.doesNotMatch(sidebarSource, /app-sidenav__accordion-list/);
   assert.doesNotMatch(sidebarSource, /page\.incomplete/);
 

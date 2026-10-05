@@ -134,10 +134,10 @@ const coreaiTokensDarkTheme: CoreAITokens = {
 
 const fontFamilyTokens: FontFamilyTokens = {
   fontFamilyBase:
-    'Aptos, Helvetica, Arial, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+    'Aptos, Inter, Helvetica, Arial, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
   fontFamilyMonospace: '"Aptos Mono", Menlo, Monaco, Consolas, monospace',
   fontFamilyNumeric:
-    'Aptos, Helvetica, Arial, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+    'Aptos, Inter, Helvetica, Arial, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
 };
 
 export type CoreAITheme = Theme & CoreAITokens;

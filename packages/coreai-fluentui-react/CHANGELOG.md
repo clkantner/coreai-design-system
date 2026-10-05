@@ -28,10 +28,11 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 
 ### Breaking
 
-- Aptos/Aptos Mono binaries are no longer redistributed. The existing `@coreai/fluentui-react/fonts/fonts.css` import now registers locally installed fonts only; remove deep `.ttf` imports and supply separately licensed assets/CSS if self-hosted fonts are required. Otherwise the theme uses its system-font fallbacks.
+- Aptos/Aptos Mono binaries are no longer redistributed. The existing `@coreai/fluentui-react/fonts/fonts.css` import now registers locally installed fonts only; remove deep `.ttf` imports and supply separately licensed assets/CSS if self-hosted fonts are required. Otherwise proportional text falls back to Inter and then system fonts.
 
 ### Changed
 
+- Added Inter as the proportional and numeric fallback after Aptos; the hosted apps load normal and italic Inter faces at weights 400, 600, and 700 from Google Fonts.
 - Prepared public npm distribution with no consumer authentication; remove obsolete Azure Artifacts `@coreai` scope routing when migrating to an approved public release. Publication remains disabled until explicit open-source and package/access approval, and requires manual confirmation through a protected GitHub environment.
 - Source, issues, and pull requests target `microsoft/coreai-design-system`; GitHub Actions replaces the Azure publishing pipeline. Package tarball verification checks compiled exports and excludes source files and locally installed font assets.
 

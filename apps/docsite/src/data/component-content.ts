@@ -42,6 +42,7 @@ export interface ComponentContent {
   status: ComponentStatus;
   resourceSourceIds: string[];
   anchors: { id: string; label: string }[];
+  searchText?: string;
   markdown?: string;
 }
 
@@ -154,6 +155,7 @@ export function parseComponentContent(value: unknown, label: string): ComponentC
       'status',
       'resourceSourceIds',
       'anchors',
+      'searchText',
       'markdown',
     ],
     label,
@@ -262,6 +264,9 @@ export function parseComponentContent(value: unknown, label: string): ComponentC
   if (value.markdown !== undefined) {
     assertString(value.markdown, `${label}.markdown`);
   }
+  if (value.searchText !== undefined) {
+    assertString(value.searchText, `${label}.searchText`);
+  }
 
   return {
     id: value.id,
@@ -276,6 +281,7 @@ export function parseComponentContent(value: unknown, label: string): ComponentC
     status: (value.status as ComponentStatus | undefined) ?? 'complete',
     resourceSourceIds: value.resourceSourceIds as string[],
     anchors,
+    searchText: value.searchText as string | undefined,
     markdown: value.markdown as string | undefined,
   };
 }
@@ -334,5 +340,6 @@ export function componentToRegistryPage(component: ComponentContent) {
     showInSidebar: component.navigation.showInSidebar,
     showInHeader: false,
     anchors: component.anchors,
+    searchText: component.searchText,
   };
 }
