@@ -53,7 +53,7 @@ export const resourceGroups = [
       {
         id: 'npm-package',
         title: 'npm package',
-        description: 'Find @coreai/fluentui-react on npm.',
+        description: 'Find @coreai-ds/react-components on npm.',
         destination: 'npm',
         href: siteLinks.npmPackage,
         icon: NpmLogo,

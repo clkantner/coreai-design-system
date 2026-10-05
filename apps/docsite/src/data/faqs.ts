@@ -114,7 +114,7 @@ export const faqGroups: FaqGroup[] = [
         id: 'package-access',
         question: 'How do I install the npm package?',
         answer: [
-          'Install @coreai/fluentui-react from npm, then follow the package README for provider, font, and usage guidance.',
+          'Install @coreai-ds/react-components from npm, then follow the package README for provider, font, and usage guidance.',
         ],
         sources: [sources.package],
         links: [{ label: 'Open the npm package', href: siteLinks.npmPackage }, sources.package],
@@ -123,7 +123,7 @@ export const faqGroups: FaqGroup[] = [
         id: 'coreai-appearance',
         question: 'Why does my app still look like stock Fluent?',
         answer: [
-          'Import components from @coreai/fluentui-react, wrap the app in CoreAIFluentProvider, and load @coreai/fluentui-react/fonts/fonts.css once. Icons can still come from @fluentui/react-icons.',
+          'Import components from @coreai-ds/react-components, wrap the app in CoreAIFluentProvider, and load @coreai-ds/react-components/fonts/fonts.css once. Icons can still come from @fluentui/react-icons.',
           'Check that withComponentDefaults has not been set to false. The theming guide covers the provider, fonts, and defaults.',
         ],
         sources: [sources.theming, sources.skill],
