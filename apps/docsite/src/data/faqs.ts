@@ -81,7 +81,7 @@ export const faqGroups: FaqGroup[] = [
         id: 'why-a-shared-package',
         question: 'Why does CoreAI have a shared design system?',
         answer: [
-          'Separate production and prototype libraries were drifting apart. CoreAI gives apps a shared package and guidance so each team does not need to maintain its own version of the same components.',
+          'CoreAI gives teams one Fluent UI v9 design system for shared components, themes, guidance, and tools. This helps apps stay consistent without each team maintaining its own version of the same patterns.',
         ],
         sources: [sources.history],
       },
@@ -123,8 +123,8 @@ export const faqGroups: FaqGroup[] = [
         id: 'coreai-appearance',
         question: 'Why does my app still look like stock Fluent?',
         answer: [
-          'Import components from @coreai/fluentui-react, wrap the app in CoreAIFluentProvider, and load @coreai/fluentui-react/fonts/fonts.css once. Icons can still come from @fluentui/react-icons.',
-          'Check that withComponentDefaults has not been set to false. The theming guide covers the provider, fonts, and defaults.',
+          'Import components from @coreai/fluentui-react instead of @fluentui/react-components, then wrap the app in CoreAIFluentProvider. Icons can still come from @fluentui/react-icons.',
+          'Check that withComponentDefaults has not been set to false. The optional fonts.css import only registers Aptos fonts already installed on the device. The theming guide covers the provider, fonts, and defaults.',
         ],
         sources: [sources.theming, sources.skill],
         links: [sources.theming],
@@ -163,7 +163,7 @@ export const faqGroups: FaqGroup[] = [
         id: 'package-skill-and-mcp',
         question: 'What does my coding agent need to use CoreAI?',
         answer: [
-          'Install the CoreAI package and its agent skill in your project. Connect the documentation servers through Model Context Protocol (MCP) so your agent can read current guidance and examples.',
+          'CoreAI agent setup requires the package, its installed agent skill, and both documentation servers. Public npm installation remains pending until the first approved release.',
           'Use CoreAI documentation for components and templates. Use Fluent documentation for gaps such as icon and token lookup. Follow the agent skill and MCP setup guides.',
         ],
         sources: [sources.package, sources.skill, sources.mcp],
@@ -198,7 +198,7 @@ export const faqGroups: FaqGroup[] = [
         question: 'How do I give feedback or contribute?',
         answer: [
           'Use GitHub Issues to report a bug, request a component or pattern, or ask a usage question. Search existing issues first, then include what you need and a small example.',
-          'Contributions can include guidance and design ideas as well as code.',
+          'Contributions can include guidance and design ideas as well as code. Do not report security vulnerabilities through a public issue; follow the private instructions in SECURITY.md.',
         ],
         sources: [sources.contribution, sources.skill],
         links: [
