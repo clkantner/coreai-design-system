@@ -69,9 +69,12 @@ test('home illustration fades in only after a complete frame', async () => {
     /\.home-visual \.coreai-logo-cube \{\s*opacity: 0;\s*transition: opacity 400ms ease-out;/,
   );
   assert.match(styles, /\.home-visual \.coreai-logo-cube\[data-ready='true'\] \{\s*opacity: 1;/);
+  const reducedMotionStyles = styles.slice(
+    styles.lastIndexOf('@media (prefers-reduced-motion: reduce)'),
+  );
   assert.match(
-    styles,
-    /@media \(prefers-reduced-motion: reduce\) \{[^}]*transition-duration: 0s !important;/,
+    reducedMotionStyles,
+    /\*,\s*\*::before,\s*\*::after \{[^}]*transition-duration: 0s !important;[^}]*transition-delay: 0s !important;/,
   );
 });
 
@@ -328,8 +331,8 @@ test('search selection clears the filter, navigates, and closes the sidebar with
 
   assert.match(sidebarSource, /if \(query\.trim\(\)\) \{\s*setQuery\(''\);\s*\}/);
   assert.match(sidebarSource, /navigate\(String\(data\.value\)\);\s*onClose\(\)/);
-  assert.match(sidebarSource, /page\.navLabel\.toLowerCase\(\)\.includes\(needle\)/);
-  assert.match(sidebarSource, /const openItems = needle \? groups\.map/);
+  assert.match(sidebarSource, /searchPages\(pages, needle\)/);
+  assert.match(sidebarSource, /setQuery\(''\);\s*navigate\(slug\);\s*onClose\(\)/);
   assert.match(sidebarSource, /onChange=\{\(_event, data\) => setQuery\(data\.value\)\}/);
   assert.match(appSource, /<Navigate to=\{redirect\.to\} replace \/>/);
   assert.match(appSource, /<Route path="\*" element=\{<NotFound \/>\} \/>/);
@@ -501,10 +504,11 @@ test('resources uses existing link destinations and CoreAI cards', async () => {
     /<Card\s+appearance="filled-alternative"\s+focusMode="off"\s+className="resource-card"\s*>/,
   );
   assert.doesNotMatch(styles, /\[data-page-id='resources'\] \.site-main/);
-  assert.match(
-    styles,
-    /\.resource-card__icon \{[^}]*background: var\(--colorNeutralBackground1\);/,
-  );
+  const iconStyles = styles.match(/\.resource-card__icon \{([^}]*)\}/)?.[1];
+  assert.ok(iconStyles, 'Resource icons must have their own size and color rules.');
+  assert.match(iconStyles, /width: 24px;\s*height: 24px;/);
+  assert.match(iconStyles, /color: var\(--colorNeutralForeground2\);/);
+  assert.doesNotMatch(iconStyles, /background(?:-color)?:/);
   assert.match(
     styles,
     /\.resource-card__destination \{[^}]*color: var\(--colorBrandForegroundLink\);/,
@@ -529,8 +533,9 @@ test('FAQ-only contents rail uses rendered anchors and follows the page scroll r
     fs.readFile(new URL('apps/docsite/src/styles/docsite.css', repoRoot), 'utf8'),
   ]);
   assert.match(layout, /main\?\.closest<HTMLDivElement>\('\.app-page'\)/);
-  assert.match(layout, /if \(!main \|\| !scrollRegion \|\| !page \|\| id !== 'faqs'\)/);
-  assert.match(layout, /if \(id !== 'faqs'\) \{\s*return content;/);
+  assert.match(layout, /const supportsToc = id === 'faqs';/);
+  assert.match(layout, /if \(!main \|\| !scrollRegion \|\| !page \|\| !supportsToc\)/);
+  assert.match(layout, /if \(!supportsToc\) \{\s*return content;/);
   assert.match(layout, /page\.anchors\.flatMap/);
   assert.match(layout, /main\.contains\(element\)/);
   assert.match(layout, /toc\.anchors\.length > 1/);
@@ -550,10 +555,10 @@ test('FAQ-only contents rail uses rendered anchors and follows the page scroll r
   assert.match(css, /\.page-toc\s*\{\s*display: none;/);
   assert.match(css, /\.app-page:has\(\.page-layout--with-toc\)\s*\{\s*scroll-behavior: smooth;/);
   assert.match(css, /@media \(min-width: 1440px\)/);
-  assert.match(css, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 824px\) minmax\(0, 1fr\);/);
-  assert.match(css, /\.page-layout--with-toc\s*\{[^}]*padding: 64px 16px;/);
+  assert.match(css, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 776px\) minmax\(0, 1fr\);/);
+  assert.match(css, /\.page-layout--with-toc\s*\{[^}]*padding: 64px 64px 64px 16px;/);
   assert.match(css, /\.page-layout > \.site-main\s*\{[^}]*grid-column: 2;[^}]*padding: 0;/);
-  assert.match(css, /\.page-layout--with-toc\s*\{[^}]*column-gap: 32px;/);
+  assert.match(css, /\.page-layout--with-toc\s*\{[^}]*column-gap: 80px;/);
   assert.match(css, /\.page-toc\s*\{[^}]*grid-column: 3;[^}]*grid-row: 1;[^}]*max-width: 200px;/);
   assert.doesNotMatch(css, /\.page-toc__link\[aria-current='location'\]::before/);
 });
@@ -566,18 +571,17 @@ test('FAQ answers retain research in the data and show optional useful links', a
   ]);
   const questions = [...faqs.matchAll(/question: '([^']+)'/g)];
   const sourceLists = [...faqs.matchAll(/sources: \[/g)];
-  assert.equal(questions.length, 13);
+  assert.equal(questions.length, 12);
   assert.equal(sourceLists.length, questions.length);
   assert.doesNotMatch(faqs, /sources: \[\s*\]/);
   const ids = [...faqs.matchAll(/id: '([^']+)'/g)].map((match) => match[1]);
   assert.equal(new Set(ids).size, ids.length);
   assert.doesNotMatch(faqs, /teams\.microsoft\.com|sharepoint\.com|Azure Artifacts/);
   assert.match(faqs, /docs-variations-from-fluent--docs/);
-  assert.match(faqs, /Lyb3shKi3jWCYjxajCRqmt\/History\?node-id=12-8763/);
-  assert.match(faqs, /id: 'code-as-truth'/);
+  assert.match(faqs, /Lyb3shKi3jWCYjxajCRqmt\/History\?node-id=12-7595/);
   assert.doesNotMatch(
     faqs,
-    /id: '(region-selection|mini-foundry-compatibility|component-defaults|different-documentation-audiences|contributing-beyond-code)'/,
+    /id: '(code-as-truth|region-selection|mini-foundry-compatibility|component-defaults|different-documentation-audiences|contributing-beyond-code)'/,
   );
   assert.match(faqs, /label: 'Feedback form', href: siteLinks\.feedback/);
   assert.match(faqs, /links\?: FaqLink\[\]/);
@@ -648,7 +652,7 @@ test('settings reuses Fluent controls with color mode above platform-specific sh
   assert.match(settings, /<span className="sr-only">\{accessibleKeys\}<\/span>/);
   assert.doesNotMatch(settings, /<Select/);
   assert.doesNotMatch(settings, /<Field/);
-  assert.match(styles, /\.docsite-settings \{\s*width: 280px;/);
+  assert.match(styles, /\.docsite-settings \{\s*width: 220px;/);
   assert.match(
     settings,
     /<section className="docsite-settings__shortcuts" aria-label="Keyboard shortcuts">/,

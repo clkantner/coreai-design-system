@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import test from 'node:test';
+import { URL } from 'node:url';
 
 test('Storybook recovery opens the selected story and reloads only the iframe', async () => {
   const [embed, component] = await Promise.all([

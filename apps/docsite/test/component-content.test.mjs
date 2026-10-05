@@ -259,8 +259,16 @@ test('component routes are generic rather than registered per component', async 
   assert.doesNotMatch(appSource, /pages\/Accordion/);
   assert.match(componentPageSource, /content\.figmaPreviewSourceId/);
   assert.match(componentPageSource, /Code work in progress/);
-  assert.match(componentPageSource, /content\.status === 'under-construction'/);
-  assert.match(componentPageSource, /Page under construction\./);
+  assert.match(
+    componentPageSource,
+    /content\.status === 'under-construction' \? <WorkInProgress \/>/,
+  );
+  const constructionState = await fs.readFile(
+    new URL('src/components/work-in-progress.tsx', appRoot),
+    'utf8',
+  );
+  assert.match(constructionState, /Page under construction/);
+  assert.match(constructionState, /href=\{siteLinks\.feedback\}/);
 });
 
 test('templates follow components in sidebar navigation', async () => {

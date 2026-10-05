@@ -87,21 +87,21 @@ Each group has its own section with a bottom divider, including Overview,
 For humans, and For agents. On initial load or reload, Overview starts open and all
 other sections start collapsed unless the current page belongs to that group.
 Empty sections remain visible outside search.
-Search shows and opens only groups with matching pages.
+Search replaces the groups with ranked page results and highlighted excerpts.
 
 **Home** keeps the existing landing page at `/`.
 Resources (`/resources/`) groups nine link cards into Assets, Code, and Connect.
 Each card is one native link, composed with the existing CoreAI Card and Text controls.
 Cards use the `filled-alternative` appearance. Content uses the standard page max-width.
-Icon backgrounds use the lighter `colorNeutralBackground1` surface. Destination
+Icons are 24px with no separate background. Destination
 labels and external-link icons use `colorBrandForegroundLink`.
 Titles, descriptions, destination labels, and icons live in
 [`src/data/resources.ts`](src/data/resources.ts); URLs reuse `siteLinks`.
 Cards open in a new tab, announce that behavior, and support keyboard focus.
 The grid adapts to the available width in both themes.
-FAQs (`/faqs/`) contains 13 answers in five topic groups, using the
+FAQs (`/faqs/`) contains 12 answers in five topic groups, using the
 existing CoreAI Accordion, Text, and Link controls. Questions, answers, links,
-research sources, and the review date live in [`src/data/faqs.ts`](src/data/faqs.ts).
+and research sources live in [`src/data/faqs.ts`](src/data/faqs.ts).
 The page renders only optional `links` to resources mentioned in an answer,
 such as setup guides and the feedback form. The `sources` stay in the data for
 editorial traceability; they are not rendered as citation lists.
@@ -147,11 +147,10 @@ the cross-origin iframe, infer sign-in status from its load event, or change
 Storybook's server or Azure authentication configuration.
 
 At viewport widths of 1440px and above, only FAQs shows a sticky "On this page"
-rail using its rendered registry anchors. The content stays centered with the same
-824px usable width as other pages (920px maximum minus 48px padding on each side).
+rail using its rendered registry anchors. The FAQ content column is capped at 776px.
 The TOC sits in the right margin rather than taking space from the content.
 It grows to 200px wide as room allows; longer labels wrap at smaller desktop widths.
-The rail aligns with the FAQ title, has a 32px gap from the content, and uses existing CoreAI `LinkButton`
+The rail aligns with the FAQ title, has an 80px gap from the content, and uses existing CoreAI `LinkButton`
 controls with a filled active row, native fragment links, and standard hover/focus states.
 It highlights the current section within the page scroll region and updates when
 content expands or the viewport changes. Clicking a section keeps that section
@@ -204,7 +203,7 @@ do not prevent recognition. Shortcuts apply to the docsite, not embedded preview
 The settings gear in the sidebar opens a popover with an elevated **Dark / Light**
 tablist sized to its content above the shortcut list. The popover opens below
 the gear, aligned to its left edge. The complete menu, including padding and
-borders, is 280px wide. Shortcut labels use type-ramp size 200 and foreground 2.
+borders, is 220px wide. Shortcut labels use type-ramp size 200 and foreground 2.
 CoreAI Badges contain system-UI shortcut glyphs. Letters, modifiers, and arrows
 use size 200, with a 2px gap between keys and no text spaces.
 The edge-to-edge divider matches the popover border.
