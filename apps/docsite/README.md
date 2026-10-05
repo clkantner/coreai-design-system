@@ -176,16 +176,16 @@ The desktop open/closed state persists across reloads in `localStorage` under
 Cmd/Ctrl+K expands it and focuses search. On mobile,
 the logo closes the existing navigation overlay.
 
-| Action | Mac | Windows |
-| --- | --- | --- |
-| Show/hide navigation | Option+S | Alt+S |
-| Previous page | Option+Up | Alt+Up |
-| Next page | Option+Down | Alt+Down |
-| Collapse all navigation sections | Cmd+Shift+Up | Ctrl+Shift+Up |
-| Expand all navigation sections | Cmd+Shift+Down | Ctrl+Shift+Down |
-| Switch theme | Option+M | Alt+M |
-| Search navigation | Cmd+K | Ctrl+K |
-| Close mobile navigation | Esc | Esc |
+| Action                           | Mac            | Windows         |
+| -------------------------------- | -------------- | --------------- |
+| Show/hide navigation             | Option+S       | Alt+S           |
+| Previous page                    | Option+Up      | Alt+Up          |
+| Next page                        | Option+Down    | Alt+Down        |
+| Collapse all navigation sections | Cmd+Shift+Up   | Ctrl+Shift+Up   |
+| Expand all navigation sections   | Cmd+Shift+Down | Ctrl+Shift+Down |
+| Switch theme                     | Option+M       | Alt+M           |
+| Search navigation                | Cmd+K          | Ctrl+K          |
+| Close mobile navigation          | Esc            | Esc             |
 
 Previous/next follows sidebar order, including collapsed groups, without wrapping
 at the ends. After a page change, the navigation scrolls just enough to reveal the active page,
