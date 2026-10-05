@@ -16,8 +16,7 @@ import { siteLinks } from '../data/content';
 const installPackages = `npm install @coreai-ds/react-components
 npm install @fluentui/react-components @fluentui/react-icons # peer dependencies as needed`;
 
-const usageExample = `import '@coreai-ds/react-components/fonts/fonts.css';
-import {
+const usageExample = `import {
   CoreAIFluentProvider,
   coreaiLightTheme,
 } from '@coreai-ds/react-components';
@@ -131,8 +130,10 @@ export function Package() {
                   Add it to your app
                 </Text>
                 <Text as="p" size={300} foreground={2}>
-                  Load the font-stack stylesheet once, then wrap the app with the CoreAI provider.
-                  This stylesheet does not include font binaries.
+                  Wrap the app with the CoreAI provider. To recognize Aptos fonts already installed
+                  on the device, you can optionally load{' '}
+                  <code>@coreai-ds/react-components/fonts/fonts.css</code> once. The stylesheet does
+                  not include font binaries.
                 </Text>
                 <CodeBlock code={usageExample} language="tsx" />
               </div>

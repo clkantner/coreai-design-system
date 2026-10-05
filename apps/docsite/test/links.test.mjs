@@ -10,9 +10,10 @@ async function read(path) {
 }
 
 test('docsite destinations follow the repository README', async () => {
-  const [readme, links, resources, faqs, packagePage, mcpPage, skillPage, homePage] =
+  const [readme, packageReadme, links, resources, faqs, packagePage, mcpPage, skillPage, homePage] =
     await Promise.all([
       read('README.md'),
+      read('packages/react-components/README.md'),
       read('shared/site-links.ts'),
       read('apps/docsite/src/data/resources.ts'),
       read('apps/docsite/src/data/faqs.ts'),
@@ -43,6 +44,8 @@ test('docsite destinations follow the repository README', async () => {
   assert.match(resources, /title: 'Issues and support'/);
   assert.match(faqs, /Public npm publication is pending open-source approval/);
   assert.match(faqs, /href: siteLinks\.storybookDocs\.mcpSetup/);
+  assert.match(faqs, /href: `\$\{siteLinks\.repo\}\/blob\/main\/README\.md`/);
+  assert.match(faqs, /href: `\$\{siteLinks\.repo\}\/blob\/main\/CONTRIBUTING\.md`/);
   assert.match(faqs, /label: 'Open a GitHub issue', href: siteLinks\.feedback/);
   assert.doesNotMatch(faqs, /CoreAI DS Community/);
 
@@ -51,10 +54,23 @@ test('docsite destinations follow the repository README', async () => {
     /const installPackages = `npm install @coreai-ds\/react-components\nnpm install @fluentui\/react-components @fluentui\/react-icons # peer dependencies as needed`/,
   );
   assert.doesNotMatch(packagePage, /--registry=https:\/\/registry\.npmjs\.org/);
+  assert.doesNotMatch(
+    packagePage,
+    /const usageExample = `import '@coreai-ds\/react-components\/fonts\/fonts\.css'/,
+  );
+  assert.match(packagePage, /you can optionally load/);
   assert.match(packagePage, />\s*View package README\s*</);
   assert.match(mcpPage, /"url": "\$\{siteLinks\.mcp\}"/);
   assert.doesNotMatch(mcpPage, /coreai-ds-storybook\.azurewebsites\.net/);
   assert.match(skillPage, /\.github\/skills\/react-components\/SKILL\.md/);
   assert.doesNotMatch(skillPage, /\.github\/skills\/coreai-ds-react-components\/SKILL\.md/);
   assert.match(homePage, /<span>npm \(pending\)<\/span>/);
+  assert.match(
+    packageReadme,
+    /\.\.\/\.\.\/apps\/storybook\/src\/stories\/docs\/StylingWithCssModules\.mdx/,
+  );
+  assert.doesNotMatch(
+    packageReadme,
+    /\.\.\/\.\.\/apps\/storybook\/src\/stories\/StylingWithCssModules\.mdx/,
+  );
 });

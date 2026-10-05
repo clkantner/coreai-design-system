@@ -41,8 +41,8 @@ const sources = {
     href: siteLinks.packageReadme,
   },
   history: {
-    label: 'Background: why CoreAI was rebuilt',
-    href: 'https://mini-foundry.azurewebsites.net/jabradford/mini-foundry-history-slides/slides/four-problems/4',
+    label: 'CoreAI repository README',
+    href: `${siteLinks.repo}/blob/main/README.md`,
   },
   tiers: {
     label: 'Background: components, templates, and samples',
@@ -53,8 +53,8 @@ const sources = {
     href: 'https://www.figma.com/slides/Lyb3shKi3jWCYjxajCRqmt/History?node-id=12-7595',
   },
   contribution: {
-    label: 'History: contribution, slide 17 notes',
-    href: 'https://www.figma.com/slides/Lyb3shKi3jWCYjxajCRqmt/History?node-id=12-9039',
+    label: 'Contributing guide',
+    href: `${siteLinks.repo}/blob/main/CONTRIBUTING.md`,
   },
   storybook: {
     label: 'Storybook',
