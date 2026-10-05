@@ -9,6 +9,7 @@ import {
 import { Tab, TabList, type SelectTabData, type SelectTabEvent } from '@coreai/fluentui-react';
 import { Text } from '@coreai/fluentui-react';
 import { PageLayout } from '../components/PageLayout';
+import { siteLinks } from '../data/content';
 
 const vscodeConfig = `{
   "servers": {
@@ -22,7 +23,7 @@ const vscodeConfig = `{
     // CoreAI Design System MCP - requires Microsoft Entra OAuth signin
     "coreai-ds-docs": {
       "type": "http",
-      "url": "https://coreai-ds-storybook.azurewebsites.net/mcp"
+      "url": "${siteLinks.mcp}"
     }
   },
   "inputs": []
@@ -35,7 +36,7 @@ Authentication: Microsoft Entra sign-in, in your browser
 
 Name: coreai-ds-docs
 Type: http
-URL: https://coreai-ds-storybook.azurewebsites.net/mcp
+URL: ${siteLinks.mcp}
 Authentication: Microsoft Entra sign-in, in your browser
 
 Headers: none for either server`;
@@ -48,7 +49,7 @@ URL: https://chat.fluentui.dev/mcp/server/
 Add Server 2
 Name: coreai-ds-docs
 Type: HTTP
-URL: https://coreai-ds-storybook.azurewebsites.net/mcp`;
+URL: ${siteLinks.mcp}`;
 
 const clients = {
   vscode: {

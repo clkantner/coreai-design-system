@@ -13,8 +13,8 @@ import {
 import { PageLayout } from '../components/PageLayout';
 import { siteLinks } from '../data/content';
 
-const installPackages = `npm install @coreai/fluentui-react --registry=https://registry.npmjs.org
-npm install @fluentui/react-components @fluentui/react-icons`;
+const installPackages = `npm install @coreai/fluentui-react
+npm install @fluentui/react-components @fluentui/react-icons # peer dependencies as needed`;
 
 const usageExample = `import '@coreai/fluentui-react/fonts/fonts.css';
 import {
@@ -44,7 +44,7 @@ export function Package() {
           rel="noopener"
           appearance="outline"
         >
-          View repo
+          View package README
         </Button>
       }
     >
@@ -93,7 +93,8 @@ export function Package() {
                 <Text as="p" size={300} foreground={2}>
                   After publication, run these commands in your project. Remove any old{' '}
                   <code>@coreai:registry</code> Azure Artifacts override from the project and user{' '}
-                  <code>.npmrc</code> files first.
+                  <code>.npmrc</code> files first. If your project uses a custom default registry,
+                  follow the package README to route the <code>@coreai</code> scope to npm.
                 </Text>
                 <CodeBlock code={installPackages} language="bash" />
               </div>

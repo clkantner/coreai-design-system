@@ -56,7 +56,7 @@ export function Introduction() {
             >
               <NpmLogo className="app-sidenav__quick-link-brand" />
               <span className="app-sidenav__quick-link-title">
-                <span>npm</span>
+                <span>npm (pending)</span>
                 <ExternalIcon className="app-sidenav__quick-link-open" />
               </span>
             </Link>

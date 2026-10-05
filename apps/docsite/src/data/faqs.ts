@@ -22,19 +22,19 @@ export interface FaqGroup {
 const sources = {
   variations: {
     label: 'Variations from Fluent',
-    href: 'https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-variations-from-fluent--docs',
+    href: siteLinks.storybookDocs.variationsFromFluent,
   },
   theming: {
     label: 'Theming',
-    href: 'https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-theming--docs',
+    href: siteLinks.storybookDocs.theming,
   },
   skill: {
     label: 'Agent skill',
-    href: 'https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-agent-skill--docs',
+    href: siteLinks.storybookDocs.agentSkill,
   },
   mcp: {
     label: 'MCP setup',
-    href: 'https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-mcp-setup--docs',
+    href: siteLinks.storybookDocs.mcpSetup,
   },
   package: {
     label: 'Package README',
@@ -114,10 +114,10 @@ export const faqGroups: FaqGroup[] = [
         id: 'package-access',
         question: 'How do I install the npm package?',
         answer: [
-          'Install @coreai/fluentui-react from npm, then follow the package README for provider, font, and usage guidance.',
+          'Public npm publication is pending open-source approval. After an approved release, install @coreai/fluentui-react from npm, then follow the package README for provider, font, and usage guidance.',
         ],
         sources: [sources.package],
-        links: [{ label: 'Open the npm package', href: siteLinks.npmPackage }, sources.package],
+        links: [{ label: 'View the npm destination', href: siteLinks.npmPackage }, sources.package],
       },
       {
         id: 'coreai-appearance',
@@ -197,13 +197,13 @@ export const faqGroups: FaqGroup[] = [
         id: 'missing-component-or-prop',
         question: 'How do I give feedback or contribute?',
         answer: [
-          'Use the feedback form to report a bug or request a component or pattern. Include what you need and a small example.',
-          'For questions or early ideas, open a GitHub issue. Contributions can be guidance and design ideas as well as code.',
+          'Use GitHub Issues to report a bug, request a component or pattern, or ask a usage question. Search existing issues first, then include what you need and a small example.',
+          'Contributions can include guidance and design ideas as well as code.',
         ],
         sources: [sources.contribution, sources.skill],
         links: [
-          { label: 'Feedback form', href: siteLinks.feedback },
-          { label: 'CoreAI DS Community', href: siteLinks.contact },
+          { label: 'Open a GitHub issue', href: siteLinks.feedback },
+          { label: 'Browse GitHub issues', href: siteLinks.contact },
         ],
       },
     ],
