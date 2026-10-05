@@ -1,6 +1,6 @@
 import type { StoryObj } from '@storybook/react-vite';
 import { figmaDesign } from '../../utils/figma';
-import { Divider, Text } from '@coreai/fluentui-react';
+import { Divider, Text } from '@coreai-ds/react-components';
 
 // `Divider` is the CoreAI-wrapped divider — a styled `<hr>` that keeps only
 // `appearance`, `inset`, and `vertical` (no inline content/label support).

@@ -12,7 +12,7 @@
  */
 
 import * as React from 'react';
-import { makeStyles, mergeClasses, Text, tokens } from '@coreai/fluentui-react';
+import { makeStyles, mergeClasses, Text, tokens } from '@coreai-ds/react-components';
 
 export type DetailsItem = {
   key: React.Key;

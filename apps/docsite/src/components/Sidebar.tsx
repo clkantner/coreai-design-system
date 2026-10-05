@@ -5,10 +5,10 @@ import {
   AccordionHeader,
   AccordionPanel,
   type AccordionToggleEventHandler,
-} from '@coreai/fluentui-react';
-import { SearchBox } from '@coreai/fluentui-react';
-import { TabList, Tab, type SelectTabData, type SelectTabEvent } from '@coreai/fluentui-react';
-import { Link } from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
+import { SearchBox } from '@coreai-ds/react-components';
+import { TabList, Tab, type SelectTabData, type SelectTabEvent } from '@coreai-ds/react-components';
+import { Link } from '@coreai-ds/react-components';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { normalizeRoutePath, pages, sidebarGroups } from '../data/registry';
 import { searchPages } from '../data/search';

@@ -235,15 +235,12 @@ const config: StorybookConfig = {
     //
     // Storybook develops against package source so a clean checkout does not
     // need a package build and source edits are never hidden by stale dist output.
-    const themeBarrel = path.resolve(
-      __dirname,
-      '../../../packages/coreai-fluentui-react/src/index.ts',
-    );
+    const themeBarrel = path.resolve(__dirname, '../../../packages/react-components/src/index.ts');
     const themeDir = path.dirname(themeBarrel);
     // npm workspaces symlinks the package into node_modules; Vite importer
     // paths may surface either the symlinked path or the real path. Match the
     // package's real source dir to be safe.
-    const themeSrcDir = path.resolve(__dirname, '../../../packages/coreai-fluentui-react/src');
+    const themeSrcDir = path.resolve(__dirname, '../../../packages/react-components/src');
     const barrelRedirectRe = /^@fluentui\/(react-components)$/;
     // Normalize path separators: `path.resolve` yields backslashes on Windows,
     // but Vite/Rollup module ids (and file-watcher paths) always use forward
@@ -273,7 +270,7 @@ const config: StorybookConfig = {
         // `export *` chains into concrete named exports (makeStyles, tokens,
         // …); serving the raw source module would leave those names invisible
         // to Vite's import analysis and they'd resolve to `undefined`.
-        const resolved = await this.resolve('@coreai/fluentui-react', importer, {
+        const resolved = await this.resolve('@coreai-ds/react-components', importer, {
           ...options,
           skipSelf: true,
         });
@@ -281,7 +278,7 @@ const config: StorybookConfig = {
       },
     };
 
-    // `@coreai/fluentui-react` is force-pre-bundled by esbuild (see
+    // `@coreai-ds/react-components` is force-pre-bundled by esbuild (see
     // `optimizeDeps.include` below) so its `export *` chains resolve to real
     // named bindings. That pre-bundle is a single frozen snapshot cached on
     // disk — Vite's normal per-file watcher/HMR graph doesn't cover the
@@ -396,7 +393,7 @@ const config: StorybookConfig = {
       configureServer(server) {
         const skillPath = path.resolve(
           __dirname,
-          '../../../packages/coreai-fluentui-react/agent/SKILL.md',
+          '../../../packages/react-components/agent/SKILL.md',
         );
         generateSkillDoc();
         server.watcher.add(skillPath);
@@ -412,11 +409,11 @@ const config: StorybookConfig = {
       resolve: {
         alias: [
           {
-            find: /^@coreai\/fluentui-react$/,
+            find: /^@coreai-ds\/react-components$/,
             replacement: themeBarrel,
           },
           {
-            find: /^@coreai\/fluentui-react\/fonts\/(.*)$/,
+            find: /^@coreai-ds\/react-components\/fonts\/(.*)$/,
             replacement: `${themeSrcDir}/fonts/$1`,
           },
         ],
@@ -440,7 +437,7 @@ const config: StorybookConfig = {
       },
       // Pre-bundle CommonJS + `export *` re-export chains so their named
       // exports become real ESM bindings that Vite's import analysis can see:
-      //  - `@coreai/fluentui-react` (the barrel) does `export * from
+      //  - `@coreai-ds/react-components` (the barrel) does `export * from
       //    '@fluentui/react-components'`; esbuild must flatten it so aliased
       //    imports of makeStyles/tokens/etc. resolve (see the alias plugin).
       //  - `scheduler` / `use-sync-external-store` are CommonJS; several
@@ -448,7 +445,7 @@ const config: StorybookConfig = {
       //    (`unstable_NormalPriority`, `useSyncExternalStore`).
       optimizeDeps: {
         include: [
-          '@coreai/fluentui-react',
+          '@coreai-ds/react-components',
           'scheduler',
           'use-sync-external-store',
           'use-sync-external-store/shim',

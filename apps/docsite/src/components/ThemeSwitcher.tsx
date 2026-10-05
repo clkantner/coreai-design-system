@@ -8,7 +8,7 @@ import {
   Tab,
   TabList,
   Text,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { Settings20Regular } from '@fluentui/react-icons';
 import { useThemeMode } from '../theme/ThemeProvider';
 

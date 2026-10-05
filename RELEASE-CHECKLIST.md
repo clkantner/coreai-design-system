@@ -1,7 +1,7 @@
 # Open-source release checklist
 
 This temporary workdown tracks the remaining steps for making this repository public and
-publishing `@coreai/fluentui-react`. It summarizes repository-specific actions in general terms;
+publishing `@coreai-ds/react-components`. It summarizes repository-specific actions in general terms;
 the applicable approval process and current Microsoft policies remain authoritative.
 
 Repository visibility, hosted-service access, and npm publication are separate release decisions.
@@ -72,10 +72,10 @@ Do not treat completion of one as authorization for another.
 
 ## npm package
 
-- [ ] Confirm ownership and publishing permissions for the `@coreai` npm scope and
-      `@coreai/fluentui-react`.
+- [ ] Confirm ownership and publishing permissions for the `@coreai-ds` npm scope and
+      `@coreai-ds/react-components`.
 - [ ] Choose an unused public package version and confirm the intended release notes.
-- [ ] After license approval, change `packages/coreai-fluentui-react/package.json` from
+- [ ] After license approval, change `packages/react-components/package.json` from
       `"license": "UNLICENSED"` to the approved SPDX license identifier, include the approved
       license text in the packed package, update the package-lock metadata, and verify the tarball.
 - [ ] Configure and review the protected npm publishing environment and least-privileged publishing

@@ -6,7 +6,7 @@
       "date": "2026-07-31",
       "title": "DataGrid and Card reliability fixes",
       "summary": "Restored resizable DataGrid columns and aligned subtle Card hover styling with CoreAI navigation surfaces.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Fixed",
@@ -22,7 +22,7 @@
       "date": "2026-07-29",
       "title": "Azure link contrast",
       "summary": "Corrected Azure dark-theme link colors to meet WCAG AA contrast requirements.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Fixed",
@@ -38,7 +38,7 @@
       "date": "2026-07-28",
       "title": "Agent guidance and neutral selection",
       "summary": "Shipped package-level agent guidance and changed DataGrid selection to a neutral default.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Added",
@@ -59,7 +59,7 @@
       "date": "2026-07-27",
       "title": "Azure theme",
       "summary": "Added Azure-branded light and dark themes while preserving CoreAI's neutral surfaces and typography.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Added",
@@ -81,7 +81,7 @@
       "date": "2026-07-24",
       "title": "DataGrid layout controls",
       "summary": "Expanded DataGrid layout control and fixed consumer style priority across CoreAI component hooks.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Added",
@@ -103,7 +103,7 @@
       "date": "2026-07-22",
       "title": "Smaller bundles and clearer APIs",
       "summary": "Reduced default bundle cost, introduced CoreAI text presets, and clarified low-level navigation APIs.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Breaking",
@@ -132,7 +132,7 @@
       "date": "2026-07-09",
       "title": "CoreAI component wrappers",
       "summary": "Introduced the main wrapped-component layer, custom theme factories, and shared alignment utilities.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Added",
@@ -157,13 +157,13 @@
       "date": "2026-06-23",
       "title": "CoreAI rename",
       "summary": "Completed the public rename from the Manifold codename to CoreAI.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Changed",
           "items": [
             "Renamed package folders, brand text, theme keys, exports, and documentation from Manifold to CoreAI.",
-            "The published package name remained @coreai/fluentui-react."
+            "The published package name remained @coreai-ds/react-components."
           ]
         }
       ]
@@ -172,8 +172,8 @@
       "version": "0.2.0",
       "date": "2026-06-23",
       "title": "Azure Artifacts release",
-      "summary": "Established the first @coreai/fluentui-react release on the CoreAI Azure Artifacts feed.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "summary": "Established the first @coreai-ds/react-components release on the CoreAI Azure Artifacts feed.",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Added",
@@ -189,7 +189,7 @@
       "date": "2026-06-05",
       "title": "Install docs and dark Storybook",
       "summary": "Improved authenticated package installation and made dark mode the default Storybook experience.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Changed",
@@ -205,7 +205,7 @@
       "date": "2026-06-05",
       "title": "React 19 and automated publishing",
       "summary": "Removed React 19 installation blockers and automated package publishing from version bumps on main.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Fixed",
@@ -225,7 +225,7 @@
       "date": "2026-06-04",
       "title": "GitHub Packages release",
       "summary": "Published the first version of the themed Fluent UI React package.",
-      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md",
+      "url": "https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md",
       "sections": [
         {
           "title": "Added",

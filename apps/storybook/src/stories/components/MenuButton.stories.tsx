@@ -7,7 +7,7 @@ import {
   MenuList,
   MenuPopover,
   MenuTrigger,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 // Inline wrapper — see CompoundButton.stories.tsx.
 

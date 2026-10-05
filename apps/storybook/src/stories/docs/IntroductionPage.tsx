@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { makeStyles, mergeClasses, tokens } from '@coreai/fluentui-react';
+import { makeStyles, mergeClasses, tokens } from '@coreai-ds/react-components';
 import { ArrowUpRight16Regular } from '@fluentui/react-icons';
 import { siteLinks } from '../../../../../shared/site-links';
 

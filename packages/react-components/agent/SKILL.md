@@ -1,16 +1,16 @@
 ---
-name: coreai-ds-fluentui-react
-description: 'How an AI agent should use the CoreAI Design System and consume @coreai/fluentui-react: MCP docs, imports, templates, design implementation, accessibility, and offline fallback. Use when building UI or translating designs with this package.'
+name: coreai-ds-react-components
+description: 'How an AI agent should use the CoreAI Design System and consume @coreai-ds/react-components: MCP docs, imports, templates, design implementation, accessibility, and offline fallback. Use when building UI or translating designs with this package.'
 ---
 
-# CoreAI Design System — Using `@coreai/fluentui-react` as an agent
+# CoreAI Design System — Using `@coreai-ds/react-components` as an agent
 
-This is the canonical, distributable agent-usage doc for `@coreai/fluentui-react`. It ships
-inside the package (`node_modules/@coreai/fluentui-react/agent/SKILL.md`) and is mirrored to
+This is the canonical, distributable agent-usage doc for `@coreai-ds/react-components`. It ships
+inside the package (`node_modules/@coreai-ds/react-components/agent/SKILL.md`) and is mirrored to
 the hosted Storybook so it's also reachable through the MCP tools — read either copy, they
 can't drift apart.
 
-## Import components from `@coreai/fluentui-react`, not `@fluentui/react-components`
+## Import components from `@coreai-ds/react-components`, not `@fluentui/react-components`
 
 **Never** import a component from `@fluentui/react-components` directly — the barrel re-exports
 Fluent's full surface and shadows some components with CoreAI-themed wrappers (`Button`, `Card`,
@@ -18,14 +18,14 @@ Fluent's full surface and shadows some components with CoreAI-themed wrappers (`
 the CoreAI version. This does **not** apply to every `@fluentui/*` package — icons
 (`@fluentui/react-icons`) and other packages the barrel doesn't wrap are fine to import directly.
 See the package's
-[README.md](https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/README.md)
-(or `node_modules/@coreai/fluentui-react/README.md#eslint` once installed) for the enforced
+[README.md](https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/README.md)
+(or `node_modules/@coreai-ds/react-components/README.md#eslint` once installed) for the enforced
 eslint rule.
 
 Import components, styling APIs, and tokens from the CoreAI package:
 
 ```tsx
-import { Button, Card, Input, makeStyles, tokens } from '@coreai/fluentui-react';
+import { Button, Card, Input, makeStyles, tokens } from '@coreai-ds/react-components';
 ```
 
 Import icons directly from Fluent:
@@ -131,17 +131,17 @@ and guess; push for the real thing first:
    [Docs/MCP Setup](https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-mcp-setup--docs)
    for the `mcp.json` block (VS Code: `.vscode/mcp.json`; Copilot CLI: `~/.copilot/mcp-config.json`).
    The same block is also in this package's own
-   [README.md](https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/README.md),
+   [README.md](https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/README.md),
    so it's available even with no network access to Storybook (e.g. read straight from
-   `node_modules/@coreai/fluentui-react/README.md`).
+   `node_modules/@coreai-ds/react-components/README.md`).
 2. **Configured but not signed in?** Ask the user to complete the sign-in now (trigger it, or tell
    them which client prompt to complete) before you proceed — this is the normal, expected first
    step, not an edge case to route around.
 3. **Still unreachable after that** (e.g. the documentation service is unavailable)? Only now fall
    back: use this file plus the package's own README and CHANGELOG — both ship in the installed
-   package (`node_modules/@coreai/fluentui-react/README.md` and `.../CHANGELOG.md`; on GitHub:
-   [README](https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/README.md),
-   [CHANGELOG](https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md)) —
+   package (`node_modules/@coreai-ds/react-components/README.md` and `.../CHANGELOG.md`; on GitHub:
+   [README](https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/README.md),
+   [CHANGELOG](https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md)) —
    as your source of truth for that session, and tell the user live docs weren't available so
    they know your answers may be less precise.
 4. If the blocker is documentation-service access, ask the user to contact that
@@ -154,7 +154,7 @@ and guess; push for the real thing first:
 Public npm distribution is prepared but requires maintainer approval before the
 first release. Use the package README for current installation status. The package
 contains compiled JavaScript/types, not source TS or licensed Aptos binaries.
-`@coreai/fluentui-react/fonts/fonts.css` only registers fonts already installed on
+`@coreai-ds/react-components/fonts/fonts.css` only registers fonts already installed on
 the user's device. The proportional stack falls back to Inter and then system fonts;
 applications may load Inter from Google Fonts. Ask the user to supply independently
 licensed assets and CSS for Aptos. Only Microsoft-hosted projects may host Aptos;
@@ -179,7 +179,7 @@ A link a human pastes in, e.g.
 ## Completion checklist
 
 - CoreAI MCP documentation checked for each component used.
-- Imports come from `@coreai/fluentui-react`, except icons and packages the barrel does not wrap.
+- Imports come from `@coreai-ds/react-components`, except icons and packages the barrel does not wrap.
 - No undocumented props or invented component APIs.
 - Existing behavior and accessibility preserved.
 - Semantic tokens used for visual styling.

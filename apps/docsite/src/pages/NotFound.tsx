@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Text } from '@coreai/fluentui-react';
+import { Button, Text } from '@coreai-ds/react-components';
 
 export function NotFound() {
   React.useEffect(() => {

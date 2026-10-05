@@ -4,7 +4,7 @@ import {
   useBreadcrumbButtonStyles_unstable,
   useBreadcrumbButton_unstable,
   type BreadcrumbButtonProps as CoreAIBreadcrumbButtonProps,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { useHref, type LinkProps as RouterLinkProps } from 'react-router-dom';
 import { useRouterLinkSlot } from './RouterLinkSlots';
 

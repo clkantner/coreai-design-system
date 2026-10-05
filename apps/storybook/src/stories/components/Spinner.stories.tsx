@@ -1,4 +1,4 @@
-import { Spinner, type JSXElement, type SpinnerProps } from '@coreai/fluentui-react';
+import { Spinner, type JSXElement, type SpinnerProps } from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

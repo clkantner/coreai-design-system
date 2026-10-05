@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type { StoryObj } from '@storybook/react-vite';
-import { Divider, Text, type TextPreset } from '@coreai/fluentui-react';
+import { Divider, Text, type TextPreset } from '@coreai-ds/react-components';
 
 /**
  * A typical mix of `Text` usages in one piece of content: a heading, a body

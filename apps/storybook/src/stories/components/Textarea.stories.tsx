@@ -1,4 +1,4 @@
-import { Field, Textarea, type JSXElement, type TextareaProps } from '@coreai/fluentui-react';
+import { Field, Textarea, type JSXElement, type TextareaProps } from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

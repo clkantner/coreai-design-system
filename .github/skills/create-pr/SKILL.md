@@ -8,7 +8,7 @@ argument-hint: 'e.g. "open a PR for my changes"'
 
 Before opening a PR, make sure the docs are up to date where relevant:
 
-- **Changelog** — if the change affects `@coreai/fluentui-react`, add an entry under `[Unreleased]` in [CHANGELOG.md](../../../packages/coreai-fluentui-react/CHANGELOG.md).
+- **Changelog** — if the change affects `@coreai-ds/react-components`, add an entry under `[Unreleased]` in [CHANGELOG.md](../../../packages/react-components/CHANGELOG.md).
 - **Variations from Fluent** — if the change adds, removes, or alters how a component differs from stock Fluent, update [VariationsFromFluent.mdx](../../../apps/storybook/src/stories/docs/VariationsFromFluent.mdx).
 
 Skip whichever doc doesn't apply (e.g. Storybook-only or docsite-only changes usually need neither).

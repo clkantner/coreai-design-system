@@ -5,10 +5,10 @@ export const siteLinks = {
     'https://coreai-ds-storybook.azurewebsites.net/?path=/story/components-accordion--default',
   mcp: 'https://coreai-ds-storybook.azurewebsites.net/mcp',
   packageReadme:
-    'https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/README.md',
+    'https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/README.md',
   changelog:
-    'https://github.com/microsoft/coreai-design-system/blob/main/packages/coreai-fluentui-react/CHANGELOG.md',
-  npmPackage: 'https://www.npmjs.com/package/@coreai/fluentui-react',
+    'https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md',
+  npmPackage: 'https://www.npmjs.com/package/@coreai-ds/react-components',
   figma: 'https://www.figma.com/design/eXfSQrRg3poHRgmr0ivN5V/CoreAI-DS?node-id=0-1',
   contact: 'https://github.com/microsoft/coreai-design-system/issues',
   feedback: 'https://github.com/microsoft/coreai-design-system/issues/new',

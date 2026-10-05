@@ -1,8 +1,8 @@
 {
-  "name": "@coreai/docsite",
+  "name": "@coreai-ds/docsite",
   "version": "0.0.0",
   "private": true,
-  "description": "CoreAI design system documentation site — a React SPA built on the @coreai/fluentui-react package.",
+  "description": "CoreAI design system documentation site — a React SPA built on the @coreai-ds/react-components package.",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -19,7 +19,7 @@
     "clean": "rimraf dist content/generated"
   },
   "dependencies": {
-    "@coreai/fluentui-react": "*",
+    "@coreai-ds/react-components": "*",
     "@fluentui/react-components": "^9.74.0",
     "@fluentui/react-icons": "^2.0.300",
     "@paper-design/shaders": "0.0.81",

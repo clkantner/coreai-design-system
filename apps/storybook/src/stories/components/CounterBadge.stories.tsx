@@ -1,4 +1,4 @@
-import { CounterBadge, type CounterBadgeProps, type JSXElement } from '@coreai/fluentui-react';
+import { CounterBadge, type CounterBadgeProps, type JSXElement } from '@coreai-ds/react-components';
 
 import * as React from 'react';
 

@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   resolve: {
     alias: {
-      '@coreai/fluentui-react': fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+      '@coreai-ds/react-components': fileURLToPath(new URL('./src/index.ts', import.meta.url)),
     },
     dedupe: ['react', 'react-dom'],
   },

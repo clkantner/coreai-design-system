@@ -11,7 +11,7 @@ import {
   MenuTrigger,
   Option,
   Text,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { Copy20Regular, DocumentText20Regular } from '@fluentui/react-icons';
 import {
   getComponentSource,

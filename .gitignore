@@ -10,7 +10,7 @@ apps/storybook/fluent-stories/
 # apps/storybook/scripts/generate-template-docs.mjs. Never hand-edit.
 apps/storybook/src/stories/templates/**/*.mdx
 
-# Auto-generated from packages/coreai-fluentui-react/agent/SKILL.md — see
+# Auto-generated from packages/react-components/agent/SKILL.md — see
 # apps/storybook/scripts/generate-skill-doc.mjs. Never hand-edit.
 apps/storybook/src/stories/docs/AgentSkill.mdx
 apps/docsite/content/generated/
@@ -41,3 +41,4 @@ apps/*/dist/
 
 # agent files
 .playwright*
+.vitest-attachments/

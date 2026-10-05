@@ -1,4 +1,4 @@
-import { Button, Tooltip, type JSXElement, type TooltipProps } from '@coreai/fluentui-react';
+import { Button, Tooltip, type JSXElement, type TooltipProps } from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

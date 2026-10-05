@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { StoryObj } from '@storybook/react-vite';
 import { figmaDesign } from '../../utils/figma';
-import { Link } from '@coreai/fluentui-react';
+import { Link } from '@coreai-ds/react-components';
 
 // CoreAI's `Link` adds an `external` prop.
 

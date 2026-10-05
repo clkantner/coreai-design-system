@@ -13,7 +13,7 @@ import {
   ToolbarToggleButton,
   type JSXElement,
   type ToolbarProps,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

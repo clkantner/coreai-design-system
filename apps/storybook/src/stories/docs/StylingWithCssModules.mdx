@@ -23,7 +23,7 @@ named `griffel`. Any **unlayered** CSS you write — a CSS Module class, a plain
 stylesheet, an inline `style` — then wins over Fluent's styles automatically,
 regardless of specificity or source order.
 
-> **Opt-in:** This is not applied by `@coreai/fluentui-react` out of the box.
+> **Opt-in:** This is not applied by `@coreai-ds/react-components` out of the box.
 > Apply the patch in your own app if you want CSS Modules to be able to override
 > Fluent component styles. Everything below still works without it — you just
 > lose the "unlayered always wins" guarantee.
@@ -172,7 +172,7 @@ class from a CSS Module. Your rule wins because it is unlayered:
 ```
 
 ```tsx
-import { Button } from '@coreai/fluentui-react';
+import { Button } from '@coreai-ds/react-components';
 import styles from './Button.module.css';
 
 export function Cta() {

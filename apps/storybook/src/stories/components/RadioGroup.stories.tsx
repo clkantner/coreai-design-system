@@ -4,7 +4,7 @@ import {
   RadioGroup,
   type JSXElement,
   type RadioGroupProps,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import { figmaDesign } from '../../utils/figma';
 
 import * as React from 'react';

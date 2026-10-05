@@ -22,13 +22,13 @@ const bundleExport = async (exportName) => {
             return resolvedVirtualEntry;
           }
 
-          if (id === '@coreai/fluentui-react') {
+          if (id === '@coreai-ds/react-components') {
             return { id: packageEntry, external: false };
           }
         },
         load(id) {
           if (id === resolvedVirtualEntry) {
-            return `export { ${exportName} } from '@coreai/fluentui-react';`;
+            return `export { ${exportName} } from '@coreai-ds/react-components';`;
           }
         },
       },

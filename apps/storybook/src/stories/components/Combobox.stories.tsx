@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { figmaDesign } from '../../utils/figma';
-import { useId, Combobox, Option } from '@coreai/fluentui-react';
+import { useId, Combobox, Option } from '@coreai-ds/react-components';
 import type { StoryObj } from '@storybook/react-vite';
 
 // CoreAI's `Combobox` supports an inline `label` and `truncateTextOverflow`.

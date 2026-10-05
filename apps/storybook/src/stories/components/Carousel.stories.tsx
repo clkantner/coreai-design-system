@@ -12,7 +12,7 @@ import {
   CarouselViewport,
   Image,
   type CarouselAnnouncerFunction,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import type { StoryObj } from '@storybook/react-vite';
 import { figmaDesign } from '../../utils/figma';
 

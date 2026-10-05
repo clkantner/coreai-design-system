@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   TabList as CoreAITabList,
   type TabListProps as CoreAITabListProps,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 import {
   matchPath,
   parsePath,

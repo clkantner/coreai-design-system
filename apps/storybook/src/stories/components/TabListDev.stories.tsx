@@ -16,7 +16,7 @@ import {
   Tab,
   useIsOverflowItemVisible,
   useOverflowMenu,
-} from '@coreai/fluentui-react';
+} from '@coreai-ds/react-components';
 
 import {
   Calendar3DayFilled,

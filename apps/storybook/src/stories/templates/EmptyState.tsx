@@ -10,7 +10,7 @@
  */
 
 import * as React from 'react';
-import { makeStyles, tokens, Text } from '@coreai/fluentui-react';
+import { makeStyles, tokens, Text } from '@coreai-ds/react-components';
 
 export const useEmptyStateStyles = makeStyles({
   root: {

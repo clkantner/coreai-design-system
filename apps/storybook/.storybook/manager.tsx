@@ -1,7 +1,4 @@
-import {
-  coreaiDarkTheme,
-  coreaiLightTheme,
-} from '../../../packages/coreai-fluentui-react/src/index.js';
+import { coreaiDarkTheme, coreaiLightTheme } from '../../../packages/react-components/src/index.js';
 import type { Theme } from '@fluentui/react-components';
 import './fonts.css';
 import { addons } from 'storybook/manager-api';

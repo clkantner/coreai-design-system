@@ -40,7 +40,7 @@ try {
     });
   const manifest = JSON.parse(read('package/package.json'));
 
-  assert.equal(manifest.name, '@coreai/fluentui-react');
+  assert.equal(manifest.name, '@coreai-ds/react-components');
   assert.equal(manifest.private, false);
   assert.equal(manifest.publishConfig.registry, 'https://registry.npmjs.org/');
   assert.equal(manifest.publishConfig.access, 'public');

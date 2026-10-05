@@ -1,5 +1,5 @@
 import { figmaDesign } from '../../utils/figma';
-import { type JSXElement, DropdownButton, Option } from '@coreai/fluentui-react';
+import { type JSXElement, DropdownButton, Option } from '@coreai-ds/react-components';
 // `DropdownButton` renders a `Dropdown` with a button-style trigger and a
 // required inline `label`.
 
