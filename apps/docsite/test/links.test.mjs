@@ -10,18 +10,31 @@ async function read(path) {
 }
 
 test('docsite destinations follow the repository README', async () => {
-  const [readme, packageReadme, links, resources, faqs, packagePage, mcpPage, skillPage, homePage] =
-    await Promise.all([
-      read('README.md'),
-      read('packages/react-components/README.md'),
-      read('shared/site-links.ts'),
-      read('apps/docsite/src/data/resources.ts'),
-      read('apps/docsite/src/data/faqs.ts'),
-      read('apps/docsite/src/pages/Package.tsx'),
-      read('apps/docsite/src/pages/McpServer.tsx'),
-      read('apps/docsite/src/pages/CoreAISkill.tsx'),
-      read('apps/docsite/src/pages/Introduction.tsx'),
-    ]);
+  const [
+    readme,
+    packageReadme,
+    agentSkill,
+    links,
+    resources,
+    faqs,
+    packagePage,
+    mcpPage,
+    skillPage,
+    homePage,
+  ] = await Promise.all([
+    read('README.md'),
+    read('packages/react-components/README.md'),
+    read('packages/react-components/agent/SKILL.md'),
+    read('shared/site-links.ts'),
+    read('apps/docsite/src/data/resources.ts'),
+    read('apps/docsite/src/data/faqs.ts'),
+    read('apps/docsite/src/pages/Package.tsx'),
+    read('apps/docsite/src/pages/McpServer.tsx'),
+    read('apps/docsite/src/pages/CoreAISkill.tsx'),
+    read('apps/docsite/src/pages/Introduction.tsx'),
+  ]);
+  const skillName = agentSkill.match(/^name: ([^\r\n]+)$/m)?.[1];
+  assert.ok(skillName, 'The package skill must declare a frontmatter name.');
 
   assert.match(readme, /https:\/\/github\.com\/microsoft\/coreai-design-system/);
   assert.match(readme, /Public access and npm publication are pending approval/);
@@ -62,8 +75,9 @@ test('docsite destinations follow the repository README', async () => {
   assert.match(packagePage, />\s*View package README\s*</);
   assert.match(mcpPage, /"url": "\$\{siteLinks\.mcp\}"/);
   assert.doesNotMatch(mcpPage, /coreai-ds-storybook\.azurewebsites\.net/);
-  assert.match(skillPage, /\.github\/skills\/react-components\/SKILL\.md/);
-  assert.doesNotMatch(skillPage, /\.github\/skills\/coreai-ds-react-components\/SKILL\.md/);
+  assert.match(skillPage, new RegExp(`\\.github/skills/${skillName}/SKILL\\.md`));
+  assert.match(packageReadme, new RegExp(`\\.github/skills/${skillName}/SKILL\\.md`));
+  assert.match(packageReadme, new RegExp(`\\.claude/skills/${skillName}/SKILL\\.md`));
   assert.match(homePage, /<span>npm \(pending\)<\/span>/);
   assert.match(
     packageReadme,

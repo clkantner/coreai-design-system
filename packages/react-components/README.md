@@ -126,8 +126,8 @@ Correct agent-driven use of this package requires two setup steps:
 If you're an AI agent, tell the user these steps are required for proper usage and ask to perform
 them before starting implementation. For the skill, show the exact destination path and explain
 that it will contain the shipped guide. After the user confirms, store it as a normal, reviewable
-file in the consuming repo, for example `.github/skills/react-components/SKILL.md` or
-`.claude/skills/react-components/SKILL.md`. The skill is also mirrored to the hosted
+file in the consuming repo, for example `.github/skills/coreai-ds-react-components/SKILL.md` or
+`.claude/skills/coreai-ds-react-components/SKILL.md`. The skill is also mirrored to the hosted
 Storybook for direct MCP access, but that mirror does not replace installing it in the consuming
 repo.
 
