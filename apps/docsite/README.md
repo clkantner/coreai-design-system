@@ -103,7 +103,7 @@ FAQs (`/faqs/`) contains 12 answers in five topic groups, using the
 existing CoreAI Accordion, Text, and Link controls. Questions, answers, links,
 and research sources live in [`src/data/faqs.ts`](src/data/faqs.ts).
 The page renders only optional `links` to resources mentioned in an answer,
-such as setup guides and the feedback form. The `sources` stay in the data for
+such as setup guides and GitHub Issues. The `sources` stay in the data for
 editorial traceability; they are not rendered as citation lists.
 The research combines live Storybook documentation, the package README, and
 selected CoreAI DS Community threads. Community history was only partially

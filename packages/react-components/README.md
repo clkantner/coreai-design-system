@@ -110,7 +110,7 @@ files. Remove any deep imports of bundled `.ttf` files.
 
 ### Overriding styles with CSS Modules or other style systems
 
-> **Note:** Fluent generates its styles at runtime with Griffel, so overriding a component's look with plain CSS or CSS Modules normally means fighting specificity. An **opt-in** `@griffel/core` patch wraps all Fluent styles in an `@layer griffel` cascade layer, letting your unlayered CSS Modules override them without `!important` or specificity hacks. See [Styling with CSS Modules](../../apps/storybook/src/stories/StylingWithCssModules.mdx) in Storybook for the patch and setup steps.
+> **Note:** Fluent generates its styles at runtime with Griffel, so overriding a component's look with plain CSS or CSS Modules normally means fighting specificity. An **opt-in** `@griffel/core` patch wraps all Fluent styles in an `@layer griffel` cascade layer, letting your unlayered CSS Modules override them without `!important` or specificity hacks. See [Styling with CSS Modules](../../apps/storybook/src/stories/docs/StylingWithCssModules.mdx) in Storybook for the patch and setup steps.
 
 ## Agent guide
 
@@ -126,8 +126,8 @@ Correct agent-driven use of this package requires two setup steps:
 If you're an AI agent, tell the user these steps are required for proper usage and ask to perform
 them before starting implementation. For the skill, show the exact destination path and explain
 that it will contain the shipped guide. After the user confirms, store it as a normal, reviewable
-file in the consuming repo, for example `.github/skills/react-components/SKILL.md` or
-`.claude/skills/react-components/SKILL.md`. The skill is also mirrored to the hosted
+file in the consuming repo, for example `.github/skills/coreai-ds-react-components/SKILL.md` or
+`.claude/skills/coreai-ds-react-components/SKILL.md`. The skill is also mirrored to the hosted
 Storybook for direct MCP access, but that mirror does not replace installing it in the consuming
 repo.
 

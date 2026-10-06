@@ -492,6 +492,7 @@ test('resources uses existing link destinations and CoreAI cards', async () => {
       'packageReadme',
       'npmPackage',
       'changelog',
+      'repo',
       'contact',
       'feedback',
     ],
@@ -577,13 +578,13 @@ test('FAQ answers retain research in the data and show optional useful links', a
   const ids = [...faqs.matchAll(/id: '([^']+)'/g)].map((match) => match[1]);
   assert.equal(new Set(ids).size, ids.length);
   assert.doesNotMatch(faqs, /teams\.microsoft\.com|sharepoint\.com|Azure Artifacts/);
-  assert.match(faqs, /docs-variations-from-fluent--docs/);
+  assert.match(faqs, /href: siteLinks\.storybookDocs\.variationsFromFluent/);
   assert.match(faqs, /Lyb3shKi3jWCYjxajCRqmt\/History\?node-id=12-7595/);
   assert.doesNotMatch(
     faqs,
     /id: '(code-as-truth|region-selection|mini-foundry-compatibility|component-defaults|different-documentation-audiences|contributing-beyond-code)'/,
   );
-  assert.match(faqs, /label: 'Feedback form', href: siteLinks\.feedback/);
+  assert.match(faqs, /label: 'Open a GitHub issue', href: siteLinks\.feedback/);
   assert.match(faqs, /links\?: FaqLink\[\]/);
   assert.match(app, /<Accordion className="faq-list" multiple collapsible>/);
   assert.match(app, /item\.links\?\.length/);

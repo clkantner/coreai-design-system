@@ -22,27 +22,27 @@ export interface FaqGroup {
 const sources = {
   variations: {
     label: 'Variations from Fluent',
-    href: 'https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-variations-from-fluent--docs',
+    href: siteLinks.storybookDocs.variationsFromFluent,
   },
   theming: {
     label: 'Theming',
-    href: 'https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-theming--docs',
+    href: siteLinks.storybookDocs.theming,
   },
   skill: {
     label: 'Agent skill',
-    href: 'https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-agent-skill--docs',
+    href: siteLinks.storybookDocs.agentSkill,
   },
   mcp: {
     label: 'MCP setup',
-    href: 'https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-mcp-setup--docs',
+    href: siteLinks.storybookDocs.mcpSetup,
   },
   package: {
     label: 'Package README',
     href: siteLinks.packageReadme,
   },
   history: {
-    label: 'Background: why CoreAI was rebuilt',
-    href: 'https://mini-foundry.azurewebsites.net/jabradford/mini-foundry-history-slides/slides/four-problems/4',
+    label: 'CoreAI repository README',
+    href: `${siteLinks.repo}/blob/main/README.md`,
   },
   tiers: {
     label: 'Background: components, templates, and samples',
@@ -53,8 +53,8 @@ const sources = {
     href: 'https://www.figma.com/slides/Lyb3shKi3jWCYjxajCRqmt/History?node-id=12-7595',
   },
   contribution: {
-    label: 'History: contribution, slide 17 notes',
-    href: 'https://www.figma.com/slides/Lyb3shKi3jWCYjxajCRqmt/History?node-id=12-9039',
+    label: 'Contributing guide',
+    href: `${siteLinks.repo}/blob/main/CONTRIBUTING.md`,
   },
   storybook: {
     label: 'Storybook',
@@ -81,7 +81,7 @@ export const faqGroups: FaqGroup[] = [
         id: 'why-a-shared-package',
         question: 'Why does CoreAI have a shared design system?',
         answer: [
-          'Separate production and prototype libraries were drifting apart. CoreAI gives apps a shared package and guidance so each team does not need to maintain its own version of the same components.',
+          'CoreAI gives teams one Fluent UI v9 design system for shared components, themes, guidance, and tools. This helps apps stay consistent without each team maintaining its own version of the same patterns.',
         ],
         sources: [sources.history],
       },
@@ -114,17 +114,17 @@ export const faqGroups: FaqGroup[] = [
         id: 'package-access',
         question: 'How do I install the npm package?',
         answer: [
-          'Install @coreai-ds/react-components from npm, then follow the package README for provider, font, and usage guidance.',
+          'Public npm publication is pending open-source approval. After an approved release, install @coreai-ds/react-components from npm, then follow the package README for provider, font, and usage guidance.',
         ],
         sources: [sources.package],
-        links: [{ label: 'Open the npm package', href: siteLinks.npmPackage }, sources.package],
+        links: [{ label: 'View the npm destination', href: siteLinks.npmPackage }, sources.package],
       },
       {
         id: 'coreai-appearance',
         question: 'Why does my app still look like stock Fluent?',
         answer: [
-          'Import components from @coreai-ds/react-components, wrap the app in CoreAIFluentProvider, and load @coreai-ds/react-components/fonts/fonts.css once. Icons can still come from @fluentui/react-icons.',
-          'Check that withComponentDefaults has not been set to false. The theming guide covers the provider, fonts, and defaults.',
+          'Import components from @coreai-ds/react-components instead of @fluentui/react-components, then wrap the app in CoreAIFluentProvider. Icons can still come from @fluentui/react-icons.',
+          'Check that withComponentDefaults has not been set to false. The optional fonts.css import only registers Aptos fonts already installed on the device. The theming guide covers the provider, fonts, and defaults.',
         ],
         sources: [sources.theming, sources.skill],
         links: [sources.theming],
@@ -163,7 +163,7 @@ export const faqGroups: FaqGroup[] = [
         id: 'package-skill-and-mcp',
         question: 'What does my coding agent need to use CoreAI?',
         answer: [
-          'Install the CoreAI package and its agent skill in your project. Connect the documentation servers through Model Context Protocol (MCP) so your agent can read current guidance and examples.',
+          'CoreAI agent setup requires the package, its installed agent skill, and both documentation servers. Public npm installation remains pending until the first approved release.',
           'Use CoreAI documentation for components and templates. Use Fluent documentation for gaps such as icon and token lookup. Follow the agent skill and MCP setup guides.',
         ],
         sources: [sources.package, sources.skill, sources.mcp],
@@ -197,13 +197,13 @@ export const faqGroups: FaqGroup[] = [
         id: 'missing-component-or-prop',
         question: 'How do I give feedback or contribute?',
         answer: [
-          'Use the feedback form to report a bug or request a component or pattern. Include what you need and a small example.',
-          'For questions or early ideas, open a GitHub issue. Contributions can be guidance and design ideas as well as code.',
+          'Use GitHub Issues to report a bug, request a component or pattern, or ask a usage question. Search existing issues first, then include what you need and a small example.',
+          'Contributions can include guidance and design ideas as well as code. Do not report security vulnerabilities through a public issue; follow the private instructions in SECURITY.md.',
         ],
         sources: [sources.contribution, sources.skill],
         links: [
-          { label: 'Feedback form', href: siteLinks.feedback },
-          { label: 'CoreAI DS Community', href: siteLinks.contact },
+          { label: 'Open a GitHub issue', href: siteLinks.feedback },
+          { label: 'Browse GitHub issues', href: siteLinks.contact },
         ],
       },
     ],

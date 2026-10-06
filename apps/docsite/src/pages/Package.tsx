@@ -13,11 +13,10 @@ import {
 import { PageLayout } from '../components/PageLayout';
 import { siteLinks } from '../data/content';
 
-const installPackages = `npm install @coreai-ds/react-components --registry=https://registry.npmjs.org
-npm install @fluentui/react-components @fluentui/react-icons`;
+const installPackages = `npm install @coreai-ds/react-components
+npm install @fluentui/react-components @fluentui/react-icons # peer dependencies as needed`;
 
-const usageExample = `import '@coreai-ds/react-components/fonts/fonts.css';
-import {
+const usageExample = `import {
   CoreAIFluentProvider,
   coreaiLightTheme,
 } from '@coreai-ds/react-components';
@@ -44,7 +43,7 @@ export function Package() {
           rel="noopener"
           appearance="outline"
         >
-          View repo
+          View package README
         </Button>
       }
     >
@@ -93,7 +92,9 @@ export function Package() {
                 <Text as="p" size={300} foreground={2}>
                   After publication, run these commands in your project. Remove any old{' '}
                   <code>@coreai-ds:registry</code> Azure Artifacts override from the project and
-                  user <code>.npmrc</code> files first.
+                  user <code>.npmrc</code> files first. If your project uses a custom default
+                  registry, follow the package README to route the <code>@coreai-ds</code> scope to
+                  npm.
                 </Text>
                 <CodeBlock code={installPackages} language="bash" />
               </div>
@@ -129,8 +130,10 @@ export function Package() {
                   Add it to your app
                 </Text>
                 <Text as="p" size={300} foreground={2}>
-                  Load the font-stack stylesheet once, then wrap the app with the CoreAI provider.
-                  This stylesheet does not include font binaries.
+                  Wrap the app with the CoreAI provider. To recognize Aptos fonts already installed
+                  on the device, you can optionally load{' '}
+                  <code>@coreai-ds/react-components/fonts/fonts.css</code> once. The stylesheet does
+                  not include font binaries.
                 </Text>
                 <CodeBlock code={usageExample} language="tsx" />
               </div>
