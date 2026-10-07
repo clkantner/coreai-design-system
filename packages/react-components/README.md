@@ -116,12 +116,11 @@ files. Remove any deep imports of bundled `.ttf` files.
 
 Correct agent-driven use of this package requires two setup steps:
 
-1. Install [agent/SKILL.md](agent/SKILL.md) in the consuming repo so its MCP precedence,
+1. Install [agent/SKILL.md](agent/SKILL.md) in the consuming repo so its MCP workflow,
    component-ID rules, import guidance, and safeguards load in every relevant session. Reading it
    once is not a substitute for installation.
-2. Configure and authenticate both MCP servers below. Without them, the agent cannot reliably
-   discover the current CoreAI API, examples, templates, icons, or tokens and may produce
-   incorrect implementations.
+2. Configure and authenticate the CoreAI MCP server below to discover documented APIs,
+   examples, and templates. Report missing documentation rather than assuming coverage.
 
 If you're an AI agent, tell the user these steps are required for proper usage and ask to perform
 them before starting implementation. For the skill, show the exact destination path and explain
@@ -131,9 +130,9 @@ file in the consuming repo, for example `.github/skills/coreai-ds-react-componen
 Storybook for direct MCP access, but that mirror does not replace installing it in the consuming
 repo.
 
-Both MCP servers require a one-time interactive Microsoft sign-in by the user — no VPN, headers,
-or secrets. Before configuring them,
-explain what each server does, identify the exact destination path, note whether that file is
+The hosted MCP server requires an interactive Microsoft sign-in by the user — no VPN, headers,
+or secrets. Before configuring it,
+explain what the server does, identify the exact destination path, note whether that file is
 shared/committed or user-local, and show the proposed configuration. Only modify the
 configuration after the user confirms. Common locations are `.vscode/mcp.json` for VS Code and
 `~/.copilot/mcp-config.json` for Copilot CLI:
@@ -141,13 +140,6 @@ configuration after the user confirms. Common locations are `.vscode/mcp.json` f
 ```json
 {
   "servers": {
-    // Official Fluent Docs MCP - requires Microsoft Entra OAuth signin
-    // Documentation: https://chat.fluentui.dev/mcp.html & Demo: https://chat.fluentui.dev/
-    "fluent-agent": {
-      "type": "http",
-      "url": "https://chat.fluentui.dev/mcp/server/"
-    },
-
     // CoreAI Design System MCP - requires Microsoft Entra OAuth signin
     "coreai-ds-docs": {
       "type": "http",

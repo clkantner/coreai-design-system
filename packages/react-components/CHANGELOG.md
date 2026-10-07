@@ -33,6 +33,7 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 
 ### Changed
 
+- Agent setup uses only the CoreAI documentation MCP server; removed legacy story-extraction restrictions pending validation against Storybook 10.6.1.
 - Added Inter as the proportional and numeric fallback after Aptos; the hosted apps load normal and italic Inter faces at weights 400, 600, and 700 from Google Fonts.
 - Prepared public npm distribution with no consumer authentication; remove obsolete Azure Artifacts `@coreai-ds` scope routing when migrating to an approved public release. Publication remains disabled until explicit open-source and package/access approval, and requires manual confirmation through a protected GitHub environment.
 - Source, issues, and pull requests target `microsoft/coreai-design-system`; GitHub Actions replaces the Azure publishing pipeline. Package tarball verification checks compiled exports and excludes source files and locally installed font assets.
@@ -58,7 +59,7 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 - Added Vite SSR and Vitest guidance for working around Fluent Icons' invalid Node ESM output.
 - Source code, pull requests, and CI/CD moved from GitHub to Azure DevOps during the pre-public period. At that time, the former GitHub repository remained the issue tracker.
 - Agent and MCP setup guidance now requires user confirmation before writing skill files, changing client configuration, or filing GitHub issues.
-- MCP setup guidance no longer requires corp-network access (VPN or Devbox/SAW) for `fluent-agent`; both MCP servers need only a Microsoft sign-in in the browser, with no VPN, headers, or secrets.
+- MCP setup guidance no longer requires corp-network access (VPN or Devbox/SAW); documented hosted access uses a Microsoft sign-in in the browser, with no VPN, headers, or secrets.
 - The hosted `coreai-ds-docs` MCP server renews its session without a repeat sign-in, so agent sessions are no longer interrupted when the previous token expires. Fixes pre-public issue 468.
 - `Select` now defaults to `appearance="filled-darker"` when CoreAI component defaults are enabled; pass `appearance="outline"` to retain Fluent's default appearance.
 - `LinkButton` accepts an anchor-compatible component through `as`, enabling framework router links while retaining its Button API and anchor semantics.
