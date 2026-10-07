@@ -10,7 +10,7 @@
  */
 
 import * as React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DetailsList } from './DetailsList';
 import { Button, Card, Divider, Link, Text } from '@coreai-ds/react-components';
 

@@ -11,7 +11,7 @@
     "start": "node server.mjs"
   },
   "dependencies": {
-    "@storybook/mcp": "0.7.0",
+    "@storybook/mcp": "10.6.1",
     "jose": "^5.9.6"
   }
 }

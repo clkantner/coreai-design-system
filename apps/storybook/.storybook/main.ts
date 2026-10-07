@@ -204,18 +204,16 @@ const config: StorybookConfig = {
   },
 
   features: {
-    // Higher-quality, faster component metadata (Volar + TS language server)
-    // used by the MCP docs toolset so agents get real prop types instead of
-    // guessing. Experimental in 10.4; will eventually also drive autodocs.
-    // Lets us keep `typescript.reactDocgen: false` (fast) while still giving
-    // the MCP server accurate component APIs.
-    experimentalReactComponentMeta: true,
+    // Generates the component and docs manifests consumed by Storybook's MCP
+    // docs toolset in both development and production.
+    componentsManifest: true,
+    // Extracts component APIs and static snippets on the server, with
+    // per-component manifest snapshots for the public MCP docs tools.
+    experimentalDocgenServer: true,
   },
 
   typescript: {
-    // Skip slow prop-table generation; Fluent props are large and we don't
-    // need autodocs tables for this playground. Flip to 'react-docgen' (or
-    // 'react-docgen-typescript') if you want them.
+    // The docgen server supplies metadata without preview-bundle extraction.
     reactDocgen: false,
   },
 
