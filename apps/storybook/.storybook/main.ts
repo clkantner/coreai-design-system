@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { storyNameFromExport, toId } from 'storybook/internal/csf';
 import { generateTemplateDocs } from '../scripts/generate-template-docs.mjs';
 import { generateSkillDoc } from '../scripts/generate-skill-doc.mjs';
+import { ingestionExperimentProvider } from './ingestion-experiment-provider';
 
 // Storybook 10 loads config files as native ESM, where `__dirname` doesn't
 // exist. Recreate it from `import.meta.url` for the path math below.
@@ -198,6 +199,8 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {},
   },
+
+  experimental_storyDocsProvider: ingestionExperimentProvider,
 
   core: {
     disableTelemetry: true,

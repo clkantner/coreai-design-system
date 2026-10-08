@@ -150,6 +150,150 @@ components, re-exports, module-level data/helpers/styles, and description/code-s
 with unique component and story IDs. Then test collisions separately. Compare the expected
 source stories with both the UI index and MCP output, not only entries already in the manifest.
 
+#### Experiment 1: direct imported render
+
+[`ImportedAccordionRender.stories.tsx`](src/stories/experiments/ImportedAccordionRender.stories.tsx)
+imports Fluent's Accordion Default and assigns it directly to `render` under a unique title.
+With Storybook 10.6.1 and `experimentalDocgenServer`, both the live MCP and built-manifest MCP
+return the experiment through `docs-list`, and `docs-show` returns the Accordion prop API.
+However, `docs-show-story` returns only:
+
+```tsx
+import { Accordion } from '@coreai-ds/react-components';
+
+const Default = () => <Accordion />;
+```
+
+The upstream implementation contains three Accordion items with headers and panels; none are
+included in this snippet. Direct imported render assignment is therefore not sufficient for
+publishing that example through the current docs tools. This result does not establish the
+behavior of an imported component wrapper, re-export, or other ingestion method.
+
+#### Experiment 2: imported example component wrapper
+
+[`ImportedAccordionWrapper.stories.tsx`](src/stories/experiments/ImportedAccordionWrapper.stories.tsx)
+uses the same upstream example with `render: () => <FluentDefault />`, under another unique
+title. Both the live MCP and built-manifest MCP discover the story and return the Accordion
+prop API, but the story snippet is:
+
+```tsx
+import { Accordion, Default as FluentDefault } from '@coreai-ds/react-components';
+
+const Default = () => <FluentDefault />;
+```
+
+The example implementation is not included. The import also incorrectly attributes the upstream
+story's `Default` export to the CoreAI component package rather than its actual story file.
+This wrapper therefore does not provide a usable standalone example in the tested setup.
+
+#### Experiment 3: re-export from a local CSF file
+
+[`ReExportedAccordion.stories.tsx`](src/stories/experiments/ReExportedAccordion.stories.tsx)
+provides local CoreAI component metadata under a unique title and directly re-exports Fluent's
+Default. Both the live MCP and built-manifest MCP list the story and return the Accordion
+prop API, but `docs-show-story` reports that no snippet was extracted.
+
+The story snapshot records a `SyntaxError`: `Expected story to be a function or variable
+declaration`, pointing at the re-export declaration. Local metadata resolves component props,
+but this tested re-export shape still fails snippet extraction without any ID collision.
+
+#### Experiment 4: inline control
+
+[`InlineAccordionControl.stories.tsx`](src/stories/experiments/InlineAccordionControl.stories.tsx)
+places the upstream Default's three-item JSX directly in a local `render` function under a
+unique title, with imports from the CoreAI barrel. Both the live MCP and built-manifest MCP
+list the story, return Accordion props, and include all three items, headers, and panels in
+the example, with imports for all four Accordion components.
+
+This confirms that the simple example extracts successfully in the inline control. It does
+not establish how module-level dependencies, more complex stories, or ID collisions behave.
+
+#### Remaining experiments and provider pilot
+
+The additional experiments use unique titles and are tested against both live HTTP MCP and
+the standalone handler reading built snapshots:
+
+| Experiment                                    | Observed result in Storybook 10.6.1                                                                        |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Module-level data                             | Snippet references `items` but omits its declaration and values.                                           |
+| Module-level helper component                 | Snippet references `ExampleItem` but omits its implementation.                                             |
+| Module-level Griffel styles and bundled icon  | Snippet omits `useStyles` and the bundled icon declaration. The direct icon import is retained.            |
+| Literal and raw `parameters.docs.source.code` | MCP uses the synthesized empty Accordion, not the supplied full source, including after browser rendering. |
+| `parameters.docs.description`                 | Tested parameter markers are absent; JSDoc markers are present.                                            |
+| Two local CSF files with one title            | UI indexes both stories; MCP lists only the winning file's story.                                          |
+| One CSF owner with both stories               | Both examples remain available through MCP.                                                                |
+
+Storybook exposes an experimental `experimental_storyDocsProvider` preset. A middleware can
+delegate to the built-in provider or return its own payload, including a full self-contained
+snippet without the payload-level `import` field. This feeds both live `core/story-docs` and
+the built snapshots; no hosted MCP change is required.
+
+The bounded [provider pilot](.storybook/ingestion-experiment-provider.ts) applies only to
+`Experiments/MCP/Provider ...` titles. Its small local CSF files re-export the actual upstream
+stories. The provider returns their complete source with component imports changed to the
+CoreAI barrel. Accordion Default/Controlled, Button Appearance, and DataGrid Default return
+complete examples, including module-level styles, icons, data, types, and column definitions.
+All four returned source files type-check. Chromium checks confirm their rendered examples and
+Accordion interactions work. Other component entries still use the built-in provider.
+
+Preset changes require a clean dev-server restart for this validation; an existing service
+instance initially returned cached built-in results. Do not treat hot reload as proof that a
+new provider is active.
+
+References: [provider types](https://github.com/storybookjs/storybook/blob/v10.6.1/code/core/src/shared/open-service/services/story-docs/types.ts)
+and [story-docs service](https://github.com/storybookjs/storybook/blob/v10.6.1/code/core/src/shared/open-service/services/story-docs/README.md).
+
+Run the focused experiments against built output:
+
+```bash
+node --test apps/storybook/scripts/ingestion-mcp.test.mjs
+```
+
+Or against a running server in PowerShell:
+
+```powershell
+$env:MCP_EXPERIMENT_URL = 'http://localhost:6006/mcp'
+node --test apps\storybook\scripts\ingestion-mcp.test.mjs
+```
+
+### Proposed Fluent ingestion plan
+
+The tested direction is **generated CSF indexes plus a source-backed story-docs provider**,
+not moving upstream code into render functions or hand-authoring manifests.
+
+1. Resolve and pin the Fluent commit matching the exact installed component package version.
+   Record both versions and fail on a mismatch rather than selecting a nearby release.
+2. Inventory expected component titles and story IDs from upstream and local sources before
+   generation. Preserve existing exclusions until their scope is explicitly reviewed; the
+   current included catalog is not the whole upstream Storybook.
+3. Generate one gitignored CSF index per component title inside the app's TypeScript project.
+   Re-export upstream variants and local overrides from their original files. Index the
+   generated owners instead of also indexing their input files. Local definitions win matching
+   story IDs; local-only variants remain. Diagnose conflicting local definitions.
+4. Supply explicit CoreAI `component` and `subcomponents` metadata in those indexes. Preserve
+   local metadata, args, decorators, design links, and story behavior. Test metadata precedence
+   in the pilot rather than assuming object spreads preserve all intended settings.
+5. Generalize the provider to use the same ownership map. Publish full example source with its
+   dependencies and correct CoreAI/icon imports, without restructuring module-level Griffel
+   hooks or example data. Use an AST to select code and rewrite imports, not regex source merging.
+   Keep Storybook-only configuration out of consumer examples and carry descriptions separately.
+6. Handle relative dependencies explicitly. Of the 608 current upstream leaf files, 388 have
+   module-level declarations and 18 import relative files: 17 import Markdown and one imports
+   Tree helper modules. Extract Markdown into descriptions; include or package the helper source.
+   Preserve non-barrel package imports and identify required consumer dependencies. Unsupported
+   sources must produce actionable errors, not partial examples presented as complete.
+7. Expand the working Accordion/Button/DataGrid provider pilot into a generated ownership pilot.
+   Verify local override precedence, additional variants, metadata, rendered behavior, and
+   identical live/built docs-tool content before generating the full catalog.
+8. Gate completion on the expected source inventory: every intended story ID is discoverable,
+   its snippet is present and usable, component APIs resolve, and source-only relative imports
+   do not leak into examples. Test upstream version updates and removals. Remove experiment
+   entries after the production pipeline is validated. Templates remain out of scope.
+
+If original upstream stories replaced by local overrides must also be published, give those
+originals a separate namespace; they cannot share the local story's ID. This policy remains
+an implementation decision, not something the pilot has resolved.
+
 > `forkOwnedStoryIds` is computed once at config load, so **adding or renaming a story export
 > requires a dev-server restart** for the dedup to pick it up.
 
