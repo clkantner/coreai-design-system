@@ -32,7 +32,8 @@ test('each generated component owns exactly its selected canonical stories', asy
   const source = generateComponentIndex(accordion);
   assert.ok(source.includes('src/stories/components/Accordion.stories.tsx'));
   assert.ok(source.includes('fluent-stories/packages/react-components/react-accordion'));
-  assert.match(source, /component: __CoreAI_Accordion/);
+  assert.match(source, /component: Accordion/);
+  assert.ok(!source.includes('__CoreAI_'));
   assert.match(source, /subcomponents:/);
 });
 

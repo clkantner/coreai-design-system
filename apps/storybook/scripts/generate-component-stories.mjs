@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import ts from 'typescript';
 import { createStoryInventory } from './story-inventory.mjs';
+import { readStoryDescriptions, descriptionComment } from './story-descriptions.mjs';
 
 export const appRoot = fileURLToPath(new URL('../', import.meta.url));
 export const generatedRoot = path.join(appRoot, '.storybook', '.cache', 'component-stories');
@@ -49,7 +50,9 @@ function componentBindings(component) {
         }
         imports.set(
           binding.name.text,
-          `${binding.propertyName?.text ?? binding.name.text} as __CoreAI_${binding.name.text}`,
+          binding.propertyName
+            ? `${binding.propertyName.text} as ${binding.name.text}`
+            : binding.name.text,
         );
       }
     }
@@ -61,6 +64,7 @@ function componentBindings(component) {
   }
   return {
     imports: [`import { ${[...imports.values()].join(', ')} } from '@coreai-ds/react-components';`],
+    names: [...imports.keys()],
     properties: Object.entries(expressions)
       .filter(([, value]) => value)
       .map(([key, value]) => {
@@ -71,35 +75,14 @@ function componentBindings(component) {
           true,
         );
         const expression = ast.statements[0].declarationList.declarations[0].initializer;
-        const transformed = ts.transform(expression, [
-          (context) => {
-            const visit = (node) => {
-              if (ts.isShorthandPropertyAssignment(node) && imports.has(node.name.text)) {
-                return ts.factory.createPropertyAssignment(
-                  node.name.text,
-                  ts.factory.createIdentifier(`__CoreAI_${node.name.text}`),
-                );
-              }
-              if (ts.isIdentifier(node) && imports.has(node.text)) {
-                return ts.factory.createIdentifier(`__CoreAI_${node.text}`);
-              }
-              return ts.visitEachChild(node, visit, context);
-            };
-            return (node) => ts.visitNode(node, visit);
-          },
-        ]);
-        try {
-          return `${key}: ${ts.createPrinter().printNode(ts.EmitHint.Expression, transformed.transformed[0], ast)}`;
-        } finally {
-          transformed.dispose();
-        }
+        return `${key}: ${ts.createPrinter().printNode(ts.EmitHint.Expression, expression, ast)}`;
       }),
   };
 }
 
 export function generateComponentIndex(
   component,
-  { root = appRoot, outputRoot = generatedRoot } = {},
+  { root = appRoot, outputRoot = generatedRoot, documentation } = {},
 ) {
   const bindings = componentBindings(component);
   const lines = [
@@ -120,14 +103,17 @@ export function generateComponentIndex(
       `import { ${story.exportName} as story${index} } from ${JSON.stringify(importPath(outputRoot, path.join(root, story.sourceFile)))};`,
     );
   });
+  if (documentation) lines.push(descriptionComment(documentation));
   lines.push(
-    `const meta = { ...componentMetadata([${[...sourceNames.values()].join(', ')}]), title: ${JSON.stringify(component.title)}, id: ${JSON.stringify(component.id)}, ${bindings.properties.join(', ')} };`,
+    `export default { ...componentMetadata([${[...sourceNames.values()].join(', ')}]), title: ${JSON.stringify(component.title)}, id: ${JSON.stringify(component.id)}, ${bindings.properties.join(', ')} };`,
   );
-  lines.push('export default meta;');
   component.stories.forEach((story, index) => {
+    const conflict = bindings.names?.includes(story.exportName);
+    const name = conflict ? `__story${index}` : story.exportName;
     lines.push(
-      `export const ${story.exportName} = storyWithMetadata(${sourceNames.get(story.sourceFile)}, story${index}, ${JSON.stringify(story.id)});`,
+      `${conflict ? '' : 'export '}const ${name} = storyWithMetadata(${sourceNames.get(story.sourceFile)}, story${index}, ${JSON.stringify(story.id)});`,
     );
+    if (conflict) lines.push(`export { ${name} as ${story.exportName} };`);
   });
   return `${lines.join('\n')}\n`;
 }
@@ -137,10 +123,18 @@ export async function generateComponentStories({
   outputRoot = generatedRoot,
 } = {}) {
   const inventory = await createStoryInventory({ root });
-  const outputs = inventory.components.map((component) => [
-    `${component.id}.stories.js`,
-    generateComponentIndex(component, { root, outputRoot }),
-  ]);
+  const outputs = await Promise.all(
+    inventory.components.map(async (component) => {
+      const owner =
+        [...component.sources].reverse().find((source) => source.metadata.component) ??
+        component.sources.at(-1);
+      const documentation = await readStoryDescriptions(path.join(root, owner.sourceFile));
+      return [
+        `${component.id}.stories.js`,
+        generateComponentIndex(component, { root, outputRoot, documentation }),
+      ];
+    }),
+  );
   await fs.mkdir(outputRoot, { recursive: true });
   const expected = new Set(outputs.map(([name]) => name));
   for (const file of await fs.readdir(outputRoot)) {

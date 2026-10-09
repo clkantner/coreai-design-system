@@ -158,6 +158,16 @@ and [MCP docs tools](https://storybook.js.org/docs/ai/mcp/overview#docs).
 
 ### Validating story extraction
 
+Generated component metadata now uses public import names such as `Accordion`, not internal
+`__CoreAI_` aliases. When a story export has the same name as a component import, only the
+story's private binding is renamed; its public export and ID stay unchanged.
+
+Component JSDoc and summaries from the selected metadata owner are copied into the generated
+CSF default export. The source provider preserves local story JSDoc and upstream story
+description parameters, including literal strings, concatenated strings, and imported Markdown
+joined by the index. JSDoc takes precedence over parameter descriptions. These are checked
+through the built `docs-list`, `docs-show`, and `docs-show-story` responses.
+
 Use the current docs tools to check extraction rather than imposing authoring restrictions from
 older MCP versions. CounterBadge currently returns its configured `count={5}` and CoreAI import.
 The experiments below document limitations of the built-in snippet extractor. Generated component

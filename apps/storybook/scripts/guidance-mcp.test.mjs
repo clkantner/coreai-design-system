@@ -75,6 +75,7 @@ test('MCP publishes local examples and complete upstream variants under real com
   const component = await callTool(2, 'docs-show', {
     id: 'components-badge-counterbadge',
   });
+
   assert.match(component, /CounterBadge/);
   assert.match(component, /## Props/);
 
@@ -90,6 +91,24 @@ test('MCP publishes local examples and complete upstream variants under real com
   });
   assert.match(reExportedStory, /Accordion Panel 3/);
   assert.match(reExportedStory, /Source: Fluent upstream/);
+});
+
+test('public docs retain clean component names, local descriptions and upstream story descriptions', async () => {
+  const listing = await callTool(1100, 'docs-list', { withStoryIds: false });
+  assert.doesNotMatch(listing, /__CoreAI_/);
+  assert.match(listing, /- Accordion \(components-accordion\): Vertically stacked/);
+  const accordion = await callTool(1101, 'docs-show', { id: 'components-accordion' });
+  assert.match(accordion, /^# Accordion/);
+  assert.doesNotMatch(accordion, /__CoreAI_/);
+  assert.match(accordion, /toggle the display of content/);
+  const shape = await callTool(1102, 'docs-show-story', {
+    storyId: 'components-button-button--shape',
+  });
+  assert.match(shape, /each available button shape/);
+  const collapsible = await callTool(1103, 'docs-show-story', {
+    storyId: 'components-accordion--collapsible',
+  });
+  assert.match(collapsible, /multiple panels collapsed/);
 });
 
 test('direct imported render is indexed but its generated snippet omits the Fluent implementation', async () => {
