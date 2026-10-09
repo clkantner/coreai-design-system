@@ -35,6 +35,48 @@ function references(node) {
   return result;
 }
 
+function adaptFluentPartialProps(node, bindings) {
+  const transformed = ts.transform(node, [
+    (context) => {
+      const visit = (item) => {
+        if (
+          ts.isTypeReferenceNode(item) &&
+          ts.isIdentifier(item.typeName) &&
+          item.typeName.text === 'Partial' &&
+          item.typeArguments?.length === 1
+        ) {
+          const argument = item.typeArguments[0];
+          const binding =
+            ts.isTypeReferenceNode(argument) && ts.isIdentifier(argument.typeName)
+              ? bindings.get(argument.typeName.text)
+              : undefined;
+          if (
+            binding?.statement.moduleSpecifier.text === '@fluentui/react-components' &&
+            ['ComboboxProps', 'DropdownProps'].includes(binding.exported)
+          ) {
+            const omitted = ts.factory.createTypeReferenceNode('Omit', [
+              argument,
+              ts.factory.createUnionTypeNode(
+                ['label', 'dynamicWidth'].map((name) =>
+                  ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(name)),
+                ),
+              ),
+            ]);
+            return ts.factory.updateTypeReferenceNode(item, item.typeName, [omitted]);
+          }
+        }
+        return ts.visitEachChild(item, visit, context);
+      };
+      return (root) => ts.visitNode(root, visit);
+    },
+  ]);
+  try {
+    return transformed.transformed[0];
+  } finally {
+    transformed.dispose();
+  }
+}
+
 async function resolveRelative(file, specifier) {
   const target = path.resolve(path.dirname(file), specifier);
   for (const candidate of [
@@ -175,6 +217,9 @@ export async function extractStorySource(story, { root, cache = new Map() }) {
             ),
           );
         }
+      }
+      if (story.origin === 'fluent') {
+        output = adaptFluentPartialProps(output, bindings);
       }
       const refs = references(output);
       for (const name of declaredNames(declaration)) refs.delete(name);

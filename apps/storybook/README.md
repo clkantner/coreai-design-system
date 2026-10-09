@@ -272,11 +272,18 @@ the main configuration.
 
 `npm --workspace apps/storybook run test:source` checks source extraction and provider ownership.
 `npm --workspace apps/storybook run stories:verify-source` checks all consumer examples against
-the CoreAI types and writes `.storybook/.cache/story-source-validation.json`. This gate currently
-fails with 36 diagnostics in 24 Combobox/Dropdown variants: upstream `Partial<...Props>` spreads
-do not satisfy CoreAI's inline-label prop union after import rewriting. The other 662 selected
-examples type-check. Rollout is paused pending a decision on adapting those source prop types;
-the gate must not be bypassed or the public examples silently excluded.
+the CoreAI types and writes `.storybook/.cache/story-source-validation.json`.
+All 686 selected examples now type-check with zero diagnostics.
+
+For upstream examples only, the source extractor adapts `Partial<ComboboxProps>` and
+`Partial<DropdownProps>` imported from the Fluent barrel to
+`Partial<Omit<...Props, 'label' | 'dynamicWidth'>>`. Import aliases are supported. This removes
+inline-label settings from those optional example prop bags without weakening CoreAI's linked
+label/sizing rules. It resolved 36 diagnostics across 24 variants. Local examples, other prop
+types, upstream files, and component APIs remain unchanged. Tests verify that emitted JavaScript
+is identical before and after this type-only adaptation. The full generated pipeline is still
+not enabled; this clears the consumer-source compatibility gate, not the remaining integration
+and deployment checks.
 
 `npm --workspace apps/storybook run stories:generate` produces one CSF index per component
 under `.storybook/.cache/component-stories/`, plus its shared inventory. Generated indexes
