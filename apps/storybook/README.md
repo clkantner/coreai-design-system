@@ -39,7 +39,21 @@ You normally never need to run these by hand: `dev` and `build` explicitly invok
 
 `apps/storybook/fluent-stories/` is a separately-provisioned, sparse, shallow checkout of [`microsoft/fluentui`](https://github.com/microsoft/fluentui) that contains only the canonical story sources. It is gitignored from this repo, and the Storybook app's webpack config rewrites Fluent imports inside those stories to route through the CoreAI barrel — so the canonical Fluent stories render with CoreAI defaults applied, without us editing any of Fluent's code.
 
-It is provisioned by [`scripts/setup-fluent-stories.mjs`](scripts/setup-fluent-stories.mjs), a small cross-platform script driven by a `{ repo, ref, sparsePaths }` config. The upstream `ref` is **pinned to a fixed commit** (the single source of truth for the version), so builds are reproducible and upstream churn can't silently break the playground. To bump it, edit `ref` in that script and run `npm run stories:update`.
+It is provisioned by [`scripts/setup-fluent-stories.mjs`](scripts/setup-fluent-stories.mjs), a cross-platform
+script driven by `{ repo, version, ref, sparsePaths }`. The checkout is pinned to
+`ee856ea115d3a1c7b7a81cfd5b42613ff4bf9a06`, the peeled
+`@fluentui/react-components_v9.74.9` release tag. Its upstream package version matches the installed
+`@fluentui/react-components` **9.74.9** exactly. Preparation checks both the installed package and
+the package metadata at the pinned source commit; a mismatch fails with update instructions.
+
+When upgrading the npm package, resolve its exact upstream release tag, verify the package
+version at that commit, update both `version` and `ref` in the setup script, and run
+`npm --workspace apps/storybook run stories:update`. Version resolution is deliberate, not an
+automatic selection of the newest or nearest commit.
+
+The 9.74.9 refresh adds Popover `NonInteractiveContent` and Tooltip `OverflowHidden`, with no
+selected story removals. The current catalog has **688 selected stories**: 142 local and 546
+Fluent, with 69 local overrides. All 688 consumer examples type-check.
 
 Setup is automatic because `dev` and `build` run `storybook:prepare` before Storybook starts. GitHub Actions also verifies the built story index before deployment. To force a fresh local re-provision, run `npm run stories:init`.
 
@@ -135,7 +149,7 @@ Before generated-owner integration, component-only validation found the same cov
 16 locally owned component entries with 52 snippets, and 60 vendored Fluent component entries
 with 608 stories but no extracted snippets. The UI index contains 142 local component stories;
 90 were absent from locally owned manifest entries. These are historical baseline counts.
-The enabled generated pipeline now publishes all 686 selected component stories through 76 owners.
+The enabled generated pipeline now publishes all 688 selected component stories through 76 owners.
 Template-specific validation remains deferred.
 
 Upstream references: [Manifests](https://storybook.js.org/docs/ai/manifests),
@@ -279,7 +293,7 @@ discovery are unchanged.
 `npm --workspace apps/storybook run test:source` checks source extraction and provider ownership.
 `npm --workspace apps/storybook run stories:verify-source` checks all consumer examples against
 the CoreAI types and writes `.storybook/.cache/story-source-validation.json`.
-All 686 selected examples now type-check with zero diagnostics.
+All 688 selected examples now type-check with zero diagnostics.
 
 For upstream examples only, the source extractor adapts `Partial<ComboboxProps>` and
 `Partial<DropdownProps>` imported from the Fluent barrel to
@@ -314,7 +328,7 @@ are recorded, not bundled or checked for snippet completeness.
 Local definitions win matching story IDs; the replaced upstream definition is retained in
 `overridden`. Conflicting same-origin story IDs, component ID/title collisions, missing source
 modules, and missing explicit titles fail with errors. The current inventory selects 76
-components and 686 stories: 142 local, 544 Fluent, and 69 overridden upstream stories.
+components and 688 stories: 142 local, 546 Fluent, and 69 overridden upstream stories.
 Templates and experiment fixtures are excluded.
 
 The existing package exclusion list is shared with Storybook through

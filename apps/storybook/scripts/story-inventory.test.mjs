@@ -188,7 +188,9 @@ test('real catalog preserves every local story and expected upstream variants wi
   const stories = inventory.components.flatMap((component) => component.stories);
   assert.equal(new Set(stories.map((story) => story.id)).size, stories.length);
   assert.equal(stories.filter((story) => story.origin === 'local').length, 142);
-  assert.equal(stories.filter((story) => story.origin === 'fluent').length, 544);
+  assert.equal(stories.filter((story) => story.origin === 'fluent').length, 546);
+  assert.ok(stories.some((story) => story.id === 'components-popover--non-interactive-content'));
+  assert.ok(stories.some((story) => story.id === 'components-tooltip--overflow-hidden'));
   assert.equal(stories.filter((story) => story.overridden).length, 69);
   assert.equal(inventory.components.length, 76);
   assert.ok(stories.every((story) => !story.sourceFile.includes('/templates/')));
