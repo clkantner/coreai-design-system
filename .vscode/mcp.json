@@ -1,5 +1,12 @@
 {
   "servers": {
+    // Official Fluent Docs MCP - requires Microsoft Entra OAuth signin
+    // Documentation: https://chat.fluentui.dev/mcp.html & Demo: https://chat.fluentui.dev/
+    /* "fluent-agent": {
+      "type": "http",
+      "url": "https://chat.fluentui.dev/mcp/server/"
+    }, */
+
     // CoreAI Design System MCP - requires Microsoft Entra OAuth signin
     // Hosted service still requires authorization; disabled here to prefer local authoring.
     /* "coreai-ds-docs": {
