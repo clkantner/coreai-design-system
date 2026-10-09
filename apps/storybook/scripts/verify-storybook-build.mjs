@@ -72,8 +72,8 @@ const normalizedImportPaths = entries.map((entry) => entry.importPath?.replaceAl
 
 const requiredSources = [
   {
-    label: 'canonical Fluent stories',
-    present: normalizedImportPaths.some((importPath) => importPath.includes('/fluent-stories/')),
+    label: 'generated component owners',
+    present: normalizedImportPaths.some((importPath) => importPath.includes('/component-stories/')),
   },
   {
     label: 'generated template documentation',
@@ -95,8 +95,29 @@ if (missingSources.length > 0) {
 }
 
 const fluentStoryCount = normalizedImportPaths.filter((importPath) =>
-  importPath.includes('/fluent-stories/'),
+  importPath.includes('/component-stories/'),
 ).length;
+const inventory = JSON.parse(
+  fs.readFileSync(
+    path.join(root, '.storybook', '.cache', 'component-stories', 'inventory.json'),
+    'utf8',
+  ),
+);
+for (const expected of inventory.components) {
+  const component = componentEntries.find((entry) => entry.id === expected.id);
+  if (!component) throw new Error(`Generated component is missing from manifest: ${expected.id}`);
+  for (const story of expected.stories) {
+    const entry = index.entries[story.id];
+    const documented = component.stories.find((item) => item.id === story.id);
+    if (
+      !entry?.importPath?.includes('/component-stories/') ||
+      !documented?.snippet ||
+      documented.error
+    ) {
+      throw new Error(`Selected story is not published through its generated owner: ${story.id}`);
+    }
+  }
+}
 const componentStories = componentEntries.flatMap((component) => component.stories ?? []);
 const duplicateStoryIds = componentStories
   .map((story) => story.id)
@@ -151,7 +172,7 @@ const manifestProblems =
   componentStories.filter((story) => story.error || story.warning).length;
 
 console.log(
-  `Verified Storybook build with ${fluentStoryCount} canonical Fluent story entries, ` +
+  `Verified Storybook build with ${fluentStoryCount} generated component story entries, ` +
     `${componentEntries.length} manifest components, ${Object.keys(docs).length} docs entries, ` +
     `and ${manifestProblems} reported manifest problems.`,
 );

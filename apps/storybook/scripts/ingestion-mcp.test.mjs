@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import ts from 'typescript';
 import { createStorybookMcpHandler } from '@storybook/mcp';
+import { createStoryInventory } from './story-inventory.mjs';
 
 const root = new URL('../storybook-static/', import.meta.url);
 const liveUrl = process.env.MCP_EXPERIMENT_URL;
@@ -13,6 +14,52 @@ const handler = await createStorybookMcpHandler({
     fs.readFile(new URL(manifestPath, root), 'utf8'),
 });
 let requestId = 2000;
+
+test('generated real component IDs publish selected local and Fluent stories with source-complete snippets', async () => {
+  const inventory = await createStoryInventory();
+  const listing = await callTool('docs-list', { withStoryIds: true });
+  for (const id of [
+    'components-accordion',
+    'components-button-button',
+    'components-datagrid',
+    'components-combobox',
+    'components-dropdown',
+  ]) {
+    const component = inventory.components.find((item) => item.id === id);
+    assert.ok(listing.includes(`(${id})`));
+    const docs = await callTool('docs-show', { id });
+    assert.match(docs, /## Props/);
+    for (const story of component.stories) {
+      assert.ok(listing.includes(`(${story.id})`), `Missing selected story ${story.id}`);
+    }
+    for (const name of ['Default', 'Controlled']) {
+      const story = component.stories.find((item) => item.exportName === name);
+      if (!story) continue;
+      const example = await callTool('docs-show-story', { storyId: story.id });
+      assert.ok(
+        example.includes(
+          story.origin === 'local' ? 'Source: local CoreAI override' : 'Source: Fluent upstream',
+        ),
+      );
+      assert.ok(example.includes('@coreai-ds/react-components'));
+      assert.doesNotMatch(example, /No code snippet|from ['"]@fluentui\/react-components['"]/);
+      if (name === 'Controlled' && ['components-combobox', 'components-dropdown'].includes(id)) {
+        assert.match(example, /Partial<Omit<(Combobox|Dropdown)Props, "label" \| "dynamicWidth">>/);
+      }
+    }
+  }
+  const accordion = await callTool('docs-show-story', { storyId: 'components-accordion--default' });
+  assert.match(accordion, /Accordion Panel 3/);
+  const button = await callTool('docs-show-story', {
+    storyId: 'components-button-button--appearance',
+  });
+  assert.match(button, /makeStyles/);
+  assert.match(button, /bundleIcon/);
+  const combobox = await callTool('docs-show-story', {
+    storyId: 'components-combobox--inline-label',
+  });
+  assert.match(combobox, /Source: local CoreAI override/);
+});
 
 async function callTool(name, args) {
   const id = requestId++;
@@ -28,7 +75,7 @@ async function callTool(name, args) {
       method: 'tools/call',
       params: { name, arguments: args },
     }),
-    signal: AbortSignal.timeout(60000),
+    signal: AbortSignal.timeout(180000),
   });
   const response = await (liveUrl ? fetch(request) : handler(request));
   assert.equal(response.status, 200);

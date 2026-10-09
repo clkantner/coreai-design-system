@@ -47,7 +47,10 @@ Setup is automatic because `dev` and `build` run `storybook:prepare` before Stor
 
 Most canonical stories already render with CoreAI defaults via the import rewrite, so you rarely need to fork. When you _do_ want to override a specific story's content (e.g. to add CoreAI-specific copy), add a fork under `src/stories/` that reuses the canonical story's `title` + export name. The canonical re-export would otherwise collide with the fork on story id ("Duplicate stories with id").
 
-For the UI index, [`.storybook/main.ts`](.storybook/main.ts) derives the set of story ids owned by `src/` forks and an `experimental_indexers` hook drops colliding canonical entries during indexing. This does not establish ownership in the MCP manifest: the current Accordion manifest points to the upstream file even though the UI index points to the local override. Verify both outputs when evaluating story ingestion changes.
+Preparation generates one component index from the shared inventory. Local definitions win matching
+story IDs; other Fluent variants and local-only variants remain. Storybook indexes these generated
+owners rather than indexing the input files separately. The old collision indexer is removed.
+The same inventory drives the source-backed MCP provider, so UI and MCP use the same ownership.
 
 ## Figma integrations
 
@@ -128,11 +131,12 @@ In development, the MCP tools read the running docgen service. The raw
 Use [`/manifests/components.html`](http://localhost:6006/manifests/components.html) to inspect
 the data and extraction problems. In a production build, the JSON files are available on disk.
 
-The component-only validation found the same coverage before and after enabling the server:
+Before generated-owner integration, component-only validation found the same coverage before and after enabling the server:
 16 locally owned component entries with 52 snippets, and 60 vendored Fluent component entries
 with 608 stories but no extracted snippets. The UI index contains 142 local component stories;
-90 are absent from locally owned manifest entries. These counts describe the current setup,
-not a general restriction on supported story shapes. Template-specific validation is deferred.
+90 were absent from locally owned manifest entries. These are historical baseline counts.
+The enabled generated pipeline now publishes all 686 selected component stories through 76 owners.
+Template-specific validation remains deferred.
 
 Upstream references: [Manifests](https://storybook.js.org/docs/ai/manifests),
 [docgen server configuration](https://storybook.js.org/docs/api/main-config/main-config-features#experimentaldocgenserver),
@@ -142,8 +146,9 @@ and [MCP docs tools](https://storybook.js.org/docs/ai/mcp/overview#docs).
 
 Use the current docs tools to check extraction rather than imposing authoring restrictions from
 older MCP versions. CounterBadge currently returns its configured `count={5}` and CoreAI import.
-The current Fluent re-export entries return missing-snippet messages, and local overrides can
-lose manifest ownership even when they render correctly.
+The experiments below document limitations of the built-in snippet extractor. Generated component
+owners now use the source-backed provider; their upstream variants no longer use that failing
+extraction path.
 
 Before choosing an ingestion strategy, test imported render functions, imported example
 components, re-exports, module-level data/helpers/styles, and description/code-source parameters
@@ -267,8 +272,9 @@ node --test apps\storybook\scripts\ingestion-mcp.test.mjs
 The source-backed provider is implemented in `scripts/component-story-docs.mjs`, with AST
 dependency extraction in `scripts/story-source.mjs`. It publishes selected implementations,
 required declarations and imports, relative helper source, provenance, and required package
-names. It delegates non-generated entries to Storybook's provider. It is not yet enabled in
-the main configuration.
+names. It is now enabled in the main configuration for generated component owners. Non-generated
+entries continue through the experiment provider and Storybook's provider. Templates and MDX
+discovery are unchanged.
 
 `npm --workspace apps/storybook run test:source` checks source extraction and provider ownership.
 `npm --workspace apps/storybook run stories:verify-source` checks all consumer examples against
@@ -281,9 +287,8 @@ For upstream examples only, the source extractor adapts `Partial<ComboboxProps>`
 inline-label settings from those optional example prop bags without weakening CoreAI's linked
 label/sizing rules. It resolved 36 diagnostics across 24 variants. Local examples, other prop
 types, upstream files, and component APIs remain unchanged. Tests verify that emitted JavaScript
-is identical before and after this type-only adaptation. The full generated pipeline is still
-not enabled; this clears the consumer-source compatibility gate, not the remaining integration
-and deployment checks.
+is identical before and after this type-only adaptation. Generated indexes and the source provider
+are enabled locally. Nothing has been pushed or deployed.
 
 `npm --workspace apps/storybook run stories:generate` produces one CSF index per component
 under `.storybook/.cache/component-stories/`, plus its shared inventory. Generated indexes
@@ -291,8 +296,8 @@ import the selected original stories and preserve each source's args, decorators
 globals, tags, and nested parameters through `scripts/story-metadata.mjs`. Component imports
 are explicitly routed through the CoreAI barrel and aliased to avoid conflicts with story names.
 `npm --workspace apps/storybook run test:generated` validates canonical IDs, metadata behavior,
-deterministic regeneration, and stale-index removal. Generation is not yet used by the normal
-Storybook story globs in this milestone.
+deterministic regeneration, and stale-index removal. Normal development and build preparation
+now run generation, and Storybook discovers the generated component indexes.
 
 The shared story inventory is implemented in [`scripts/story-inventory.mjs`](scripts/story-inventory.mjs).
 Run `npm --workspace apps/storybook run stories:inventory` to write
@@ -314,8 +319,8 @@ Templates and experiment fixtures are excluded.
 
 The existing package exclusion list is shared with Storybook through
 [`scripts/fluent-story-scope.mjs`](scripts/fluent-story-scope.mjs).
-This step does not change story ownership in the UI or MCP, generate CSF indexes, or
-replace the provider pilot's manual map. Run the focused tests with
+The generator and provider now consume this inventory for production component IDs.
+The separate experiment pilot remains for regression tests. Run the focused inventory tests with
 `npm --workspace apps/storybook run test:inventory`; they also run in `verify:build`.
 
 The tested direction is **generated CSF indexes plus a source-backed story-docs provider**,
@@ -354,8 +359,19 @@ If original upstream stories replaced by local overrides must also be published,
 originals a separate namespace; they cannot share the local story's ID. This policy remains
 an implementation decision, not something the pilot has resolved.
 
-> `forkOwnedStoryIds` is computed once at config load, so **adding or renaming a story export
-> requires a dev-server restart** for the dedup to pick it up.
+> **Adding, removing, or renaming a story or changing component metadata requires restarting
+> through `npm run storybook`**, which regenerates the inventory and owners. Running
+> `storybook dev` directly does not run preparation. A cold live `docs-list` request with every
+> story ID can take over a minute while documentation services initialize; focused live tests
+> allow up to three minutes. Use `withStoryIds: false` when the full story index is unnecessary.
+
+Local integration validation covers the real Accordion, Button, DataGrid, Combobox, and Dropdown
+IDs through built and live MCP. Browser checks verify local and upstream examples, Accordion
+state changes, five Button appearances, DataGrid rows, preserved Figma metadata, and CounterBadge
+args. The generated `toMountNodeProps` entry remains a utility story without component metadata,
+so it has source examples but no component prop API. Two intentionally failing experiment entries
+remain for regression coverage. Version alignment and remote deployment are not part of this
+local integration milestone.
 
 ### Agent Skill mirror
 

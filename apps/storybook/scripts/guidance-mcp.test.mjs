@@ -71,23 +71,25 @@ test('generated guidance is absent from Storybook and production MCP', async () 
   assert.doesNotMatch(listing, /--[a-z0-9-]*guidance\)/);
 });
 
-test('MCP evaluates inline args but reports unsupported Fluent re-exports', async () => {
+test('MCP publishes local examples and complete upstream variants under real component IDs', async () => {
   const component = await callTool(2, 'docs-show', {
     id: 'components-badge-counterbadge',
   });
-  assert.match(component, /<CounterBadge count=\{5\} \/>/);
+  assert.match(component, /CounterBadge/);
   assert.match(component, /## Props/);
 
   const inlineStory = await callTool(3, 'docs-show-story', {
     storyId: 'components-badge-counterbadge--default',
   });
-  assert.match(inlineStory, /import \{ CounterBadge \} from '@coreai-ds\/react-components'/);
-  assert.match(inlineStory, /<CounterBadge count=\{5\} \/>/);
+  assert.match(inlineStory, /import \{ CounterBadge \} from "@coreai-ds\/react-components"/);
+  assert.match(inlineStory, /<CounterBadge \{\.\.\.args\}/);
+  assert.match(inlineStory, /Default\.args = \{\s*count: 5/s);
 
   const reExportedStory = await callTool(4, 'docs-show-story', {
     storyId: 'components-accordion--collapsible',
   });
-  assert.match(reExportedStory, /No code snippet was extracted for this story/);
+  assert.match(reExportedStory, /Accordion Panel 3/);
+  assert.match(reExportedStory, /Source: Fluent upstream/);
 });
 
 test('direct imported render is indexed but its generated snippet omits the Fluent implementation', async () => {
@@ -267,7 +269,7 @@ test('public docs tools read component snapshots and preserve component story co
   );
   const componentEntries = components.filter((component) => {
     const path = component.path.replaceAll('\\', '/');
-    return path.includes('/src/stories/components/') || path.includes('/fluent-stories/');
+    return path.includes('/component-stories/');
   });
   assert.ok(componentEntries.length > 0);
 
@@ -280,8 +282,7 @@ test('public docs tools read component snapshots and preserve component story co
     assert.ok(listing.includes(`(${component.id})`), `Missing component ${component.id}`);
     const documentation = await callTool(requestId++, 'docs-show', { id: component.id });
     assert.ok(documentation.includes(`ID: ${component.id}`));
-    const isLocal = component.path.replaceAll('\\', '/').includes('/src/stories/components/');
-    if (isLocal) {
+    if (component.id !== 'components-portal-tomountnodeprops') {
       assert.equal(component.error, undefined, `Component extraction failed: ${component.id}`);
       assert.match(documentation, /## Props/);
     }
@@ -289,14 +290,12 @@ test('public docs tools read component snapshots and preserve component story co
     for (const story of component.stories) {
       assert.ok(listing.includes(`(${story.id})`), `Missing story ${story.id}`);
       const example = await callTool(requestId++, 'docs-show-story', { storyId: story.id });
-      if (isLocal) {
+      {
         assert.ok(story.snippet, `Missing local snippet: ${story.id}`);
         assert.ok(example.includes(story.snippet), `Incomplete local snippet: ${story.id}`);
         assert.ok(example.includes('@coreai-ds/react-components'));
-        localStories++;
-      } else {
-        assert.match(example, /No code snippet was extracted for this story/);
-        fluentStories++;
+        if (example.includes('Source: local CoreAI override')) localStories++;
+        else fluentStories++;
       }
     }
   }
@@ -305,6 +304,6 @@ test('public docs tools read component snapshots and preserve component story co
   assert.ok(fluentStories > 0);
   t.diagnostic(
     `Checked ${componentEntries.length} components, ${localStories} local snippets, ` +
-      `and ${fluentStories} Fluent stories with known extraction failures.`,
+      `and ${fluentStories} complete Fluent examples.`,
   );
 });

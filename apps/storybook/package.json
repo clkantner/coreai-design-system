@@ -4,11 +4,11 @@
   "private": true,
   "description": "Storybook playground that previews @coreai-ds/react-components against the canonical Fluent UI v9 stories.",
   "scripts": {
-    "storybook:prepare": "npm run stories:ensure && npm run docs:templates && npm run docs:skill",
+    "storybook:prepare": "npm run stories:ensure && npm run stories:generate && npm run docs:templates && npm run docs:skill",
     "dev": "npm run storybook:prepare && storybook dev -p 6006",
     "build": "npm run storybook:prepare && storybook build -o storybook-static",
     "clean": "rimraf --glob storybook-static \"src/stories/templates/*.mdx\" src/stories/docs/AgentSkill.mdx",
-    "verify:build": "node scripts/verify-storybook-build.mjs && node --test scripts/story-inventory.test.mjs scripts/guidance-mcp.test.mjs scripts/ingestion-mcp.test.mjs",
+    "verify:build": "node scripts/verify-storybook-build.mjs && node --test scripts/story-inventory.test.mjs scripts/generate-component-stories.test.mjs scripts/story-source.test.mjs scripts/guidance-mcp.test.mjs scripts/ingestion-mcp.test.mjs",
     "test:host": "node --test \"host/*.test.mjs\"",
     "type-check": "tsc --noEmit",
     "stories:ensure": "node scripts/setup-fluent-stories.mjs --if-missing",

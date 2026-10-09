@@ -1,136 +1,30 @@
 import type { StorybookConfig } from '@storybook/react-vite';
 import type { Plugin } from 'vite';
+import type { StoryDocsProvider } from 'storybook/internal/types';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { storyNameFromExport, toId } from 'storybook/internal/csf';
 import { generateTemplateDocs } from '../scripts/generate-template-docs.mjs';
 import { generateSkillDoc } from '../scripts/generate-skill-doc.mjs';
 import { ingestionExperimentProvider } from './ingestion-experiment-provider';
-import { includedFluentPackages } from '../scripts/fluent-story-scope.mjs';
+import { componentStoryDocsProvider } from '../scripts/component-story-docs.mjs';
 
 // Storybook 10 loads config files as native ESM, where `__dirname` doesn't
 // exist. Recreate it from `import.meta.url` for the path math below.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// fluent-stories is a sparse-checkout sibling git repo at the Storybook app
-// root (kept out of source control via the root .gitignore). From
-// apps/storybook/.storybook/ that's one level up.
-const fluentStoriesRoot = path.resolve(__dirname, '../fluent-stories/packages/react-components');
-
-if (!fs.existsSync(fluentStoriesRoot)) {
+if (!fs.existsSync(path.resolve(__dirname, '.cache/component-stories/inventory.json'))) {
   throw new Error(
-    'Canonical Fluent stories are missing. Run `npm --workspace apps/storybook run stories:init`.',
+    'Generated component stories are missing. Run `npm --workspace apps/storybook run stories:generate`.',
   );
 }
-
-/**
- * Packages whose stories we deliberately skip:
- * - `react-headless-components-preview` shadows ~30 canonical components
- *   with the same Storybook titles (e.g. "Components/Combobox"),
- *   which causes "duplicate story id" indexer errors.
- * - `react-aria`, `react-motion`, `react-migration-v0-v9`, `react-migration-v8-v9`
- *   only contribute to the Utilities/, Motion/, and Migration Shims/
- *   sidebar sections — hidden to keep the playground focused on themable
- *   visual components.
- * - The remaining excludes are aggregators / addons / sub-packages with
- *   no stories of their own.
- */
-const includedPackageGlobs = includedFluentPackages(fluentStoriesRoot).map(
-  (name) =>
-    `../fluent-stories/packages/react-components/${name}/stories/src/**/index.stories.@(ts|tsx)`,
-);
-
-if (includedPackageGlobs.length === 0) {
-  throw new Error(
-    'Canonical Fluent stories checkout contains no usable story packages. Run `npm --workspace apps/storybook run stories:init`.',
-  );
-}
-
-// Story ids owned by the in-repo forks under src/. A canonical Fluent story in
-// fluent-stories/ that re-exports the same `title` + export name produces an
-// identical id and would make the indexer fail with "Duplicate stories with
-// id". We drop the canonical entry at index time (see `experimental_indexers`
-// below) so the fork is the single source of truth — no need to mutate the
-// vendored fluent-stories/ sources.
-//
-// The list is derived from the fork files themselves (single source of truth):
-// add a fork under src/ and it automatically wins its id, with no second list
-// to keep in sync.
-const srcStoriesRoot = path.resolve(__dirname, '../src');
-
-function collectForkStoryIds(dir: string, ids: Set<string>): Set<string> {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      collectForkStoryIds(full, ids);
-    } else if (/\.stories\.(ts|tsx)$/.test(entry.name)) {
-      const source = fs.readFileSync(full, 'utf8');
-      // The `title:` of the default export / meta (a quoted string — the
-      // `title: { ... }` makeStyles keys and `title=` JSX props don't match).
-      const titleMatch = source.match(/title:\s*['"]([^'"]+)['"]/);
-      if (!titleMatch) {
-        continue;
-      }
-      const title = titleMatch[1];
-      // Every named export is a candidate story name. Ids come from the export
-      // name run through `storyNameFromExport` ("ResizableColumns" -> "Resizable
-      // Columns" -> `--resizable-columns`), matching how Storybook indexes them.
-      for (const m of source.matchAll(/export\s+(?:const|function)\s+(\w+)/g)) {
-        ids.add(toId(title, storyNameFromExport(m[1])));
-      }
-    }
-  }
-  return ids;
-}
-
-const forkOwnedStoryIds = fs.existsSync(srcStoriesRoot)
-  ? collectForkStoryIds(srcStoriesRoot, new Set<string>())
-  : new Set<string>();
 
 const config: StorybookConfig = {
-  // Only `index.stories.tsx` files are full stories — sibling `*.stories.tsx`
-  // files are helper modules re-exported by the index. Globbing them all
-  // would cause CSF errors ("missing default export").
-  //
-  // The `react-theme` package is special-cased: its sidebar entries come
-  // from `index.mdx` docs files (with <Meta title="Theme/..." />), and
-  // the sibling `*.stories.tsx` files are React helper components that
-  // the MDX imports directly — they have no CSF default export and must
-  // NOT be globbed as stories.
   stories: [
     '../src/**/*.mdx',
-    '../src/**/*.stories.@(ts|tsx)',
-    ...includedPackageGlobs,
-    // The Theme/* MDX docs are temporarily disabled: the helper components
-    // (ThemeColors, ThemeSpacing, ...) are hardcoded against a fixed set of
-    // Fluent themes and don't react to our Theme/Mode toolbar globals, so
-    // they're misleading inside this playground. Re-enable once we have a
-    // dynamic version that reads the active theme.
-    // '../fluent-stories/packages/react-components/react-theme/stories/src/**/index.mdx',
+    '../src/stories/templates/**/*.stories.@(ts|tsx)',
+    '../src/stories/experiments/**/*.stories.@(ts|tsx)',
+    './.cache/component-stories/*.stories.js',
   ],
-
-  // Drop canonical fluent-stories entries whose id collides with an in-repo
-  // fork (see `forkOwnedStoryIds`). This replaces the old build-time patch
-  // that edited the vendored `index.stories.tsx` files — dedup now happens
-  // purely in-memory during indexing, leaving fluent-stories/ pristine.
-  experimental_indexers: (existingIndexers = []) =>
-    (existingIndexers ?? []).map((indexer) => ({
-      ...indexer,
-      createIndex: async (fileName, options) => {
-        const entries = await indexer.createIndex(fileName, options);
-        // Only canonical fluent-stories entries are removal candidates;
-        // never filter our own src/stories forks.
-        if (!fileName.replace(/\\/g, '/').includes('/fluent-stories/')) {
-          return entries;
-        }
-        return entries.filter((entry) => {
-          const id =
-            entry.__id ??
-            toId(options.makeTitle(entry.title), storyNameFromExport(entry.exportName));
-          return !forkOwnedStoryIds.has(id);
-        });
-      },
-    })),
 
   addons: [
     '@storybook/addon-docs',
@@ -151,7 +45,8 @@ const config: StorybookConfig = {
     options: {},
   },
 
-  experimental_storyDocsProvider: ingestionExperimentProvider,
+  experimental_storyDocsProvider: (next: StoryDocsProvider | undefined) =>
+    componentStoryDocsProvider(ingestionExperimentProvider(next)),
 
   core: {
     disableTelemetry: true,

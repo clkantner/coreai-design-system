@@ -191,6 +191,18 @@ export async function extractStorySource(story, { root, cache = new Map() }) {
         throw new Error(`Missing example declaration ${exportName} in ${file}`);
       }
       let output = declaration;
+      const argsAssignments = isStory
+        ? ast.statements.filter(
+            (item) =>
+              ts.isExpressionStatement(item) &&
+              ts.isBinaryExpression(item.expression) &&
+              item.expression.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+              ts.isPropertyAccessExpression(item.expression.left) &&
+              ts.isIdentifier(item.expression.left.expression) &&
+              item.expression.left.expression.text === exportName &&
+              item.expression.left.name.text === 'args',
+          )
+        : [];
       if (isStory && ts.isVariableStatement(declaration)) {
         const variable = declaration.declarationList.declarations.find(
           (item) => item.name.text === exportName,
@@ -222,6 +234,9 @@ export async function extractStorySource(story, { root, cache = new Map() }) {
         output = adaptFluentPartialProps(output, bindings);
       }
       const refs = references(output);
+      for (const assignment of argsAssignments) {
+        for (const name of references(assignment.expression.right)) refs.add(name);
+      }
       for (const name of declaredNames(declaration)) refs.delete(name);
       for (const name of refs) {
         if (declarations.has(name)) {
@@ -313,6 +328,9 @@ export async function extractStorySource(story, { root, cache = new Map() }) {
           );
       }
       addDefinition(exportName, file, printer.printNode(ts.EmitHint.Unspecified, output, ast));
+      for (const assignment of argsAssignments) {
+        definitions.push(printer.printNode(ts.EmitHint.Unspecified, assignment, ast));
+      }
     } finally {
       active.delete(key);
     }
