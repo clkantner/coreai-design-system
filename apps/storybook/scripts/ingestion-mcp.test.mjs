@@ -196,18 +196,68 @@ for (const [componentName, storyName, sourcePath, markers] of [
     const docs = await callTool('docs-show', { id });
     assert.match(docs, /## Props/);
     const example = await callTool('docs-show-story', { storyId: `${id}--${storyName}` });
+    const isLocal = componentName === 'accordion' && storyName === 'default';
     const source = (
       await fs.readFile(
-        new URL(`../fluent-stories/packages/react-components/${sourcePath}`, import.meta.url),
+        new URL(
+          isLocal
+            ? '../src/stories/components/Accordion.stories.tsx'
+            : `../fluent-stories/packages/react-components/${sourcePath}`,
+          import.meta.url,
+        ),
         'utf8',
       )
     ).replaceAll('@fluentui/react-components', '@coreai-ds/react-components');
-    assert.ok(example.includes(source), 'MCP must include the entire transformed source');
-    assert.ok(docs.includes(source), 'Component docs must include the entire transformed source');
+    let snippet = source;
+    if (isLocal) {
+      const ast = ts.createSourceFile(
+        'Accordion.stories.tsx',
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+      );
+      const declaration = ast.statements.find(
+        (statement) =>
+          ts.isVariableStatement(statement) &&
+          statement.declarationList.declarations.some(
+            (item) => ts.isIdentifier(item.name) && item.name.text === 'Default',
+          ),
+      );
+      assert.ok(declaration);
+      assert.ok(example.includes(declaration.getText(ast)));
+      assert.ok(docs.includes(declaration.getText(ast)));
+      assert.match(example, /Source: local CoreAI override/);
+      assert.doesNotMatch(example, /figmaDesign|export default|title:/);
+      const code = example.match(/```\r?\n([\s\S]*?)\r?\n```/);
+      assert.ok(code, 'Local example must contain a code block');
+      snippet = code[1];
+    } else {
+      assert.ok(example.includes(source), 'MCP must include the entire transformed source');
+      assert.ok(docs.includes(source), 'Component docs must include the entire transformed source');
+      assert.match(example, /Source: Fluent upstream/);
+    }
     for (const marker of markers) {
       assert.ok(example.includes(marker), `Missing dependency: ${marker}`);
     }
     assert.doesNotMatch(example, /from ['"]@fluentui\/react-components['"]/);
-    assertTypeChecksSnippet(source, `${componentName} ${storyName}`);
+    assertTypeChecksSnippet(snippet, `${componentName} ${storyName}`);
   });
 }
+
+test('one component document merges the actual local Default and Fluent Controlled sources', async () => {
+  const id = 'experiments-mcp-provider-accordion';
+  await assertListed(id, ['default', 'controlled']);
+  const docs = await callTool('docs-show', { id });
+  assert.match(
+    docs,
+    /Source: local CoreAI override - src\/stories\/components\/Accordion\.stories\.tsx/,
+  );
+  assert.match(
+    docs,
+    /Source: Fluent upstream - fluent-stories\/packages\/react-components\/react-accordion\/stories\/src\/Accordion\/AccordionControlled\.stories\.tsx/,
+  );
+  assert.ok(docs.includes(`Story ID: ${id}--default`));
+  assert.ok(docs.includes(`Story ID: ${id}--controlled`));
+  assert.match(docs, /Accordion Header 1/);
+  assert.match(docs, /React\.useState/);
+});

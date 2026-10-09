@@ -8,5 +8,5 @@ const meta = {
 
 export default meta;
 
-export { Default } from '../../../fluent-stories/packages/react-components/react-accordion/stories/src/Accordion/AccordionDefault.stories';
+export { Default } from '../components/Accordion.stories';
 export { Controlled } from '../../../fluent-stories/packages/react-components/react-accordion/stories/src/Accordion/AccordionControlled.stories';

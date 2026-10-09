@@ -229,12 +229,18 @@ snippet without the payload-level `import` field. This feeds both live `core/sto
 the built snapshots; no hosted MCP change is required.
 
 The bounded [provider pilot](.storybook/ingestion-experiment-provider.ts) applies only to
-`Experiments/MCP/Provider ...` titles. Its small local CSF files re-export the actual upstream
-stories. The provider returns their complete source with component imports changed to the
-CoreAI barrel. Accordion Default/Controlled, Button Appearance, and DataGrid Default return
-complete examples, including module-level styles, icons, data, types, and column definitions.
-All four returned source files type-check. Chromium checks confirm their rendered examples and
-Accordion interactions work. Other component entries still use the built-in provider.
+`Experiments/MCP/Provider ...` titles. Its small local CSF files re-export the selected stories.
+Accordion now combines the actual local CoreAI Default with Fluent's Controlled story in one
+component document. The provider labels each story's source. For the local Default, a scoped
+TypeScript AST extraction keeps the example and its imports while excluding Storybook metadata
+and its Figma helper; this is not a general local-story dependency extractor.
+
+Upstream stories return complete source with component imports changed to the CoreAI barrel.
+Accordion Default/Controlled, Button Appearance, and DataGrid Default return complete examples,
+including module-level styles, icons, data, types, and column definitions where used.
+All four returned examples type-check. Chromium checks confirmed the original upstream pilot's
+rendered examples and Accordion interactions. Other component entries still use the built-in
+provider. This proves a manual mixed-source pilot, not the full automated merge pipeline.
 
 Preset changes require a clean dev-server restart for this validation; an existing service
 instance initially returned cached built-in results. Do not treat hot reload as proof that a
@@ -257,6 +263,30 @@ node --test apps\storybook\scripts\ingestion-mcp.test.mjs
 ```
 
 ### Proposed Fluent ingestion plan
+
+The shared story inventory is implemented in [`scripts/story-inventory.mjs`](scripts/story-inventory.mjs).
+Run `npm --workspace apps/storybook run stories:inventory` to write
+`.storybook/.cache/story-inventory.json` (gitignored). The module also exports
+`createStoryInventory()` for the future generated indexes and provider to share.
+
+The inventory reads the included Fluent CSF indexes and local component CSF files, using
+Storybook's parser for canonical story IDs and export filtering. It records component metadata
+expressions and their source files, story export names, direct implementation paths, imports,
+local declarations/JSDoc, and assignment-style annotations such as args and parameters.
+Metadata is recorded per source, not merged or evaluated in this step. Dependency imports
+are recorded, not bundled or checked for snippet completeness.
+
+Local definitions win matching story IDs; the replaced upstream definition is retained in
+`overridden`. Conflicting same-origin story IDs, component ID/title collisions, missing source
+modules, and missing explicit titles fail with errors. The current inventory selects 76
+components and 686 stories: 142 local, 544 Fluent, and 69 overridden upstream stories.
+Templates and experiment fixtures are excluded.
+
+The existing package exclusion list is shared with Storybook through
+[`scripts/fluent-story-scope.mjs`](scripts/fluent-story-scope.mjs).
+This step does not change story ownership in the UI or MCP, generate CSF indexes, or
+replace the provider pilot's manual map. Run the focused tests with
+`npm --workspace apps/storybook run test:inventory`; they also run in `verify:build`.
 
 The tested direction is **generated CSF indexes plus a source-backed story-docs provider**,
 not moving upstream code into render functions or hand-authoring manifests.

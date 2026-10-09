@@ -7,6 +7,7 @@ import { storyNameFromExport, toId } from 'storybook/internal/csf';
 import { generateTemplateDocs } from '../scripts/generate-template-docs.mjs';
 import { generateSkillDoc } from '../scripts/generate-skill-doc.mjs';
 import { ingestionExperimentProvider } from './ingestion-experiment-provider';
+import { includedFluentPackages } from '../scripts/fluent-story-scope.mjs';
 
 // Storybook 10 loads config files as native ESM, where `__dirname` doesn't
 // exist. Recreate it from `import.meta.url` for the path math below.
@@ -34,60 +35,10 @@ if (!fs.existsSync(fluentStoriesRoot)) {
  * - The remaining excludes are aggregators / addons / sub-packages with
  *   no stories of their own.
  */
-const excludePackages = new Set([
-  'react-headless-components-preview',
-  // Deliberately hidden from the docs: the Nav component and its stories are
-  // not part of the CoreAI design system surface.
-  'react-nav',
-  // Deliberately hidden from the docs: the FluentProvider stories are not part
-  // of the CoreAI design system surface (CoreAIFluentProvider is the supported
-  // provider — see Docs/CoreAIFluentProvider).
-  'react-provider',
-  // Replaced by the CoreAI `Divider` wrapper (a simplified `<hr>`); its
-  // stories live in src/stories/components/Divider.stories.tsx. Hidden here so
-  // the canonical Fluent Divider stories don't duplicate the sidebar entry.
-  'react-divider',
-  // Hidden sidebar sections (Utilities / Motion / Migration Shims):
-  'react-aria',
-  'react-motion',
-  'react-motion-components-preview',
-  'react-positioning',
-  'react-migration-v0-v9',
-  'react-migration-v8-v9',
-  // No-story / infra packages:
-  'react-components', // meta-package — empty
-  'eslint-plugin-react-components',
-  'babel-preset-global-context',
-  'babel-preset-storybook-full-source',
-  'global-context',
-  'keyboard-keys',
-  'priority-overflow',
-  'react-conformance-griffel',
-  'react-context-selector',
-  'react-jsx-runtime',
-  'react-shared-contexts',
-  'react-storybook-addon',
-  'react-storybook-addon-export-to-sandbox',
-  'react-utilities',
-  'react-utilities-compat',
-  'theme-designer',
-  'recipes',
-  'deprecated',
-  'component-selector-preview',
-]);
-
-const includedPackageGlobs = fs
-  .readdirSync(fluentStoriesRoot, { withFileTypes: true })
-  .filter(
-    (d) =>
-      d.isDirectory() &&
-      !excludePackages.has(d.name) &&
-      fs.existsSync(path.join(fluentStoriesRoot, d.name, 'stories/src')),
-  )
-  .map(
-    (d) =>
-      `../fluent-stories/packages/react-components/${d.name}/stories/src/**/index.stories.@(ts|tsx)`,
-  );
+const includedPackageGlobs = includedFluentPackages(fluentStoriesRoot).map(
+  (name) =>
+    `../fluent-stories/packages/react-components/${name}/stories/src/**/index.stories.@(ts|tsx)`,
+);
 
 if (includedPackageGlobs.length === 0) {
   throw new Error(
