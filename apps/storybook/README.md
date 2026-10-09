@@ -264,6 +264,15 @@ node --test apps\storybook\scripts\ingestion-mcp.test.mjs
 
 ### Proposed Fluent ingestion plan
 
+`npm --workspace apps/storybook run stories:generate` produces one CSF index per component
+under `.storybook/.cache/component-stories/`, plus its shared inventory. Generated indexes
+import the selected original stories and preserve each source's args, decorators, loaders,
+globals, tags, and nested parameters through `scripts/story-metadata.mjs`. Component imports
+are explicitly routed through the CoreAI barrel and aliased to avoid conflicts with story names.
+`npm --workspace apps/storybook run test:generated` validates canonical IDs, metadata behavior,
+deterministic regeneration, and stale-index removal. Generation is not yet used by the normal
+Storybook story globs in this milestone.
+
 The shared story inventory is implemented in [`scripts/story-inventory.mjs`](scripts/story-inventory.mjs).
 Run `npm --workspace apps/storybook run stories:inventory` to write
 `.storybook/.cache/story-inventory.json` (gitignored). The module also exports
