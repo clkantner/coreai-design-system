@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import test from 'node:test';
 import { createStorybookMcpHandler } from '@storybook/mcp';
 import { resolveComponentEntry, resolveDocEntry } from 'storybook/internal/toolsets-docs';
+import { assertExpectedManifestProblems } from './verify-manifest-problems.mjs';
 
 const root = new URL('../storybook-static/', import.meta.url);
 const experimentTest = process.env.STORYBOOK_INGESTION_EXPERIMENTS === 'true' ? test : test.skip;
@@ -74,24 +75,65 @@ test('generated guidance is absent from Storybook and production MCP', async () 
 
 test('MCP publishes local examples and complete upstream variants under real component IDs', async () => {
   const component = await callTool(2, 'docs-show', {
-    id: 'components-badge-counterbadge',
+    id: 'components-badge-counter-badge',
   });
 
   assert.match(component, /CounterBadge/);
   assert.match(component, /## Props/);
 
   const inlineStory = await callTool(3, 'docs-show-story', {
-    storyId: 'components-badge-counterbadge--default',
+    storyId: 'components-badge-counter-badge--default',
   });
   assert.match(inlineStory, /import \{ CounterBadge \} from "@coreai-ds\/react-components"/);
   assert.match(inlineStory, /<CounterBadge \{\.\.\.args\}/);
   assert.match(inlineStory, /Default\.args = \{\s*count: 5/s);
+  const listing = await callTool(5, 'docs-list', { withStoryIds: true });
+  assert.equal((listing.match(/^- CounterBadge \(/gm) ?? []).length, 1);
+  assert.match(listing, /components-badge-counter-badge--appearance/);
+  assert.doesNotMatch(listing, /components-badge-counterbadge/);
 
   const reExportedStory = await callTool(4, 'docs-show-story', {
     storyId: 'components-accordion--collapsible',
   });
   assert.match(reExportedStory, /Accordion Panel 3/);
   assert.match(reExportedStory, /Source: Fluent upstream/);
+});
+
+test('only explicitly known component extraction errors are allowed', () => {
+  const expected = ['components-portal-tomountnodeprops', 'templates-shell-and-navigation'].map(
+    (id) => ({ id, error: { name: 'No component found', message: 'Specify meta.component' } }),
+  );
+  assert.equal(assertExpectedManifestProblems(expected), 2);
+  assert.equal(assertExpectedManifestProblems([{ id: 'resolved', stories: [] }]), 0);
+  assert.throws(
+    () =>
+      assertExpectedManifestProblems([
+        {
+          id: 'new-component',
+          error: { name: 'No component found', message: 'Missing component' },
+        },
+      ]),
+    /new-component/,
+  );
+  assert.throws(
+    () =>
+      assertExpectedManifestProblems([
+        { ...expected[0], error: { name: 'Different error', message: 'Unexpected failure' } },
+      ]),
+    /Different error/,
+  );
+  for (const problem of ['error', 'warning']) {
+    assert.throws(
+      () =>
+        assertExpectedManifestProblems([
+          {
+            id: expected[0].id,
+            stories: [{ id: 'new-story', [problem]: { message: 'Incomplete snippet' } }],
+          },
+        ]),
+      /new-story/,
+    );
+  }
 });
 
 test('public docs retain clean component names, local descriptions and upstream story descriptions', async () => {
@@ -301,6 +343,7 @@ test('public docs tools read component snapshots and preserve component story co
     return path.includes('/component-stories/');
   });
   assert.ok(componentEntries.length > 0);
+  const index = JSON.parse(await fs.readFile(new URL('index.json', root), 'utf8'));
 
   let requestId = 10;
   const listing = await callTool(requestId++, 'docs-list', { withStoryIds: true });
@@ -317,6 +360,7 @@ test('public docs tools read component snapshots and preserve component story co
     }
 
     for (const story of component.stories) {
+      assert.equal(story.name, index.entries[story.id]?.name, `UI/MCP display name: ${story.id}`);
       assert.ok(listing.includes(`(${story.id})`), `Missing story ${story.id}`);
       const example = await callTool(requestId++, 'docs-show-story', { storyId: story.id });
       {

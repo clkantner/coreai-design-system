@@ -125,6 +125,44 @@ export const Default = { name: 'Human label', parameters: { __id: 'stable-story'
   );
 });
 
+test('display names preserve explicit labels and normalize re-export aliases', async () => {
+  await withSources(
+    {
+      'upstream/index.stories.tsx': `
+export default { title: 'Components/Test' };
+export { WithLongText, WithLongText as AliasedExample, ObjectName, FunctionName } from './leaf';
+`,
+      'upstream/leaf.tsx': `
+export const WithLongText = () => null;
+export const ObjectName = { name: 'ObjectName', render: () => null };
+export const FunctionName = () => null;
+FunctionName.storyName = 'FunctionName';
+`,
+      'local.stories.tsx': `
+export default { title: 'Components/Local' };
+export const LocalExample = { name: 'Local label!', render: () => null };
+`,
+    },
+    async (root, files) => {
+      const inventory = await createStoryInventory({
+        root,
+        localFiles: [files['local.stories.tsx']],
+        fluentFiles: [files['upstream/index.stories.tsx']],
+      });
+      const stories = inventory.components.flatMap((component) => component.stories);
+      for (const [exportName, name] of [
+        ['WithLongText', 'With Long Text'],
+        ['AliasedExample', 'Aliased Example'],
+        ['ObjectName', 'ObjectName'],
+        ['FunctionName', 'FunctionName'],
+        ['LocalExample', 'Local label!'],
+      ]) {
+        assert.equal(stories.find((story) => story.exportName === exportName).name, name);
+      }
+    },
+  );
+});
+
 test('missing source modules and missing explicit titles fail visibly', async () => {
   await withSources(
     {
@@ -188,11 +226,25 @@ test('real catalog preserves every local story and expected upstream variants wi
   const stories = inventory.components.flatMap((component) => component.stories);
   assert.equal(new Set(stories.map((story) => story.id)).size, stories.length);
   assert.equal(stories.filter((story) => story.origin === 'local').length, 142);
-  assert.equal(stories.filter((story) => story.origin === 'fluent').length, 546);
+  assert.equal(stories.filter((story) => story.origin === 'fluent').length, 545);
   assert.ok(stories.some((story) => story.id === 'components-popover--non-interactive-content'));
   assert.ok(stories.some((story) => story.id === 'components-tooltip--overflow-hidden'));
-  assert.equal(stories.filter((story) => story.overridden).length, 69);
-  assert.equal(inventory.components.length, 76);
+  assert.equal(stories.filter((story) => story.overridden).length, 70);
+  assert.equal(inventory.components.length, 75);
+  const counterBadge = inventory.components.find(
+    (component) => component.id === 'components-badge-counter-badge',
+  );
+  assert.equal(
+    counterBadge.stories.find((story) => story.exportName === 'Default').origin,
+    'local',
+  );
+  assert.ok(counterBadge.stories.some((story) => story.exportName === 'Appearance'));
+  assert.equal(
+    inventory.components.filter((component) =>
+      component.sources.some((source) => source.metadata.component === 'CounterBadge'),
+    ).length,
+    1,
+  );
   assert.ok(stories.every((story) => !story.sourceFile.includes('/templates/')));
   assert.ok(stories.every((story) => !story.sourceFile.includes('/experiments/')));
   assert.ok(!inventory.scope.fluentPackages.includes('react-divider'));

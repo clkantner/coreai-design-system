@@ -8,6 +8,8 @@ import { generateTemplateDocs } from '../scripts/generate-template-docs.mjs';
 import { generateSkillDoc } from '../scripts/generate-skill-doc.mjs';
 import { ingestionExperimentProvider } from './ingestion-experiment-provider';
 import { componentStoryDocsProvider } from '../scripts/component-story-docs.mjs';
+import { publicMarkdown } from '../scripts/public-markdown.mjs';
+import { generatedStoryIndexer } from '../scripts/generate-component-stories.mjs';
 
 // Storybook 10 loads config files as native ESM, where `__dirname` doesn't
 // exist. Recreate it from `import.meta.url` for the path math below.
@@ -44,6 +46,11 @@ const config: StorybookConfig = {
   framework: {
     name: '@storybook/react-vite',
     options: {},
+  },
+
+  experimental_indexers: async (indexers) => {
+    if (!indexers) throw new Error('Generated component stories require the built-in indexers');
+    return indexers.map(generatedStoryIndexer);
   },
 
   experimental_storyDocsProvider: (next: StoryDocsProvider | undefined) =>
@@ -184,13 +191,7 @@ const config: StorybookConfig = {
       enforce: 'pre',
       transform(code, id) {
         if (id.split('?')[0].endsWith('.md')) {
-          const publicMarkdown = id.replace(/\\/g, '/').includes('/fluent-stories/')
-            ? code.replace(
-                /\[([^\]]+)\]\(https?:\/\/(?:[^/)]+\.)?(?:visualstudio\.com|dev\.azure\.com)\/[^)]+\)/gi,
-                '$1',
-              )
-            : code;
-          return { code: `export default ${JSON.stringify(publicMarkdown)};`, map: null };
+          return { code: `export default ${JSON.stringify(publicMarkdown(code, id))};`, map: null };
         }
         return null;
       },

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import ts from 'typescript';
 import { loadCsf } from 'storybook/internal/csf-tools';
-import { toId } from 'storybook/internal/csf';
+import { storyNameFromExport, toId } from 'storybook/internal/csf';
 import { excludedFluentPackages, includedFluentPackages } from './fluent-story-scope.mjs';
 
 const appRoot = fileURLToPath(new URL('../', import.meta.url));
@@ -143,6 +143,22 @@ async function parseFile(file, origin, root) {
       true,
       ts.ScriptKind.TSX,
     );
+    let name = story.name;
+    if (reexport) {
+      const hasMeta = implementationAst.statements.some(ts.isExportAssignment);
+      const implementationCsf = loadCsf(
+        hasMeta
+          ? implementationSource
+          : `${implementationSource}\nexport default { title: ${JSON.stringify(csf.meta.title)} };`,
+        { fileName: implementationFile, makeTitle: (title) => title },
+      ).parse();
+      const annotations = implementationCsf._storyAnnotations[implementationExport];
+      const explicitName = annotations?.name ?? annotations?.storyName;
+      name =
+        explicitName?.type === 'StringLiteral'
+          ? explicitName.value
+          : storyNameFromExport(exportName);
+    }
     const dependencies = implementationAst.statements
       .filter(ts.isImportDeclaration)
       .map((node) => ({
@@ -164,7 +180,7 @@ async function parseFile(file, origin, root) {
       .map((statement) => statement.getText(ast));
     result.stories.push({
       id: story.id,
-      name: story.name,
+      name,
       exportName,
       origin,
       sourceFile,

@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import ts from 'typescript';
+import { publicMarkdown } from './public-markdown.mjs';
 
 function unwrap(node) {
   while (
@@ -60,7 +61,8 @@ export async function readStoryDescriptions(file, exportName) {
       if (declarations.has(node.text)) return evaluate(declarations.get(node.text).value, next);
       const imported = imports.get(node.text);
       if (imported?.startsWith('.') && imported.endsWith('.md')) {
-        return fs.readFile(path.resolve(path.dirname(file), imported), 'utf8');
+        const markdownFile = path.resolve(path.dirname(file), imported);
+        return publicMarkdown(await fs.readFile(markdownFile, 'utf8'), markdownFile);
       }
     }
     if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {

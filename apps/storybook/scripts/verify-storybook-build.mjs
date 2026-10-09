@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveComponentEntry, resolveDocEntry } from 'storybook/internal/toolsets-docs';
+import { assertExpectedManifestProblems } from './verify-manifest-problems.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const buildRoot = path.join(root, 'storybook-static');
@@ -180,9 +181,13 @@ if (disclosureFindings.length > 0) {
   );
 }
 
-const manifestProblems =
-  componentEntries.filter((component) => component.error).length +
-  componentStories.filter((story) => story.error || story.warning).length;
+const manifestProblems = assertExpectedManifestProblems(
+  componentEntries.filter(
+    (component) =>
+      process.env.STORYBOOK_INGESTION_EXPERIMENTS !== 'true' ||
+      !component.id.startsWith('experiments-'),
+  ),
+);
 
 console.log(
   `Verified Storybook build with ${fluentStoryCount} generated component story entries, ` +

@@ -63,6 +63,64 @@ test('generated real component IDs publish selected local and Fluent stories wit
   assert.match(combobox, /Source: local CoreAI override/);
 });
 
+test('component docs survive minimal local overrides and later Dev files', async () => {
+  const listing = await callTool('docs-list', { withStoryIds: false });
+  assert.match(listing, /- Card \(components-card-card\):/);
+  assert.match(listing, /- TabList \(components-tablist\):/);
+  const card = await callTool('docs-show', { id: 'components-card-card' });
+  const tabList = await callTool('docs-show', { id: 'components-tablist' });
+  for (const docs of [card, tabList]) {
+    assert.match(docs, /ID: [^\n]+\n\n(?!## Stories)[^\n]+/);
+  }
+  for (const [id, children] of [
+    ['components-combobox', ['Option', 'Listbox']],
+    ['components-dropdown', ['Option', 'Listbox']],
+    ['components-tablist', ['Tab']],
+  ]) {
+    const docs = id === 'components-tablist' ? tabList : await callTool('docs-show', { id });
+    assert.match(docs, /## Subcomponents/);
+    for (const child of children) {
+      assert.ok(docs.includes(`### ${child}`), `${id} must publish ${child} props`);
+    }
+  }
+});
+
+test('MCP accepts the same story display names as the UI', async () => {
+  const docs = await callTool('docs-show-story', {
+    componentId: 'components-button-button',
+    storyName: 'With Long Text',
+  });
+  assert.equal(
+    docs,
+    await callTool('docs-show-story', {
+      storyId: 'components-button-button--with-long-text',
+    }),
+  );
+  assert.match(docs, /With Long Text/);
+  const aliased = await callTool('docs-show-story', {
+    componentId: 'components-tree',
+    storyName: 'Flat Tree',
+  });
+  assert.equal(
+    aliased,
+    await callTool('docs-show-story', {
+      storyId: 'components-tree--flat-tree',
+    }),
+  );
+});
+
+test('CounterBadge publishes one combined catalog with the local Default', async () => {
+  const listing = await callTool('docs-list', { withStoryIds: true });
+  assert.equal((listing.match(/^- CounterBadge \(/gm) ?? []).length, 1);
+  assert.match(listing, /components-badge-counter-badge--appearance/);
+  assert.doesNotMatch(listing, /components-badge-counterbadge/);
+  const docs = await callTool('docs-show-story', {
+    storyId: 'components-badge-counter-badge--default',
+  });
+  assert.match(docs, /Source: local CoreAI override/);
+  assert.match(docs, /Default\.args = \{\s*count: 5/s);
+});
+
 async function callTool(name, args) {
   const id = requestId++;
   const request = new Request(liveUrl ?? 'http://localhost/mcp', {

@@ -61,6 +61,41 @@ test('missing or conflicting relative dependencies produce explicit errors', asy
   }
 });
 
+test('Fluent Markdown dependencies are sanitized in both snippets and descriptions', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'coreai-source-markdown-'));
+  try {
+    const directory = path.join(root, 'fluent-stories');
+    await fs.mkdir(directory);
+    await fs.writeFile(
+      path.join(directory, 'description.md'),
+      '[Internal task](https://example.visualstudio.com/project/_workitems/edit/123) ' +
+        '[Public docs](https://example.com/docs)',
+    );
+    await fs.writeFile(
+      path.join(directory, 'story.tsx'),
+      `
+import description from './description.md';
+export const Default = () => <div>{description}</div>;
+`,
+    );
+    const result = await extractStorySource(
+      {
+        id: 'test--default',
+        implementationFile: 'fluent-stories/story.tsx',
+        implementationExport: 'Default',
+      },
+      { root },
+    );
+    for (const text of [result.snippet, result.description]) {
+      assert.doesNotMatch(text, /visualstudio\.com/);
+      assert.match(text, /Internal task/);
+      assert.match(text, /example\.com/);
+    }
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
 test('Fluent optional picker props omit inline-label settings without changing runtime code', async () => {
   const inventory = await createStoryInventory();
   for (const [id, type] of [

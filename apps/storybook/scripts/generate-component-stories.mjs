@@ -8,20 +8,45 @@ import { readStoryDescriptions, descriptionComment } from './story-descriptions.
 export const appRoot = fileURLToPath(new URL('../', import.meta.url));
 export const generatedRoot = path.join(appRoot, '.storybook', '.cache', 'component-stories');
 
+export function generatedStoryIndexer(indexer) {
+  return {
+    ...indexer,
+    async createIndex(file, options) {
+      const entries = await indexer.createIndex(file, options);
+      if (path.dirname(path.resolve(file)) !== generatedRoot) return entries;
+      const inventory = JSON.parse(
+        await fs.readFile(path.join(generatedRoot, 'inventory.json'), 'utf8'),
+      );
+      const component = inventory.components.find(
+        (item) => `${item.id}.stories.js` === path.basename(file),
+      );
+      if (!component) throw new Error(`Generated component missing from inventory: ${file}`);
+      return entries.map((entry) => {
+        const story = component.stories.find((item) => item.exportName === entry.exportName);
+        if (!story)
+          throw new Error(`Generated story missing from inventory: ${file}: ${entry.exportName}`);
+        // Storybook's parser ignores explicit names on aliased story exports.
+        return { ...entry, name: story.name };
+      });
+    },
+  };
+}
+
 function importPath(from, target) {
   const relative = path.relative(from, target).split(path.sep).join('/');
   return relative.startsWith('.') ? relative : `./${relative}`;
 }
 
 function componentBindings(component) {
-  const owner = [...component.sources].reverse().find((source) => source.metadata.component);
+  const sources = [...component.sources].reverse();
+  const owner = sources.find((source) => source.metadata.component);
   if (!owner) return { imports: [], properties: [] };
-  const expressions = {
-    component: owner.metadata.component,
-    subcomponents: owner.metadata.subcomponents,
-  };
+  const fields = ['component', 'subcomponents'].map((key) => {
+    const source = sources.find((item) => item.metadata[key]);
+    return { key, source, expression: source?.metadata[key] };
+  });
   const imports = new Map();
-  for (const expression of Object.values(expressions)) {
+  for (const { expression, source } of fields) {
     if (!expression) continue;
     const ast = ts.createSourceFile(
       'metadata.ts',
@@ -35,7 +60,7 @@ function componentBindings(component) {
       ts.forEachChild(node, collect);
     }
     collect(ast);
-    for (const item of owner.imports) {
+    for (const item of source.imports) {
       const parsed = ts.createSourceFile('import.ts', item.source, ts.ScriptTarget.Latest, true);
       const clause = parsed.statements[0].importClause;
       if (!clause?.namedBindings || !ts.isNamedImports(clause.namedBindings)) continue;
@@ -45,15 +70,18 @@ function componentBindings(component) {
           !['@fluentui/react-components', '@coreai-ds/react-components'].includes(item.specifier)
         ) {
           throw new Error(
-            `Unsupported component metadata import in ${owner.sourceFile}: ${item.specifier}`,
+            `Unsupported component metadata import in ${source.sourceFile}: ${item.specifier}`,
           );
         }
-        imports.set(
-          binding.name.text,
-          binding.propertyName
-            ? `${binding.propertyName.text} as ${binding.name.text}`
-            : binding.name.text,
-        );
+        const imported = binding.propertyName
+          ? `${binding.propertyName.text} as ${binding.name.text}`
+          : binding.name.text;
+        if (imports.has(binding.name.text) && imports.get(binding.name.text) !== imported) {
+          throw new Error(
+            `Conflicting component metadata import ${binding.name.text} in ${component.id}`,
+          );
+        }
+        imports.set(binding.name.text, imported);
       }
     }
   }
@@ -65,9 +93,9 @@ function componentBindings(component) {
   return {
     imports: [`import { ${[...imports.values()].join(', ')} } from '@coreai-ds/react-components';`],
     names: [...imports.keys()],
-    properties: Object.entries(expressions)
-      .filter(([, value]) => value)
-      .map(([key, value]) => {
+    properties: fields
+      .filter(({ expression }) => expression)
+      .map(({ key, expression: value }) => {
         const ast = ts.createSourceFile(
           'expression.ts',
           `const expression = ${value};`,
@@ -111,7 +139,7 @@ export function generateComponentIndex(
     const conflict = bindings.names?.includes(story.exportName);
     const name = conflict ? `__story${index}` : story.exportName;
     lines.push(
-      `${conflict ? '' : 'export '}const ${name} = storyWithMetadata(${sourceNames.get(story.sourceFile)}, story${index}, ${JSON.stringify(story.id)});`,
+      `${conflict ? '' : 'export '}const ${name} = { ...storyWithMetadata(${sourceNames.get(story.sourceFile)}, story${index}, ${JSON.stringify(story.id)}), name: ${JSON.stringify(story.name)} };`,
     );
     if (conflict) lines.push(`export { ${name} as ${story.exportName} };`);
   });
@@ -125,10 +153,13 @@ export async function generateComponentStories({
   const inventory = await createStoryInventory({ root });
   const outputs = await Promise.all(
     inventory.components.map(async (component) => {
-      const owner =
-        [...component.sources].reverse().find((source) => source.metadata.component) ??
-        component.sources.at(-1);
-      const documentation = await readStoryDescriptions(path.join(root, owner.sourceFile));
+      const documentation = { description: '', summary: '' };
+      for (const source of [...component.sources].reverse()) {
+        const docs = await readStoryDescriptions(path.join(root, source.sourceFile));
+        documentation.description ||= docs.description;
+        documentation.summary ||= docs.summary;
+        if (documentation.description && documentation.summary) break;
+      }
       return [
         `${component.id}.stories.js`,
         generateComponentIndex(component, { root, outputRoot, documentation }),

@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import ts from 'typescript';
+import { publicMarkdown } from './public-markdown.mjs';
 
 const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
 
@@ -247,7 +248,7 @@ export async function extractStorySource(story, { root, cache = new Map() }) {
           if (specifier.startsWith('.')) {
             const target = await resolveRelative(file, specifier);
             if (target.endsWith('.md')) {
-              const content = await fs.readFile(target, 'utf8');
+              const content = publicMarkdown(await fs.readFile(target, 'utf8'), target);
               descriptions.push(content);
               addDefinition(name, file, `const ${name} = ${JSON.stringify(content)};`);
             } else {

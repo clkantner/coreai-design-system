@@ -52,8 +52,10 @@ version at that commit, update both `version` and `ref` in the setup script, and
 automatic selection of the newest or nearest commit.
 
 The 9.74.9 refresh adds Popover `NonInteractiveContent` and Tooltip `OverflowHidden`, with no
-selected story removals. The current catalog has **688 selected stories**: 142 local and 546
-Fluent, with 69 local overrides. All 688 consumer examples type-check.
+selected story removals. The current catalog has **687 selected stories**: 142 local and 545
+Fluent, with 70 local overrides. All 687 consumer examples type-check. CounterBadge uses the
+canonical `Components/Badge/Counter Badge` title so its local Default replaces the upstream
+Default in one catalog instead of publishing a second component.
 
 Setup is automatic because `dev` and `build` run `storybook:prepare` before Storybook starts. GitHub Actions also verifies the built story index before deployment. To force a fresh local re-provision, run `npm run stories:init`.
 
@@ -149,7 +151,7 @@ Before generated-owner integration, component-only validation found the same cov
 16 locally owned component entries with 52 snippets, and 60 vendored Fluent component entries
 with 608 stories but no extracted snippets. The UI index contains 142 local component stories;
 90 were absent from locally owned manifest entries. These are historical baseline counts.
-The enabled generated pipeline now publishes all 688 selected component stories through 76 owners.
+The enabled generated pipeline now publishes all 687 selected component stories through 75 owners.
 Template-specific validation remains deferred.
 
 Upstream references: [Manifests](https://storybook.js.org/docs/ai/manifests),
@@ -162,11 +164,22 @@ Generated component metadata now uses public import names such as `Accordion`, n
 `__CoreAI_` aliases. When a story export has the same name as a component import, only the
 story's private binding is renamed; its public export and ID stay unchanged.
 
-Component JSDoc and summaries from the selected metadata owner are copied into the generated
-CSF default export. The source provider preserves local story JSDoc and upstream story
+Component fields are resolved independently: the latest local definition wins, while omitted
+subcomponents fall back to another local source or upstream Fluent. Explicit empty subcomponents
+are preserved. Descriptions and summaries each use the latest nonempty local text, then upstream
+text, so a minimal `*Dev.stories.tsx` file cannot erase authored documentation. The selected text
+is copied into the generated CSF default export. The source provider preserves local story JSDoc and upstream story
 description parameters, including literal strings, concatenated strings, and imported Markdown
 joined by the index. JSDoc takes precedence over parameter descriptions. These are checked
 through the built `docs-list`, `docs-show`, and `docs-show-story` responses.
+
+Story names use Storybook's display-name rules, preserve explicit labels, and are written into
+both generated CSF and the MCP inventory. Story IDs remain based on canonical exports. For example,
+Button's `WithLongText` export is listed and accepted as `With Long Text` by `docs-show-story`.
+A generated-entry-only indexer applies these names to the UI index, including privately aliased
+exports whose explicit names Storybook's parser otherwise ignores. Other entries are unchanged.
+Imported Fluent Markdown uses the same internal work-item link cleanup in Vite, generated
+descriptions, and consumer snippets; local Markdown is unchanged.
 
 Use the current docs tools to check extraction rather than imposing authoring restrictions from
 older MCP versions. CounterBadge currently returns its configured `count={5}` and CoreAI import.
@@ -322,7 +335,7 @@ discovery are unchanged.
 `npm --workspace apps/storybook run test:source` checks source extraction and provider ownership.
 `npm --workspace apps/storybook run stories:verify-source` checks all consumer examples against
 the CoreAI types and writes `.storybook/.cache/story-source-validation.json`.
-All 688 selected examples now type-check with zero diagnostics.
+All 687 selected examples now type-check with zero diagnostics.
 
 For upstream examples only, the source extractor adapts `Partial<ComboboxProps>` and
 `Partial<DropdownProps>` imported from the Fluent barrel to
@@ -356,8 +369,8 @@ are recorded, not bundled or checked for snippet completeness.
 
 Local definitions win matching story IDs; the replaced upstream definition is retained in
 `overridden`. Conflicting same-origin story IDs, component ID/title collisions, missing source
-modules, and missing explicit titles fail with errors. The current inventory selects 76
-components and 688 stories: 142 local, 546 Fluent, and 69 overridden upstream stories.
+modules, and missing explicit titles fail with errors. The current inventory selects 75
+components and 687 stories: 142 local, 545 Fluent, and 70 overridden upstream stories.
 Templates and experiment fixtures are excluded.
 
 The existing package exclusion list is shared with Storybook through
@@ -408,6 +421,13 @@ an implementation decision, not something the pilot has resolved.
 > story ID can take over a minute while documentation services initialize; focused live tests
 > allow up to three minutes. Use `withStoryIds: false` when the full story index is unnecessary.
 
+**Current build blocker:** Storybook 10.6.1 starts a fixed 120-second timer for each queued
+docgen-worker request. With the restored subcomponent catalog, local full builds can exceed
+that limit while Vite builds the preview concurrently. An isolated worker extracted the whole
+catalog successfully in about 117 seconds, and focused live MCP regressions pass, but the
+production build remains blocked by this timeout. Do not treat source type-checks or live tests
+as production-build approval; resolve and revalidate the snapshot build before deployment.
+
 Local integration validation covers the real Accordion, Button, DataGrid, Combobox, and Dropdown
 IDs through built and live MCP. Browser checks verify local and upstream examples, Accordion
 state changes, five Button appearances, DataGrid rows, preserved Figma metadata, and CounterBadge
@@ -415,6 +435,12 @@ args. The generated `toMountNodeProps` entry remains a utility story without com
 so it has source examples but no component prop API. Intentionally failing experiment entries
 exist only in opt-in regression builds, not normal discovery. Remote deployment remains out
 of scope.
+
+Build verification rejects unexpected component extraction errors and all production story
+errors or warnings. Only the existing `No component found` errors for
+`components-portal-tomountnodeprops` and `templates-shell-and-navigation` are allowed; a different
+error for either entry still fails. Opt-in experiment extraction problems are checked by their
+dedicated regression tests rather than this production allowlist.
 
 ### Agent Skill mirror
 
