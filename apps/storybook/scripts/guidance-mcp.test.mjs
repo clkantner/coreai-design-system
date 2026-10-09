@@ -5,6 +5,7 @@ import { createStorybookMcpHandler } from '@storybook/mcp';
 import { resolveComponentEntry, resolveDocEntry } from 'storybook/internal/toolsets-docs';
 
 const root = new URL('../storybook-static/', import.meta.url);
+const experimentTest = process.env.STORYBOOK_INGESTION_EXPERIMENTS === 'true' ? test : test.skip;
 
 const manifestProvider = async (_request, path) => fs.readFile(new URL(path, root), 'utf8');
 const handler = await createStorybookMcpHandler({ manifestProvider });
@@ -111,120 +112,129 @@ test('public docs retain clean component names, local descriptions and upstream 
   assert.match(collapsible, /multiple panels collapsed/);
 });
 
-test('direct imported render is indexed but its generated snippet omits the Fluent implementation', async () => {
-  const id = 'experiments-mcp-imported-accordion-render';
-  const storyId = `${id}--default`;
-  const index = JSON.parse(await manifestProvider(undefined, './index.json'));
-  assert.equal(
-    index.entries[storyId]?.importPath,
-    './src/stories/experiments/ImportedAccordionRender.stories.tsx',
-  );
-  const manifest = JSON.parse(await manifestProvider(undefined, './manifests/components.json'));
-  assert.ok(manifest.components[id], 'The unique experiment component must be in the manifest');
-  const component = await resolveComponentEntry(
-    manifest.components[id],
-    undefined,
-    manifestProvider,
-  );
-  assert.equal(component.error, undefined);
-  assert.equal(component.stories.length, 1);
-  assert.equal(component.stories[0].id, storyId);
-  assert.equal(component.stories[0].snippet, 'const Default = () => <Accordion />;');
-
-  const upstream = await fs.readFile(
-    new URL(
-      '../fluent-stories/packages/react-components/react-accordion/stories/src/Accordion/AccordionDefault.stories.tsx',
-      import.meta.url,
-    ),
-    'utf8',
-  );
-  assert.match(upstream, /Accordion Header 1/);
-  assert.match(upstream, /Accordion Panel 3/);
-
-  const listing = await callTool(1000, 'docs-list', { withStoryIds: true });
-  assert.ok(listing.includes(`(${id})`));
-  assert.ok(listing.includes(`(${storyId})`));
-  const documentation = await callTool(1001, 'docs-show', { id });
-  assert.match(documentation, /## Props/);
-  const example = await callTool(1002, 'docs-show-story', { storyId });
-  for (const text of [documentation, example]) {
-    assert.ok(text.includes("import { Accordion } from '@coreai-ds/react-components';"));
-    assert.ok(text.includes('const Default = () => <Accordion />;'));
-    assert.doesNotMatch(text, /Accordion Header 1|Accordion Panel 3|<AccordionItem/);
-  }
-});
-
-test('imported example wrapper returns a reference with an incorrect package import', async () => {
-  const id = 'experiments-mcp-imported-accordion-wrapper';
-  const storyId = `${id}--default`;
-  const index = JSON.parse(await manifestProvider(undefined, './index.json'));
-  assert.equal(
-    index.entries[storyId]?.importPath,
-    './src/stories/experiments/ImportedAccordionWrapper.stories.tsx',
-  );
-  const manifest = JSON.parse(await manifestProvider(undefined, './manifests/components.json'));
-  assert.ok(manifest.components[id]);
-  const component = await resolveComponentEntry(
-    manifest.components[id],
-    undefined,
-    manifestProvider,
-  );
-  assert.equal(component.error, undefined);
-  assert.equal(component.stories.length, 1);
-  assert.equal(component.stories[0].id, storyId);
-  assert.equal(component.stories[0].snippet, 'const Default = () => <FluentDefault />;');
-
-  const listing = await callTool(1010, 'docs-list', { withStoryIds: true });
-  assert.ok(listing.includes(`(${id})`));
-  assert.ok(listing.includes(`(${storyId})`));
-  const documentation = await callTool(1011, 'docs-show', { id });
-  assert.match(documentation, /## Props/);
-  const example = await callTool(1012, 'docs-show-story', { storyId });
-  for (const text of [documentation, example]) {
-    assert.ok(
-      text.includes(
-        "import { Accordion, Default as FluentDefault } from '@coreai-ds/react-components';",
-      ),
+experimentTest(
+  'direct imported render is indexed but its generated snippet omits the Fluent implementation',
+  async () => {
+    const id = 'experiments-mcp-imported-accordion-render';
+    const storyId = `${id}--default`;
+    const index = JSON.parse(await manifestProvider(undefined, './index.json'));
+    assert.equal(
+      index.entries[storyId]?.importPath,
+      './src/stories/experiments/ImportedAccordionRender.stories.tsx',
     );
-    assert.ok(text.includes('const Default = () => <FluentDefault />;'));
-    assert.doesNotMatch(text, /Accordion Header 1|Accordion Panel 3|<AccordionItem/);
-  }
-});
+    const manifest = JSON.parse(await manifestProvider(undefined, './manifests/components.json'));
+    assert.ok(manifest.components[id], 'The unique experiment component must be in the manifest');
+    const component = await resolveComponentEntry(
+      manifest.components[id],
+      undefined,
+      manifestProvider,
+    );
+    assert.equal(component.error, undefined);
+    assert.equal(component.stories.length, 1);
+    assert.equal(component.stories[0].id, storyId);
+    assert.equal(component.stories[0].snippet, 'const Default = () => <Accordion />;');
 
-test('local Fluent re-export resolves props but records a story extraction error', async () => {
-  const id = 'experiments-mcp-re-exported-accordion';
-  const storyId = `${id}--default`;
-  const index = JSON.parse(await manifestProvider(undefined, './index.json'));
-  assert.equal(
-    index.entries[storyId]?.importPath,
-    './src/stories/experiments/ReExportedAccordion.stories.tsx',
-  );
-  const manifest = JSON.parse(await manifestProvider(undefined, './manifests/components.json'));
-  assert.ok(manifest.components[id]);
-  const component = await resolveComponentEntry(
-    manifest.components[id],
-    undefined,
-    manifestProvider,
-  );
-  assert.equal(component.error, undefined);
-  assert.equal(component.stories.length, 1);
-  const story = component.stories[0];
-  assert.equal(story.id, storyId);
-  assert.equal(story.snippet, undefined);
-  assert.equal(story.error?.name, 'SyntaxError');
-  assert.match(story.error.message, /Expected story to be a function or variable declaration/);
+    const upstream = await fs.readFile(
+      new URL(
+        '../fluent-stories/packages/react-components/react-accordion/stories/src/Accordion/AccordionDefault.stories.tsx',
+        import.meta.url,
+      ),
+      'utf8',
+    );
+    assert.match(upstream, /Accordion Header 1/);
+    assert.match(upstream, /Accordion Panel 3/);
 
-  const listing = await callTool(1020, 'docs-list', { withStoryIds: true });
-  assert.ok(listing.includes(`(${id})`));
-  assert.ok(listing.includes(`(${storyId})`));
-  const documentation = await callTool(1021, 'docs-show', { id });
-  assert.match(documentation, /## Props/);
-  assert.doesNotMatch(documentation, /Accordion Header 1|Accordion Panel 3|<AccordionItem/);
-  const example = await callTool(1022, 'docs-show-story', { storyId });
-  assert.match(example, /No code snippet was extracted for this story/);
-});
+    const listing = await callTool(1000, 'docs-list', { withStoryIds: true });
+    assert.ok(listing.includes(`(${id})`));
+    assert.ok(listing.includes(`(${storyId})`));
+    const documentation = await callTool(1001, 'docs-show', { id });
+    assert.match(documentation, /## Props/);
+    const example = await callTool(1002, 'docs-show-story', { storyId });
+    for (const text of [documentation, example]) {
+      assert.ok(text.includes("import { Accordion } from '@coreai-ds/react-components';"));
+      assert.ok(text.includes('const Default = () => <Accordion />;'));
+      assert.doesNotMatch(text, /Accordion Header 1|Accordion Panel 3|<AccordionItem/);
+    }
+  },
+);
 
-test('inline Accordion control returns the complete three-item example', async () => {
+experimentTest(
+  'imported example wrapper returns a reference with an incorrect package import',
+  async () => {
+    const id = 'experiments-mcp-imported-accordion-wrapper';
+    const storyId = `${id}--default`;
+    const index = JSON.parse(await manifestProvider(undefined, './index.json'));
+    assert.equal(
+      index.entries[storyId]?.importPath,
+      './src/stories/experiments/ImportedAccordionWrapper.stories.tsx',
+    );
+    const manifest = JSON.parse(await manifestProvider(undefined, './manifests/components.json'));
+    assert.ok(manifest.components[id]);
+    const component = await resolveComponentEntry(
+      manifest.components[id],
+      undefined,
+      manifestProvider,
+    );
+    assert.equal(component.error, undefined);
+    assert.equal(component.stories.length, 1);
+    assert.equal(component.stories[0].id, storyId);
+    assert.equal(component.stories[0].snippet, 'const Default = () => <FluentDefault />;');
+
+    const listing = await callTool(1010, 'docs-list', { withStoryIds: true });
+    assert.ok(listing.includes(`(${id})`));
+    assert.ok(listing.includes(`(${storyId})`));
+    const documentation = await callTool(1011, 'docs-show', { id });
+    assert.match(documentation, /## Props/);
+    const example = await callTool(1012, 'docs-show-story', { storyId });
+    for (const text of [documentation, example]) {
+      assert.ok(
+        text.includes(
+          "import { Accordion, Default as FluentDefault } from '@coreai-ds/react-components';",
+        ),
+      );
+      assert.ok(text.includes('const Default = () => <FluentDefault />;'));
+      assert.doesNotMatch(text, /Accordion Header 1|Accordion Panel 3|<AccordionItem/);
+    }
+  },
+);
+
+experimentTest(
+  'local Fluent re-export resolves props but records a story extraction error',
+  async () => {
+    const id = 'experiments-mcp-re-exported-accordion';
+    const storyId = `${id}--default`;
+    const index = JSON.parse(await manifestProvider(undefined, './index.json'));
+    assert.equal(
+      index.entries[storyId]?.importPath,
+      './src/stories/experiments/ReExportedAccordion.stories.tsx',
+    );
+    const manifest = JSON.parse(await manifestProvider(undefined, './manifests/components.json'));
+    assert.ok(manifest.components[id]);
+    const component = await resolveComponentEntry(
+      manifest.components[id],
+      undefined,
+      manifestProvider,
+    );
+    assert.equal(component.error, undefined);
+    assert.equal(component.stories.length, 1);
+    const story = component.stories[0];
+    assert.equal(story.id, storyId);
+    assert.equal(story.snippet, undefined);
+    assert.equal(story.error?.name, 'SyntaxError');
+    assert.match(story.error.message, /Expected story to be a function or variable declaration/);
+
+    const listing = await callTool(1020, 'docs-list', { withStoryIds: true });
+    assert.ok(listing.includes(`(${id})`));
+    assert.ok(listing.includes(`(${storyId})`));
+    const documentation = await callTool(1021, 'docs-show', { id });
+    assert.match(documentation, /## Props/);
+    assert.doesNotMatch(documentation, /Accordion Header 1|Accordion Panel 3|<AccordionItem/);
+    const example = await callTool(1022, 'docs-show-story', { storyId });
+    assert.match(example, /No code snippet was extracted for this story/);
+  },
+);
+
+experimentTest('inline Accordion control returns the complete three-item example', async () => {
   const id = 'experiments-mcp-inline-accordion-control';
   const storyId = `${id}--default`;
   const index = JSON.parse(await manifestProvider(undefined, './index.json'));

@@ -278,18 +278,36 @@ new provider is active.
 References: [provider types](https://github.com/storybookjs/storybook/blob/v10.6.1/code/core/src/shared/open-service/services/story-docs/types.ts)
 and [story-docs service](https://github.com/storybookjs/storybook/blob/v10.6.1/code/core/src/shared/open-service/services/story-docs/README.md).
 
-Run the focused experiments against built output:
+Temporary experiments are excluded from normal Storybook and MCP discovery. Their files and
+provider remain as opt-in regression fixtures. Run the full experiment build and checks with:
 
 ```bash
-node --test apps/storybook/scripts/ingestion-mcp.test.mjs
+npm --workspace apps/storybook run test:experiments
 ```
 
-Or against a running server in PowerShell:
+This builds with `STORYBOOK_INGESTION_EXPERIMENTS=true` and runs the regression suite.
+It replaces the local `storybook-static` output with the experiment build; run
+`npm run build:storybook` afterward to restore a normal build. Normal `verify:build` rejects
+experiment entries unless the flag is explicitly enabled.
+
+For an opt-in live session in PowerShell:
 
 ```powershell
+$env:STORYBOOK_INGESTION_EXPERIMENTS = 'true'
+npm run storybook
+```
+
+Then, in another PowerShell terminal:
+
+```powershell
+$env:STORYBOOK_INGESTION_EXPERIMENTS = 'true'
 $env:MCP_EXPERIMENT_URL = 'http://localhost:6006/mcp'
 node --test apps\storybook\scripts\ingestion-mcp.test.mjs
 ```
+
+Remove the flag before normal use and restart Storybook:
+`Remove-Item Env:STORYBOOK_INGESTION_EXPERIMENTS -ErrorAction SilentlyContinue`.
+Production component checks still run by default; only the temporary fixture checks are skipped.
 
 ### Proposed Fluent ingestion plan
 
@@ -297,7 +315,8 @@ The source-backed provider is implemented in `scripts/component-story-docs.mjs`,
 dependency extraction in `scripts/story-source.mjs`. It publishes selected implementations,
 required declarations and imports, relative helper source, provenance, and required package
 names. It is now enabled in the main configuration for generated component owners. Non-generated
-entries continue through the experiment provider and Storybook's provider. Templates and MDX
+entries delegate to Storybook's provider. The experiment provider is registered only in opt-in
+regression mode. Templates and MDX
 discovery are unchanged.
 
 `npm --workspace apps/storybook run test:source` checks source extraction and provider ownership.
@@ -393,9 +412,9 @@ Local integration validation covers the real Accordion, Button, DataGrid, Combob
 IDs through built and live MCP. Browser checks verify local and upstream examples, Accordion
 state changes, five Button appearances, DataGrid rows, preserved Figma metadata, and CounterBadge
 args. The generated `toMountNodeProps` entry remains a utility story without component metadata,
-so it has source examples but no component prop API. Two intentionally failing experiment entries
-remain for regression coverage. Version alignment and remote deployment are not part of this
-local integration milestone.
+so it has source examples but no component prop API. Intentionally failing experiment entries
+exist only in opt-in regression builds, not normal discovery. Remote deployment remains out
+of scope.
 
 ### Agent Skill mirror
 

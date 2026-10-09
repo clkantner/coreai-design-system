@@ -68,6 +68,19 @@ if (componentsManifest.meta?.docgen !== 'react-component-meta') {
 }
 
 const entries = Object.values(index.entries);
+if (process.env.STORYBOOK_INGESTION_EXPERIMENTS !== 'true') {
+  const experimentEntries = [...entries, ...componentEntries, ...Object.values(docs)].filter(
+    (entry) =>
+      entry.id?.startsWith('experiments-') ||
+      entry.importPath?.includes('/experiments/') ||
+      entry.path?.includes('/experiments/'),
+  );
+  if (experimentEntries.length) {
+    throw new Error(
+      `Temporary experiments leaked into normal build: ${experimentEntries.map((entry) => entry.id).join(', ')}`,
+    );
+  }
+}
 const normalizedImportPaths = entries.map((entry) => entry.importPath?.replaceAll('\\', '/') ?? '');
 
 const requiredSources = [
