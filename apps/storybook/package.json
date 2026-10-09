@@ -17,6 +17,8 @@
     "stories:inventory": "node scripts/story-inventory.mjs",
     "stories:generate": "node scripts/generate-component-stories.mjs",
     "test:generated": "node --test scripts/generate-component-stories.test.mjs",
+    "test:source": "node --test scripts/story-source.test.mjs",
+    "stories:verify-source": "node scripts/verify-story-sources.mjs",
     "test:inventory": "node --test scripts/story-inventory.test.mjs",
     "docs:templates": "node scripts/generate-template-docs.mjs",
     "docs:skill": "node scripts/generate-skill-doc.mjs"

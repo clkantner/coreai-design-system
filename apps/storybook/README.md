@@ -264,6 +264,20 @@ node --test apps\storybook\scripts\ingestion-mcp.test.mjs
 
 ### Proposed Fluent ingestion plan
 
+The source-backed provider is implemented in `scripts/component-story-docs.mjs`, with AST
+dependency extraction in `scripts/story-source.mjs`. It publishes selected implementations,
+required declarations and imports, relative helper source, provenance, and required package
+names. It delegates non-generated entries to Storybook's provider. It is not yet enabled in
+the main configuration.
+
+`npm --workspace apps/storybook run test:source` checks source extraction and provider ownership.
+`npm --workspace apps/storybook run stories:verify-source` checks all consumer examples against
+the CoreAI types and writes `.storybook/.cache/story-source-validation.json`. This gate currently
+fails with 36 diagnostics in 24 Combobox/Dropdown variants: upstream `Partial<...Props>` spreads
+do not satisfy CoreAI's inline-label prop union after import rewriting. The other 662 selected
+examples type-check. Rollout is paused pending a decision on adapting those source prop types;
+the gate must not be bypassed or the public examples silently excluded.
+
 `npm --workspace apps/storybook run stories:generate` produces one CSF index per component
 under `.storybook/.cache/component-stories/`, plus its shared inventory. Generated indexes
 import the selected original stories and preserve each source's args, decorators, loaders,
