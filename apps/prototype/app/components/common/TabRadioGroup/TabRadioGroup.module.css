@@ -1,0 +1,12 @@
+@layer common {
+  .tabList {
+    flex-wrap: wrap;
+  }
+
+  .elevated {
+    /* was .fui-TabList.elevated .fui-Tab[aria-selected="true"] */
+    :global(.fui-Tab:has(input:checked)) {
+      background-color: var(--colorInteractiveBackgroundSelected);
+    }
+  }
+}

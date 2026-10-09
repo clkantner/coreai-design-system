@@ -1,0 +1,6 @@
+@layer common {
+  .tab {
+    max-width: 100%;
+    text-decoration: none;
+  }
+}

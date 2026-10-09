@@ -11,6 +11,8 @@ export default tseslint.config(
       '**/dist/**',
       '**/node_modules/**',
       '**/storybook-static/**',
+      'apps/prototype/build/**',
+      'apps/prototype/.react-router/**',
       'apps/docsite/src/assets/vendor/**',
       'apps/storybook/fluent-stories/**',
       'apps/storybook/src/stories/templates/*.mdx',
@@ -44,6 +46,8 @@ export default tseslint.config(
     files: [
       'eslint.config.mjs',
       'apps/docsite/{build.mjs,server.js}',
+      'apps/prototype/*config.ts',
+      'apps/prototype/test/**/*.mjs',
       'apps/docsite/scripts/**/*.{js,mjs}',
       'apps/docsite/src/{site-data,utils}.mjs',
       'apps/storybook/.storybook/**/*.{js,mjs,ts,tsx}',
@@ -61,6 +65,8 @@ export default tseslint.config(
   {
     files: [
       'apps/docsite/src/assets/**/*.{js,mjs}',
+      'apps/prototype/app/**/*.{js,jsx,ts,tsx}',
+      'apps/prototype/test/**/*.mjs',
       'apps/storybook/src/**/*.{js,jsx,ts,tsx}',
       'packages/*/src/**/*.{js,jsx,ts,tsx}',
     ],
@@ -72,7 +78,11 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/storybook/src/**/*.{jsx,tsx}', 'packages/*/src/**/*.{jsx,tsx}'],
+    files: [
+      'apps/storybook/src/**/*.{jsx,tsx}',
+      'apps/prototype/app/**/*.{jsx,tsx}',
+      'packages/*/src/**/*.{jsx,tsx}',
+    ],
     plugins: {
       'react-hooks': reactHooks,
     },

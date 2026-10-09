@@ -1,0 +1,8 @@
+.paginationControls {
+  display: flex;
+  align-items: center;
+
+  & button {
+    min-width: auto;
+  }
+}

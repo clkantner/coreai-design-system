@@ -110,7 +110,7 @@ files. Remove any deep imports of bundled `.ttf` files.
 
 ### Overriding styles with CSS Modules or other style systems
 
-> **Note:** Fluent generates its styles at runtime with Griffel, so overriding a component's look with plain CSS or CSS Modules normally means fighting specificity. An **opt-in** `@griffel/core` patch wraps all Fluent styles in an `@layer griffel` cascade layer, letting your unlayered CSS Modules override them without `!important` or specificity hacks. See [Styling with CSS Modules](../../apps/storybook/src/stories/docs/StylingWithCssModules.mdx) in Storybook for the patch and setup steps.
+> **Note:** An **opt-in, app-owned Griffel renderer** can wrap runtime-generated component rules in `@layer griffel`, so normal unlayered CSS Modules override them without specificity hacks. Supply it through `RendererProvider` above `CoreAIFluentProvider`; do not patch shared dependencies. Layering is not enabled by this package automatically. The adapter uses Griffel's internal insertion method and needs upgrade checks; extracted static CSS requires separate layering. See [Styling with CSS Modules](../../apps/storybook/src/stories/docs/StylingWithCssModules.mdx) for the implementation, scope, and limits.
 
 ## Agent guide
 

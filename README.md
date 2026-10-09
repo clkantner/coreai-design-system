@@ -28,6 +28,7 @@ The existing Azure-hosted services keep their current access controls.
 | [apps/docsite](apps/docsite)                           | `@coreai-ds/docsite` (private)   | Infrastructure scaffold for static docsite build/serve and Azure App Service deployment wiring. |
 | [packages/react-components](packages/react-components) | `@coreai-ds/react-components`    | The publishable theme package. Drop-in `<CoreAIFluentProvider>` + CoreAI-wrapped components.    |
 | [apps/storybook](apps/storybook)                       | `@coreai-ds/storybook` (private) | Storybook playground that previews the theme against Fluent UI's canonical stories.             |
+| [apps/prototype](apps/prototype)                       | `@coreai-ds/prototype` (private) | CoreAI prototype app. See its README for the current migration scope and local setup.           |
 
 - Consumer + extension guide: [packages/react-components/README.md](packages/react-components/README.md)
 - Storybook, `fluent-stories/`, and the MCP for AI agents (authoring): [apps/storybook/README.md](apps/storybook/README.md)
