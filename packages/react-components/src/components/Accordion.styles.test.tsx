@@ -101,6 +101,49 @@ test.each([
   },
 );
 
+test('removes the default spacing around the header and panel', async () => {
+  const screen = await renderCoreAIComponent(
+    <Accordion defaultOpenItems={['item']}>
+      <AccordionItem value="item">
+        <AccordionHeader>Aligned header</AccordionHeader>
+        <AccordionPanel>Aligned panel</AccordionPanel>
+      </AccordionItem>
+    </Accordion>,
+  );
+
+  const buttonStyle = getComputedStyle(
+    screen.getByRole('button', { name: 'Aligned header' }).element(),
+  );
+  const panelStyle = getComputedStyle(screen.getByText('Aligned panel').element());
+
+  expect(buttonStyle.padding).toBe('0px');
+  expect(panelStyle.margin).toBe('0px');
+});
+
+test('keeps the expand icon vertically centered without stretching to tall header content', async () => {
+  const screen = await renderCoreAIComponent(
+    <Accordion>
+      <AccordionItem value="item">
+        <AccordionHeader>
+          <span data-testid="tall-header-content" style={{ display: 'block', height: '80px' }}>
+            Tall header content
+          </span>
+        </AccordionHeader>
+        <AccordionPanel>Panel</AccordionPanel>
+      </AccordionItem>
+    </Accordion>,
+  );
+
+  const button = screen.getByRole('button', { name: 'Tall header content' }).element();
+  const buttonRect = button.getBoundingClientRect();
+  const expandIconRect = getExpandIcon(button).getBoundingClientRect();
+  const buttonCenter = buttonRect.top + buttonRect.height / 2;
+  const expandIconCenter = expandIconRect.top + expandIconRect.height / 2;
+
+  expect(expandIconRect.height).toBeLessThan(buttonRect.height);
+  expect(Math.abs(expandIconCenter - buttonCenter)).toBeLessThanOrEqual(1);
+});
+
 test('does not apply interactive hover treatment to a disabled header', async () => {
   const screen = await renderCoreAIComponent(
     <Accordion>

@@ -6,12 +6,34 @@ argument-hint: 'e.g. "open a PR for my changes"'
 
 # Creating a pull request
 
+## PR scope and component verification
+
+Before preparing the PR, resolve its target and inspect the complete proposed state with read-only
+Git: committed changes from the merge base, staged and unstaged changes, and relevant untracked
+files.
+
+If that state changes a consumer-visible CoreAI component contract, load and follow
+[component-test](../component-test/SKILL.md) using `changed components` and provide the resolved PR
+target. Inspect implementation rather than relying on filenames. Skip component-test for unrelated
+documentation, tooling, configuration, application code, and behavior-preserving moves or renames.
+
+Treat the component-test handoff as authoritative; do not repeat its analysis or require tests when
+existing coverage is sufficient. A `Blocked` or `Unverified` result must not be presented as
+successful validation. Confirm the handoff still matches the final component-related PR state,
+rerunning it only after material changes, and include its status in the PR summary.
+
+Create-pr may invoke component-test. Component-test must not invoke create-pr or perform Git or PR
+write operations.
+
+## Documentation
+
 Before opening a PR, make sure the docs are up to date where relevant:
 
 - **Changelog** — if the change affects `@coreai-ds/react-components`, add an entry under `[Unreleased]` in [CHANGELOG.md](../../../packages/react-components/CHANGELOG.md).
 - **Variations from Fluent** — if the change adds, removes, or alters how a component differs from stock Fluent, update [VariationsFromFluent.mdx](../../../apps/storybook/src/stories/docs/VariationsFromFluent.mdx).
 
 Skip whichever doc doesn't apply (e.g. Storybook-only or docsite-only changes usually need neither).
+Component-test may inspect these files as supporting evidence but does not edit them. If its handoff reports a documentation mismatch, resolve it through this create-pr documentation workflow.
 
 ## Quality checks
 

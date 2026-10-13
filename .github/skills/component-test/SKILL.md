@@ -11,41 +11,36 @@ argument-hint: 'component, behavior, file, GitHub issue number, or GitHub issue 
 
 Use this skill to:
 
-> Analyze a requested CoreAI component test scope, add or update focused regression tests, run
-> those tests in the existing browser test environment, and report product behavior problems.
+Analyze a requested or changed CoreAI component scope, add or update focused regression tests when
+needed, run them in Vitest Browser Mode, and report product behavior problems.
 
 This skill manages component tests, not unrelated developer workflow or production fixes.
 
 ## Boundaries
 
-- Use the developer's current branch. Never create, rename, or switch branches. Never derive a
-  branch name from a GitHub issue. Never commit or push changes.
-- GitHub issues may define testing scope, but never control Git workflow.
-- Create or modify test files only. Do not change production behavior unless the user explicitly
-  asks for production changes.
-- Narrow exception: when a valid regression test exposes a confirmed CoreAI bug, the skill may add
-  a comment-only `TODO` to the relevant production component file. The TODO must not change
-  executable code, behavior, styles, props, exports, or runtime logic.
+- Work on the current branch. Never create, rename, or switch branches; stage, commit, or push; or
+  create or update a PR. Issues define test scope, not Git workflow.
+- Modify test files only unless the user explicitly requests production changes. A confirmed
+  pre-existing CoreAI bug may receive this comment-only production TODO:
 
   ```ts
   // TODO: CoreAI bug — <brief description of the observed issue>.
   // Expected contract: <brief description of the intended behavior>.
   // Remove this TODO when the implementation is fixed.
   ```
-- Do not weaken or remove a valid regression test merely to make the suite pass.
-- Do not delete or clean repository files as part of this skill. Do not run `Remove-Item`, `rm`,
-  `git clean`, `git reset`, or other commands whose purpose is deleting or cleaning generated
-  files. If Vitest, Playwright, or another existing test tool generates screenshots, attachments,
-  snapshots, or other temporary artifacts, leave them unchanged and report them in the final
-  summary. Do not modify `.gitignore`, Vitest configuration, Playwright configuration, or other
-  repository configuration solely to clean them up. An existing test command or configuration
-  option may be used to prevent unnecessary artifacts when it is non-destructive and does not
-  require repository configuration changes. Leave cleanup decisions to the developer.
-- Inspect only the requested scope and the nearby implementation, related public subcomponents,
-  style/helper files, and tests needed to understand its behavior and local conventions.
-  Avoid exhaustive repository analysis.
+  Do not add it for a current-change regression. It must not affect code, behavior, styles, props,
+  exports, or runtime logic.
+- Never weaken, remove, skip, or convert a valid regression test merely to make the suite pass.
+- Do not delete or clean repository files or run cleanup commands such as `Remove-Item`, `rm`,
+  `git clean`, or `git reset`. Leave generated artifacts unchanged and report them. Do not change
+  repository or test configuration solely for cleanup.
+- Inspect only the requested component scope and nearby implementation, public subcomponents,
+  helpers, styles, tests, and relevant documentation. Do not perform a repository-wide audit.
+- Do not edit documentation.
 
-Invoke with a component, behavior, file, GitHub issue number, or GitHub issue URL:
+## 1. Resolve scope
+
+Accepted scopes include:
 
 ```text
 /component-test <Component>
@@ -54,12 +49,13 @@ Invoke with a component, behavior, file, GitHub issue number, or GitHub issue UR
 /component-test <file>
 /component-test #<issue-number>
 /component-test https://github.com/microsoft/coreai-design-system/issues/<issue-number>
+/component-test changed components
 ```
 
-If invoked without a scope, ask the user what to cover. Do not choose components from the current
-editor, alphabetical order, or missing coverage alone.
+If no scope is supplied, ask the user. Do not infer one from the editor, alphabetical order, or
+missing coverage.
 
-When given an issue number, read it from the project repository:
+For an issue, read the legacy repository:
 
 ```sh
 gh issue view <issue-number> \
@@ -67,112 +63,85 @@ gh issue view <issue-number> \
   --json number,title,body,url
 ```
 
-For a full issue URL, pass the URL to `gh issue view` and request the same fields. Use the issue
-title, Scope or description, named components, requested test files, and completion criteria as the
-requested work scope. If the issue is unavailable or its scope is ambiguous, ask the user rather
-than guessing. Do not edit the issue as part of this workflow.
+For a full URL, pass it directly and request the same fields. Use the title, scope or description,
+named components, requested tests, and completion criteria as the scope. Verify issue claims against
+the current implementation; report stale criteria rather than encoding them. Ask if the issue is
+unavailable or ambiguous, and never edit it.
 
-## 1. Scope resolution
+For a named component or family, inspect its implementation, closely related public subcomponents,
+helpers, styles, and existing tests. Put new coverage in the owning component's test file when
+practical; a broader component may be a fixture only when it owns the behavior. For helpers and
+styles, test their consumer-visible result rather than implementation details.
 
-The requested scope may be a component name, component family, behavior, implementation file,
-GitHub issue number, or GitHub issue URL.
+### Changed-components mode
 
-When given a component name without additional detail, treat that component as the requested scope.
-Inspect the primary implementation, closely related public subcomponents, related style/helper files,
-existing tests for that component or family, and only the nearby code needed to understand its
-CoreAI-owned behavior.
-
-The user does not need to identify the exact implementation file or behavior in advance.
-
-When the requested name represents a component family, inspect closely related public subcomponents
-that share the same family or are clearly part of the same exported component API.
-
-Do not automatically create tests for every related file. Add permanent regression coverage only
-for meaningful CoreAI-owned, consumer-observable behavior.
-
-When the user names a specific component or subcomponent, place new permanent coverage in that
-component's own test file when practical. Broader family components may be used as fixtures to
-render or exercise the target, but do not place the new test in a sibling or parent component's
-test file unless the behavior is genuinely owned by that broader component.
-
-For style or helper files, test the consumer-visible behavior they produce rather than testing
-implementation details simply because the file exists.
+- Resolve the intended PR target from an explicit user value or reliable PR metadata. Never infer it
+  from the branch name or invent a base. If unresolved, ask for it and report committed branch scope
+  as unverified; staged, unstaged, and relevant untracked changes may be assessed separately.
+- With read-only Git, inspect the branch diff from the target merge base plus staged, unstaged, and
+  relevant untracked changes.
+- Use changed paths to locate affected contracts, then follow only directly relevant public
+  subcomponents, wrappers, style hooks, helpers, providers, and shared dependencies.
+- Implementation changes define scope. Documentation-only wording, moves, and unrelated tooling or
+  configuration do not require regression tests unless they expose a contract discrepancy.
+- A changed component file does not require a new test. Assess the consumer-visible CoreAI contract
+  and existing focused coverage, not filenames.
 
 ## 2. Analyze
 
-Read the requested component, issue, or scope. Inspect its implementation and relevant existing
-tests, following only the nearby code needed to identify the behavior's owning layer. Determine:
+For each affected behavior, determine:
 
 - what CoreAI implements, changes, transforms, defaults, or guarantees;
 - what arrives unchanged from Fluent UI, the browser, React, Griffel, or another dependency;
 - what consumers can observe; and
-- which CoreAI-owned behavior deserves permanent regression coverage.
+- whether a plausible CoreAI change could regress it and focused coverage already protects it.
 
-For a GitHub issue, extract the requested components, behavior, test files, and completion criteria.
-Treat the issue as requested scope, not unquestionable technical truth. Verify its claims against the
-current implementation and public API. Report stale or technically incorrect criteria instead of
-encoding them into tests.
+Implementation is primary evidence. Cross-check only relevant entries in
+`packages/coreai-fluentui-react/CHANGELOG.md` and the relevant component section of
+`apps/storybook/src/stories/docs/VariationsFromFluent.mdx`. Documentation supports intent but does
+not create scope or require tests by itself. Report implementation/documentation mismatches with
+both locations and interpretations; do not resolve them by editing docs or production code.
 
-Identify unchanged Fluent or native behavior that does not need duplicate permanent coverage. Add a
-test only when a plausible CoreAI change could cause a consumer-observable regression. Prefer tests
-that remain valid after behavior-preserving dependency refactors.
+Reuse a previous result only when the contract and relevant implementation, tests, helpers,
+providers, wrappers, style hooks, shared dependencies, and contract documentation have not
+materially changed.
 
-Treat implementation comments that explain an intentional dependency deviation, bug workaround,
-compatibility constraint, or replaced stock treatment as strong regression signals. Verify whether
-nearby tests already protect the described contract before adding coverage. Give these behaviors
-more weight than routine variants because removing an unusual-looking rule may silently restore the
-dependency behavior the rule was written to prevent.
-Choose assertion strength according to the contract. Use an exact value when CoreAI explicitly
-guarantees that value and it can be asserted without coupling to dependency internals. Use relative
-or invariant assertions when the contract is distinction, precedence, absence of an override, or
-theme-dependent behavior. Test important user-visible surface or interaction treatments directly;
-do not create one assertion per CSS declaration or duplicate a regression already covered in a
-nearby component test.
+Reuse passing focused coverage when it protects the contract. Update a test only when the contract
+intentionally changed, and add a test only when meaningful CoreAI-owned observable behavior lacks
+coverage. No test change is a valid outcome. Do not duplicate unchanged dependency behavior.
 
-When production logic selects among behavioral, state, or layout branches, make the tests branch-sensitive:
+Treat comments documenting dependency deviations, compatibility constraints, and bug workarounds as
+strong regression signals. Prefer behavior-preserving tests:
 
-- Identify the meaningful branch conditions and the consumer-visible outcome owned by each branch.
-- Cover each meaningful branch, but do not treat branch execution alone as sufficient coverage.
-- Give each case an assertion that would fail if that branch were accidentally replaced by another valid branch.
-  As a review check, mentally swap two branch implementations; if both tests could still pass, strengthen the
-  assertions.
-- Prefer assertions against the branch-defining contract itself. Avoid using only proxy signals such as element
-  counts, existence, track or child counts, generic non-equality, or whichever rendered value happens to be largest
-  or smallest when those signals do not uniquely prove the intended result.
-- When exact values are theme-dependent or dependency-owned, assert a stable relationship instead: ordering or
-  position, before/after state transition, precedence, presence or absence of a CoreAI override, accessible
-  behavior, callback result, or another consumer-observable invariant.
-- For interactive branches, verify the relevant transition when practical, and verify that non-interactive or
-  disabled branches do not receive the interactive transition.
+- Assert exact values only when CoreAI guarantees them; otherwise assert stable relationships,
+  precedence, absence of overrides, state transitions, accessible behavior, or callback results.
+- Make branch tests distinguish each meaningful branch. A swapped branch implementation must fail
+  at least one assertion; counts, existence, or generic non-equality alone are insufficient.
+- For interactions, verify the transition and that disabled or non-interactive branches do not
+  receive it.
+- Parameterized cases must retain branch-specific expected outcomes.
 
-Parameterized tests are encouraged when several branches share setup, but each parameterized case must retain a
-branch-specific expected outcome. Do not collapse distinct branches into a shared weak assertion merely to reduce
-test code.
-
-Avoid tests added merely for count or coverage, exhaustive dependency matrices, private
-implementation assertions, incidental DOM/classes, and unexplained snapshots.
+Avoid coverage-only tests, exhaustive dependency matrices, private implementation assertions,
+incidental DOM or classes, one assertion per CSS declaration, and unexplained snapshots.
 
 ## 3. Test
 
-Add or update focused permanent tests for the behavior identified in Analyze. Component tests are
-`src/**/*.test.tsx` files and run in Vitest Browser Mode through Playwright Chromium and
-`vitest-browser-react`.
+Component tests are `src/**/*.test.tsx` files run in Vitest Browser Mode through Playwright Chromium
+and `vitest-browser-react`.
 
 - Render with `renderCoreAIComponent` from `src/test-utils.tsx`.
-- Prefer browser locators and assertions based on roles, accessible names, labels, values, callbacks,
-  focus, and consumer-visible state.
-- When CoreAI behavior falls back to a dependency's default behavior, verify that the CoreAI
-  override is absent or disabled. Do not hard-code the dependency's current internal style values
-  unless CoreAI explicitly guarantees those values.
-- When asserting developer-facing warnings or errors, verify the meaningful contract rather than
-  the entire message text unless exact wording is itself part of the public API. Prefer a stable
-  substring or pattern that identifies the condition being reported.
-- Use `userEvent` from `vitest/browser` for relevant keyboard, pointer, and upload interactions.
+- Prefer browser locators and consumer-visible assertions: roles, names, labels, values, callbacks,
+  focus, and state.
+- For dependency fallback, assert the CoreAI override is absent or disabled rather than hard-coding
+  dependency internals.
+- For warnings and errors, assert the meaningful condition with stable text unless exact wording is
+  public API.
+- Use `userEvent` from `vitest/browser` for keyboard, pointer, and upload interactions.
 - Mock only the narrow external boundary with Vitest APIs; exercise CoreAI behavior normally.
 - Register `cleanup` with `afterEach`, restore mocks when used, and await asynchronous work.
 - Give tests behavioral, condition-specific names.
 
-Run each changed component test first:
+Run every added or updated test file and every existing focused file relied on as sufficient:
 
 ```sh
 npm --workspace packages/react-components test -- src/components/<Component>.test.tsx
@@ -186,88 +155,130 @@ npm --workspace packages/react-components run test:install-browser
 
 ## 4. Verify
 
-The focused Vitest Browser Mode run is browser runtime verification when the test renders the
-component and exercises the relevant behavior. Exercise enough rendered behavior in the test to
-establish the requested CoreAI contract. Do not create a second verification workflow when the test
-already proves the behavior.
+Focused Vitest Browser Mode is sufficient runtime verification when it exercises the requested
+contract. Do not add a second workflow.
 
-Do not automatically start Storybook or development servers, use Storybook MCP, navigate stories,
-dynamically mount the component in another runtime, run separate browser automation, or introduce
-additional verification infrastructure.
+Verification must match the current relevant branch and worktree state. Rerun affected focused tests
+after material changes to the contract, implementation, tests, helpers, providers, wrappers, style
+hooks, shared dependencies, or contract documentation. Unrelated edits and wording, formatting, or
+cleanup changes do not make it stale.
 
-Use Storybook or interactive browser verification only when the user explicitly requests it or the
-behavior cannot reasonably be verified in Vitest Browser Mode. Explain why before doing expensive
-setup. Prefer the smallest method that provides meaningful confidence.
-
-## 5. Final validation
-
-Run the broader package suite when multiple component test files changed, shared test utilities changed, or the tested behavior crosses shared integration boundaries.
+For shared changes, identify plausibly affected contracts and run their focused tests. Run the
+broader package suite only when multiple component test files or shared test utilities changed, or
+the behavior crosses shared integration boundaries:
 
 ```sh
 npm --workspace packages/react-components test
 ```
 
-Run type checking only when relevant to the changed test types or requested scope:
+Run type checking only when relevant:
 
 ```sh
 npm --workspace packages/react-components run type-check
 ```
 
-Do not run unrelated tools or environments.
+Do not run unrelated environments or automatically start Storybook, development servers, Storybook
+MCP, or separate browser automation. Use interactive verification only when requested or Vitest
+cannot reasonably prove the behavior, and explain why first.
+
+## 5. Handoff
+
+End every invocation with one concise handoff and no duplicate summary. Assign exactly one status:
+
+- **Verified** — required contracts were assessed; current required verification passed; no
+  current-change regression or unverified required scope remains. A confirmed pre-existing bug does
+  not automatically fail current-change validation.
+- **Blocked** — a regression introduced by the current branch or proposed changes remains.
+- **Unverified** — required scope could not be verified, verification is stale and cannot be rerun,
+  the PR target is unresolved, or a failure remains uncertain.
+
+The status and supporting sections must agree.
+
+```text
+## Component-test handoff
+
+### Status
+- **<Verified | Blocked | Unverified>** — <brief reason>
+
+### Contracts assessed
+- <consumer-visible CoreAI-owned contract> — <why CoreAI owns it>
+- Boundaries: <affected components or nearby integration boundaries>
+
+### Coverage
+- Reused: <existing tests or none>
+- Changed: <tests added or updated, or none>
+- Omitted: <intentional omissions and why, or none>
+
+### Verification
+- <command> — <focused or package verification result>
+- Reused verification: <result and why it remained fresh, or none>
+- Unverified: <relevant scope, including an undetermined PR target, or none>
+
+### Documentation
+- <relevant CHANGELOG.md or VariationsFromFluent.mdx evidence and whether it supports the contract>
+- Mismatches: <implementation/documentation disagreement with locations and interpretations, or none>
+
+### Issues
+- Known bugs: <pre-existing or pending known bugs, evidence, test state, and next action, or none>
+- Blockers: <introduced regressions with explicit blocker status, or none>
+- Uncertain: <known facts, classification limits, and unverified scope, or none>
+```
+
+Keep entries compact and use `None` for empty sections. Include affected files, coverage decisions,
+commands, results, target limitations, documentation evidence, and issues where relevant.
+
+When no test edits are needed, state explicitly:
+
+Existing regression coverage is sufficient. Focused tests passed. No new tests were needed.
+
+Report only the requested scope. The handoff may say it is ready for PR preparation but must not
+perform PR, Git write, or documentation actions.
 
 ## 6. Failure handling
 
-When a test fails, do not immediately change the test or production code. Determine whether the
-failure most likely belongs to CoreAI, Fluent UI, another dependency, browser behavior, test
-infrastructure, or an incorrect or stale expectation.
+Do not immediately change a failing test or production code. Determine whether ownership lies with
+CoreAI, a dependency, browser behavior, infrastructure, or a stale expectation. Correct an invalid
+expectation; otherwise use read-only diff and history evidence to classify the intended-contract
+failure.
 
-If the expectation is incorrect, fix the test. When a failing regression test represents a
-confirmed CoreAI bug:
+### Pre-existing known CoreAI bug
 
-1. Confirm that the expectation represents an intended CoreAI contract.
-2. Trace the behavior enough to identify the likely owning layer.
-3. Leave production behavior unchanged.
-4. Add a comment-only TODO to the relevant component implementation, following the Boundaries
-   requirements.
-5. For a confirmed product bug with a deterministic failing regression test, preserve the active test using `test.fails(...)` so the behavior continues to be exercised without blocking CI.
-6. Add a short comment immediately above the `test.fails` explaining the known bug and why failure is currently expected.
-7. Use `test.todo(...)` only when the regression test cannot currently be executed reliably or still needs implementation.
-8. When the underlying bug is fixed, remove `.fails` and verify the regression test passes as a normal test.
-9. Report the known bug in the final summary.
+Use only when the intended contract is confirmed and evidence proves the bug predates current
+changes. Leave behavior unchanged; the boundary's comment-only TODO may be added.
 
-The pending test must describe the correct expected behavior, not the current broken behavior.
+For a deterministic executable regression, preserve the correct expectation with `test.fails(...)`
+and a short preceding explanation. Do not use `test.todo` to keep CI green. When fixed, remove
+`.fails` and verify normal passage.
+
+Report intended and observed behavior, failing test, pre-existing evidence, ownership and location,
+production/TODO state, `test.fails` coverage, and next action.
+
+### Pending known bug
+
+Use `test.todo(...)` only when the intended test cannot run reliably or still needs implementation.
+Describe the correct intended behavior and report why it is pending, ownership, location, and next
+action.
 
 ```ts
 // TODO: Known CoreAI bug — <brief reason this regression case is pending>.
 test.todo('<describes the intended CoreAI behavior>');
 ```
 
-Do not weaken the expected behavior just to make the test pass, delete the regression case, convert
-uncertain failures into TODOs, or use `test.skip` when `test.todo` is appropriate. Do not change
-production behavior unless the user explicitly asks.
+### Regression introduced by current changes
 
-Include in the report:
+Preserve the correct failing expectation and report `Blocked`. Do not weaken, delete, skip, or
+convert it to `test.fails` or `test.todo`. Leave production unchanged unless explicitly requested.
+A green suite produced by converting the regression is not successful validation.
 
-- component;
-- intended behavior;
-- current observed behavior;
-- failing test or reproduction;
-- likely ownership: CoreAI, Fluent UI, browser, dependency, test infrastructure, or test expectation;
-- relevant implementation location when known;
-- confirmation that production behavior was not changed;
-- confirmation that a component TODO was added;
-- confirmation that a `test.todo` records the intended regression case; and
-- recommended next action.
+Report intended and observed behavior, reproduction, current-change evidence, ownership and
+location, unchanged production state, blocker status, and required next action.
 
-Clearly state when the test cannot pass without a production-code change. Do not fix that production
-implementation unless the user explicitly expands the request to include it.
+### Uncertain failure
 
-Example final summary:
+Report `Unverified`, including known facts, missing evidence, and affected scope. Do not convert it
+to `test.fails`, `test.todo`, or `test.skip`.
 
-> Known CoreAI bug found in `<Component>`: `<brief description of the observed issue>`. Production
-> behavior was not changed. A TODO was added to the relevant component implementation, and the
-> intended regression case is recorded as `test.todo` so the expected contract remains documented
-> while CI stays green.
+### Passing regression coverage
 
-Use the actual component name, observed behavior, intended contract, likely ownership, and
-recommended next action discovered during the current invocation.
+Report passing coverage only when the intended contract passes normally. If production must change,
+state that clearly and do not change it unless the user expands the request.
