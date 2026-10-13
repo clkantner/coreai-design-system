@@ -8,22 +8,12 @@ argument-hint: 'e.g. "open a PR for my changes"'
 
 ## PR scope and component verification
 
-Before preparing the PR, resolve its target and inspect the complete proposed state with read-only
-Git: committed changes from the merge base, staged and unstaged changes, and relevant untracked
-files.
+Before opening the PR, resolve its target and inspect all proposed changes, including staged,
+unstaged, and relevant untracked files.
 
-If that state changes a consumer-visible CoreAI component contract, load and follow
-[component-test](../component-test/SKILL.md) using `changed components` and provide the resolved PR
-target. Inspect implementation rather than relying on filenames. Skip component-test for unrelated
-documentation, tooling, configuration, application code, and behavior-preserving moves or renames.
-
-Treat the component-test handoff as authoritative; do not repeat its analysis or require tests when
-existing coverage is sufficient. A `Blocked` or `Unverified` result must not be presented as
-successful validation. Confirm the handoff still matches the final component-related PR state,
-rerunning it only after material changes, and include its status in the PR summary.
-
-Create-pr may invoke component-test. Component-test must not invoke create-pr or perform Git or PR
-write operations.
+For consumer-visible CoreAI component changes, follow
+[component-test](../component-test/SKILL.md) in `changed components` mode. Include its status in the
+PR summary, and do not open the PR if verification is `Blocked` or `Unverified`.
 
 ## Documentation
 
@@ -37,7 +27,7 @@ Component-test may inspect these files as supporting evidence but does not edit 
 
 ## Quality checks
 
-Before opening the PR, run the repository formatter and linter from the workspace root:
+Before opening the PR, run this repository's formatter and linter from the workspace root:
 
 ```sh
 npm run format

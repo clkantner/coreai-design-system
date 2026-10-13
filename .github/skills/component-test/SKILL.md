@@ -55,7 +55,7 @@ Accepted scopes include:
 If no scope is supplied, ask the user. Do not infer one from the editor, alphabetical order, or
 missing coverage.
 
-For an issue, read the legacy repository:
+For an issue number, read the issue from this repository:
 
 ```sh
 gh issue view <issue-number> \
@@ -97,7 +97,7 @@ For each affected behavior, determine:
 - whether a plausible CoreAI change could regress it and focused coverage already protects it.
 
 Implementation is primary evidence. Cross-check only relevant entries in
-`packages/coreai-fluentui-react/CHANGELOG.md` and the relevant component section of
+`packages/react-components/CHANGELOG.md` and the relevant component section of
 `apps/storybook/src/stories/docs/VariationsFromFluent.mdx`. Documentation supports intent but does
 not create scope or require tests by itself. Report implementation/documentation mismatches with
 both locations and interpretations; do not resolve them by editing docs or production code.
