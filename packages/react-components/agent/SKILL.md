@@ -119,9 +119,8 @@ Prefer these over guessing from a prop table alone — pass the id to `docs-show
 
 ## If the CoreAI MCP server is unreachable
 
-The hosted server requires an interactive Microsoft sign-in, which an agent cannot complete
-unattended. The local Storybook server does not require that sign-in. Do not silently fall back
-and guess; check the selected server first:
+The public Storybook host and MCP endpoint require no sign-in or access token.
+Do not silently fall back and guess; check the selected server first:
 
 1. **Missing from the client's MCP config?** Tell the user the CoreAI documentation server is needed,
    show them the destination path and configuration block, and ask for confirmation before
@@ -132,9 +131,9 @@ and guess; check the selected server first:
    [README.md](https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/README.md),
    so it's available even with no network access to Storybook (e.g. read straight from
    `node_modules/@coreai-ds/react-components/README.md`).
-2. **Hosted server configured but not signed in?** Ask the user to complete the sign-in now
-   (trigger it, or tell them which client prompt to complete) before you proceed.
-   For the local server, check that Storybook is running.
+2. **Server configured but unavailable?** Check the URL and service availability.
+   For the local server, check that Storybook is running. A hosted login redirect indicates
+   outdated hosting configuration; contact the owner rather than configuring tokens.
 3. **Still unreachable after that** (e.g. the documentation service is unavailable)? Only now fall
    back: use this file plus the package's own README and CHANGELOG — both ship in the installed
    package (`node_modules/@coreai-ds/react-components/README.md` and `.../CHANGELOG.md`; on GitHub:
@@ -143,7 +142,7 @@ and guess; check the selected server first:
    as your source of truth for that session, and tell the user live docs weren't available so
    they know your answers may be less precise.
 4. If the blocker is documentation-service access, ask the user to contact that
-   service's owner. Documentation authentication is separate from npm consumption:
+   service's owner. Documentation-service availability is separate from npm consumption:
    the approved public npm package requires no Azure feed membership or token.
    Never ask for or configure private-feed credentials to install a public package.
 

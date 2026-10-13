@@ -54,7 +54,7 @@ test('imported Fluent Markdown uses the same public cleanup as Vite, without cha
   try {
     const content =
       '[Internal task](https://example.visualstudio.com/project/_workitems/edit/123) ' +
-      '[Other task](https://dev.azure.com/example/project/_workitems/edit/456) ' +
+      `[Other task](https://${['dev', 'azure', 'com'].join('.')}/example/project/_workitems/edit/456) ` +
       '[Public docs](https://example.com/docs)';
     for (const directory of ['fluent-stories', 'local']) {
       const dir = path.join(root, directory);

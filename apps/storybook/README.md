@@ -85,7 +85,7 @@ design file's existing permissions; users may need to sign in or request access.
 This design system ships a **Model Context Protocol (MCP)** server so AI agents read accurate,
 CoreAI-specific component knowledge (props, example stories, templates) instead of guessing prop
 names or pulling raw upstream Fluent APIs. This section documents how the MCP **content** is
-authored. For how the hosted server is **deployed and authenticated**, see
+authored. For how the public hosted server is **deployed**, see
 [docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-azure-app-service--entra). For
 **connection setup** (`mcp.json`, server URLs), see [Docs/MCP Setup](src/stories/docs/MCPSetup.mdx).
 For the **behavioral rules** an agent should follow (which server to prefer, component-ID quirks,
@@ -609,6 +609,6 @@ next regeneration. If the content is wrong, fix `{Name}.tsx` or the generator sc
 ## Deployment
 
 This app deploys to Azure App Service (Storybook + the hosted MCP at `/mcp`), publishing to
-https://coreai-ds-storybook.azurewebsites.net. The pipeline, hosting, and MCP authentication are
+https://coreai-ds-storybook.azurewebsites.net. The pipeline and public hosting are
 documented in
 [docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-azure-app-service--entra).

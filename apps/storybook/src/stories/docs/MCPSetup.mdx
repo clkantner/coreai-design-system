@@ -17,8 +17,9 @@ example stories, templates — instead of guessing prop names or reaching for th
 - **`coreai-ds-docs`** — `https://coreai-ds-storybook.azurewebsites.net/mcp` — **Primary.**
   Hosted, always-on CoreAI component docs (props, stories, templates).
 
-The hosted server is an `http`-type MCP server behind a Microsoft sign-in.
-No VPN, no headers, no secrets.
+The production host is a public `http`-type MCP server.
+No sign-in, authorization headers, or access tokens are required. Existing remote hosting
+must be migrated to this configuration before deployment; local changes do not alter Azure.
 
 > Connection setup only — for agent behavior see [Agent Skill](?path=/docs/docs-agent-skill--docs)
 > (`agent/SKILL.md` in the package).
@@ -31,7 +32,7 @@ Add the server to your MCP client config (VS Code: `.vscode/mcp.json`; Copilot C
 ```json
 {
   "servers": {
-    // CoreAI Design System MCP - requires Microsoft Entra OAuth signin
+    // Public CoreAI Design System MCP
     "coreai-ds-docs": {
       "type": "http",
       "url": "https://coreai-ds-storybook.azurewebsites.net/mcp"
@@ -41,13 +42,7 @@ Add the server to your MCP client config (VS Code: `.vscode/mcp.json`; Copilot C
 }
 ```
 
-Just the `url` — no headers, no secrets. Your client opens a Microsoft sign-in in your browser
-when it first connects.
-
-> **"Need admin approval" on first sign-in?** This is a one-time tenant consent issue, not
-> something you can self-serve from the client config — see the VS Code section of
-> [`docs/CI-CD-SETUP.md`](https://github.com/microsoft/coreai-design-system/blob/main/docs/CI-CD-SETUP.md)
-> if it persists.
+Just the `url` — no headers, secrets, or token setup.
 
 ## Toolsets
 

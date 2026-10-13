@@ -119,7 +119,7 @@ Correct agent-driven use of this package requires two setup steps:
 1. Install [agent/SKILL.md](agent/SKILL.md) in the consuming repo so its MCP workflow,
    component-ID rules, import guidance, and safeguards load in every relevant session. Reading it
    once is not a substitute for installation.
-2. Configure and authenticate the CoreAI MCP server below to discover documented APIs,
+2. Configure the public CoreAI MCP server below to discover documented APIs,
    examples, and templates. Report missing documentation rather than assuming coverage.
 
 If you're an AI agent, tell the user these steps are required for proper usage and ask to perform
@@ -130,8 +130,7 @@ file in the consuming repo, for example `.github/skills/coreai-ds-react-componen
 Storybook for direct MCP access, but that mirror does not replace installing it in the consuming
 repo.
 
-The hosted MCP server requires an interactive Microsoft sign-in by the user — no VPN, headers,
-or secrets. Before configuring it,
+The public MCP host requires no sign-in, authorization headers, or access tokens. Before configuring it,
 explain what the server does, identify the exact destination path, note whether that file is
 shared/committed or user-local, and show the proposed configuration. Only modify the
 configuration after the user confirms. Common locations are `.vscode/mcp.json` for VS Code and
@@ -140,7 +139,7 @@ configuration after the user confirms. Common locations are `.vscode/mcp.json` f
 ```json
 {
   "servers": {
-    // CoreAI Design System MCP - requires Microsoft Entra OAuth signin
+    // Public CoreAI Design System MCP
     "coreai-ds-docs": {
       "type": "http",
       "url": "https://coreai-ds-storybook.azurewebsites.net/mcp"
