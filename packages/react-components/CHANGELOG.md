@@ -26,6 +26,10 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 
 ## [Unreleased]
 
+### Added
+
+- Added `Illicon`, which converts filled Fluent icons into size-aware dotted illustrations while preserving aspect ratio and inheriting `currentColor`.
+
 ### Breaking
 
 - The package is renamed from `@coreai/fluentui-react` to `@coreai-ds/react-components`; update package dependencies, imports, and the npm registry scope. The workspace directory is now `packages/react-components`.

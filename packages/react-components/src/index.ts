@@ -62,6 +62,8 @@ export { DataGridCell, type DataGridCellProps } from './components/DataGridCell.
 
 export { FileUpload, type FileUploadProps, type FileUploadState } from './components/FileUpload.js';
 
+export { Illicon, type IlliconProps, type IlliconSize } from './components/Illicon.js';
+
 // Deprecated Fluent `Nav` primitives. Explicit exports preserve CoreAI's
 // deprecation metadata over the Fluent star export above.
 export {
