@@ -417,16 +417,19 @@ an implementation decision, not something the pilot has resolved.
 
 > **Adding, removing, or renaming a story or changing component metadata requires restarting
 > through `npm run storybook`**, which regenerates the inventory and owners. Running
-> `storybook dev` directly does not run preparation. A cold live `docs-list` request with every
-> story ID can take over a minute while documentation services initialize; focused live tests
-> allow up to three minutes. Use `withStoryIds: false` when the full story index is unnecessary.
+> `storybook dev` directly does not run preparation. A cold live `docs-list` request initializes
+> documentation services; focused live tests allow up to three minutes. Use
+> `withStoryIds: false` when the full story index is unnecessary.
 
-**Current build blocker:** Storybook 10.6.1 starts a fixed 120-second timer for each queued
-docgen-worker request. With the restored subcomponent catalog, local full builds can exceed
-that limit while Vite builds the preview concurrently. An isolated worker extracted the whole
-catalog successfully in about 117 seconds, and focused live MCP regressions pass, but the
-production build remains blocked by this timeout. Do not treat source type-checks or live tests
-as production-build approval; resolve and revalidate the snapshot build before deployment.
+Generated owners have a dedicated `tsconfig.json` beside them, extending the app configuration
+and explicitly including `*.stories.js`. TypeScript's default glob traversal excludes hidden
+directories, so the app's `.storybook/**/*` glob does not include `.storybook/.cache` owners.
+Without this configuration, Storybook uses an inferred project, adds owners one at a time,
+and repeatedly updates its TypeScript program. This caused the docgen-worker queue timeout.
+The dedicated configuration includes all owners up front and preserves CoreAI source mappings.
+No timeout change or custom docgen worker is needed; normal production builds pass.
+A full isolated worker probe fell from about 117 seconds to 11.5 seconds for the same
+86 component/template groups. These measurements depend on the machine and are not a timing SLA.
 
 Local integration validation covers the real Accordion, Button, DataGrid, Combobox, and Dropdown
 IDs through built and live MCP. Browser checks verify local and upstream examples, Accordion

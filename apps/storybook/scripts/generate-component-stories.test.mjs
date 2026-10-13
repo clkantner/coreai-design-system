@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import ts from 'typescript';
 import { loadCsf } from 'storybook/internal/csf-tools';
 import { createStoryInventory } from './story-inventory.mjs';
 import {
@@ -72,6 +73,30 @@ test('generated index names match the inventory, including aliased exports, with
     makeTitle: (title) => title,
   }).parse().indexInputs;
   assert.deepEqual(await indexer.createIndex(localFile), original);
+});
+
+test('generated owners belong to one configured TypeScript project with CoreAI source mapping', async () => {
+  const inventory = await generateComponentStories();
+  const configFile = path.join(generatedRoot, 'tsconfig.json');
+  const config = ts.readConfigFile(configFile, ts.sys.readFile);
+  assert.equal(config.error, undefined);
+  const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, generatedRoot);
+  assert.deepEqual(parsed.errors, []);
+  const roots = new Set(parsed.fileNames.map((file) => path.resolve(file)));
+  for (const component of inventory.components) {
+    assert.ok(roots.has(path.join(generatedRoot, `${component.id}.stories.js`)), component.id);
+  }
+  assert.equal(parsed.options.allowJs, true);
+  const resolved = ts.resolveModuleName(
+    '@coreai-ds/react-components',
+    path.join(generatedRoot, 'components-accordion.stories.js'),
+    parsed.options,
+    ts.sys,
+  );
+  assert.equal(
+    path.resolve(resolved.resolvedModule.resolvedFileName),
+    path.resolve(appRoot, '..', '..', 'packages', 'react-components', 'src', 'index.ts'),
+  );
 });
 
 test('component fields fall back independently and preserve import aliases', async () => {

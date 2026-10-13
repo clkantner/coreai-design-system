@@ -167,6 +167,17 @@ export async function generateComponentStories({
     }),
   );
   await fs.mkdir(outputRoot, { recursive: true });
+  await fs.writeFile(
+    path.join(outputRoot, 'tsconfig.json'),
+    `${JSON.stringify(
+      {
+        extends: importPath(outputRoot, path.join(root, 'tsconfig.json')),
+        include: ['*.stories.js'],
+      },
+      null,
+      2,
+    )}\n`,
+  );
   const expected = new Set(outputs.map(([name]) => name));
   for (const file of await fs.readdir(outputRoot)) {
     if (file.endsWith('.stories.js') && !expected.has(file)) {
