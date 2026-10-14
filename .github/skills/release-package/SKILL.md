@@ -1,6 +1,6 @@
 ---
 name: release-package
-description: 'Prepare or release @coreai-ds/react-components on public npm. Read RELEASING.md first; publication requires explicit OSS approval, protected environment approval, and manual confirmation.'
+description: 'Prepare or release @coreai-ds/react-components on public npm. Read RELEASING.md first'
 ---
 
 # Releasing @coreai-ds/react-components

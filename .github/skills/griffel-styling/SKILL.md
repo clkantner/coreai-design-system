@@ -1,6 +1,6 @@
 ---
 name: griffel-styling
-description: 'Author and debug Fluent UI v9 styles built on the Griffel CSS-in-JS engine. Use when writing or fixing makeStyles, makeResetStyles, mergeClasses, shorthands, tokens, custom style hooks (useXStyles_unstable / CustomStyleHooksProvider_unstable), RendererProvider, CSS Modules cascade layers, Griffel patches, RTL/@noflip handling, build-time style transforms, or when diagnosing override-precedence and class-collision bugs.'
+description: 'Author and debug Fluent UI v9 styles built on the Griffel CSS-in-JS engine. Use when writing or fixing makeStyles, makeResetStyles, mergeClasses, shorthands, tokens, custom style hooks (useXStyles_unstable / CustomStyleHooksProvider_unstable), RendererProvider, CSS Modules cascade layers, Griffel patches, RTL/@noflip handling, build-time style transforms, or when diagnosing override-precedence and class-collision bugs. IGNORE and DO NOT use when editing ./apps/prototype'
 ---
 
 Griffel is Fluent UI v9's CSS-in-JS engine. Read the relevant doc below before writing or debugging `makeStyles`/`mergeClasses` code — do not guess at API shape or merge semantics.
