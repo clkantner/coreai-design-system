@@ -1,2 +1,2 @@
-build/
-.react-router/
+/build/
+/.react-router/
