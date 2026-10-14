@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import type { TableColumnDefinition } from '@coreai-ds/react-components';
+import type { DataGridProps, TableColumnDefinition } from '@coreai-ds/react-components';
 import {
   Button,
   CardHeader,
@@ -73,6 +73,10 @@ export default function Home() {
   const { data: homeData } = useHomeData();
   const [workFilter, setWorkFilter] = useState<WorkFilter>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortState, setSortState] = useState<NonNullable<DataGridProps['sortState']>>({
+    sortColumn: 'lastViewed',
+    sortDirection: 'descending',
+  });
   const endpoints = homeData?.endpoints ?? [];
   const modelActions = homeData?.modelActions ?? [];
   const models = homeData?.models ?? [];
@@ -80,9 +84,14 @@ export default function Home() {
   const filteredWork = recentWork.filter(
     (item) => workFilter === 'all' || item.type.toLowerCase() === workFilter.slice(0, -1),
   );
+  const sortColumn = recentWorkColumns.find((column) => column.columnId === sortState.sortColumn);
+  const sortedWork = [...filteredWork].sort((first, second) => {
+    const direction = sortState.sortDirection === 'ascending' ? 1 : -1;
+    return sortColumn ? sortColumn.compare(first, second) * direction : 0;
+  });
   const totalPages = Math.max(1, Math.ceil(filteredWork.length / RECENT_WORK_PAGE_SIZE));
   const pageStartIndex = (currentPage - 1) * RECENT_WORK_PAGE_SIZE;
-  const paginatedWork = filteredWork.slice(pageStartIndex, pageStartIndex + RECENT_WORK_PAGE_SIZE);
+  const paginatedWork = sortedWork.slice(pageStartIndex, pageStartIndex + RECENT_WORK_PAGE_SIZE);
   const rangeStart = filteredWork.length === 0 ? 0 : pageStartIndex + 1;
   const rangeEnd = Math.min(pageStartIndex + RECENT_WORK_PAGE_SIZE, filteredWork.length);
 
@@ -277,16 +286,17 @@ export default function Home() {
               },
               endpoint: { flexBasis: 120, flexGrow: 0, flexShrink: 0 },
             }}
-            defaultSortState={{
-              sortColumn: 'lastViewed',
-              sortDirection: 'descending',
-            }}
             focusMode="composite"
             getRowId={(item) => item.name}
             items={paginatedWork}
             noNativeElements={true}
+            onSortChange={(_event, nextSortState) => {
+              setSortState(nextSortState);
+              setCurrentPage(1);
+            }}
             size="small"
             sortable={true}
+            sortState={sortState}
           >
             <DataGridHeader>
               <DataGridRow>
