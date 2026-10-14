@@ -176,11 +176,12 @@ For more details, see the storybook for each component
 - Requires accessible name via `aria-label` or `aria-labelledby`.
 - When `info` is primitive text/number, mirrors that content into the popover surface `aria-label` for better screen-reader announcement.
 
-## `AccordionHeader`
+## Accordion
 
-**Files:** `src/components/Accordion.styles.ts`, `src/styleHooks.ts`
+**Files:** `src/components/Accordion.styles.ts`, `src/contexts/styleHooks.ts`
 
-- Style-hook override for header button layout and interaction styling (grid layouts for icon/expand-icon arrangements, hover/pressed visuals).
+- Style-hook override for header button layout and interaction styling (grid layouts for icon/expand-icon arrangements, a vertically centered non-stretching expand icon, and hover/pressed visuals).
+- `AccordionHeader` button padding and `AccordionPanel` margin are reset to `0` so accordion content aligns with surrounding content.
 
 ## Tag family (`Tag`, `InteractionTagPrimary`, `InteractionTagSecondary`)
 
