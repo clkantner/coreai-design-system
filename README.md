@@ -39,7 +39,7 @@ Use the links below to explore the documentation, Storybook, and read-only MCP e
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to set up the repository and submit changes. By
 participating in this project, you agree to follow the
-[Microsoft Open Source Code of Conduct](CODE_OF_CONDUCT.md).
+[Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct).
 
 Use [GitHub Issues](https://github.com/microsoft/coreai-design-system/issues) for bugs, feature
 requests, and usage questions. See [SUPPORT.md](SUPPORT.md) for the support policy and
