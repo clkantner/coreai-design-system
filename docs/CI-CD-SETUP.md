@@ -7,13 +7,10 @@ dependency automation. Publishing has a separate approval process documented in
 
 ## Package consumption in CI
 
-The package targets public npm. Once an approved public release is published,
-consumers can install `@coreai-ds/react-components` from
-`https://registry.npmjs.org/`; no Azure Artifacts credential provider, scoped
-Azure registry mapping, PAT, or Azure identity is needed for public releases.
-Remove legacy `@coreai-ds:registry` mappings when moving to the public package.
-Until the first approved public release exists, do not assume a specific version
-is available on npm. This migration itself does not publish anything.
+Consumers install `@coreai-ds/react-components` from npm at
+`https://registry.npmjs.org/`.
+Check npm for available versions. Maintainer publication remains a separate
+approval-gated operation.
 
 For this repository, run `npm ci` with Node.js 22 at the root. The docsite and
 Storybook use the local package workspace, not a separately published artifact.
@@ -39,7 +36,7 @@ Before enabling deployment, an administrator must:
    This must be a repository variable, not just an environment variable: the
    workflow evaluates it before starting environment jobs.
 
-Deploying these existing Entra-authenticated sites does not publish an npm
+Deploying these sites does not publish an npm
 package or make the sites public. It does not require `OSS_RELEASE_APPROVED`.
 Keep `OSS_RELEASE_APPROVED` and `NPM_PUBLISH_ENABLED` absent/false until the
 separate package-release approvals are complete.

@@ -8,28 +8,23 @@ and re-exports that API. In most imports, replacing the `@fluentui` scope with
 
 ## Install
 
-Public npm distribution is being prepared; these instructions apply after an
-approved public release. Preparation does not itself publish a package.
+Install the package from npm:
 
 ```bash
 npm install @coreai-ds/react-components
 npm install @fluentui/react-components @fluentui/react-icons # peer dependencies as needed
 ```
 
-The public package uses <https://registry.npmjs.org/> and needs **no consumer
-authentication**, Azure feed access, credential provider, or token. If migrating
-from Azure Artifacts, remove obsolete `@coreai-ds:registry` routing and `always-auth`
-settings from your project/user `.npmrc` (preserve settings for unrelated private
-packages). With a custom default registry, explicitly route this scope:
+If your project uses a custom default registry, route the package scope to npm
+in your `.npmrc`:
 
 ```ini
 @coreai-ds:registry=https://registry.npmjs.org/
 ```
 
-Source, issues, and pull requests target
+Source, issues, and pull requests are available at
 [microsoft/coreai-design-system](https://github.com/microsoft/coreai-design-system).
-Publisher approval and credentials are separate from consumer installation; see
-[RELEASING.md](RELEASING.md).
+For maintainer publication instructions, see [RELEASING.md](RELEASING.md).
 
 > Works with **React 18 and 19** (`react`/`react-dom` peer range `>=16.14.0 <20.0.0`, matching Fluent UI v9).
 
@@ -105,8 +100,6 @@ hosted Aptos must be Microsoft-hosted, obtain the fonts under appropriate terms,
 and provide their own licensed font assets and CSS. The repository's optional
 local font setup is for authorized local previews, not a license to redistribute;
 see the [font setup and licensing guide](src/fonts/README.md).
-Existing imports of `fonts/fonts.css` remain valid, but no longer download font
-files. Remove any deep imports of bundled `.ttf` files.
 
 ### Overriding styles with CSS Modules or other style systems
 
@@ -119,7 +112,7 @@ Correct agent-driven use of this package requires two setup steps:
 1. Install [agent/SKILL.md](agent/SKILL.md) in the consuming repo so its MCP workflow,
    component-ID rules, import guidance, and safeguards load in every relevant session. Reading it
    once is not a substitute for installation.
-2. Configure the public CoreAI MCP server below to discover documented APIs,
+2. Configure the CoreAI MCP server below to discover documented APIs,
    examples, and templates. Report missing documentation rather than assuming coverage.
 
 If you're an AI agent, tell the user these steps are required for proper usage and ask to perform
@@ -130,8 +123,7 @@ file in the consuming repo, for example `.github/skills/coreai-ds-react-componen
 Storybook for direct MCP access, but that mirror does not replace installing it in the consuming
 repo.
 
-The public MCP host requires no sign-in, authorization headers, or access tokens. Before configuring it,
-explain what the server does, identify the exact destination path, note whether that file is
+Before configuring the MCP, explain what the server does, identify the exact destination path, note whether that file is
 shared/committed or user-local, and show the proposed configuration. Only modify the
 configuration after the user confirms. Common locations are `.vscode/mcp.json` for VS Code and
 `~/.copilot/mcp-config.json` for Copilot CLI:
@@ -139,7 +131,7 @@ configuration after the user confirms. Common locations are `.vscode/mcp.json` f
 ```json
 {
   "servers": {
-    // Public CoreAI Design System MCP
+    // CoreAI Design System MCP
     "coreai-ds-docs": {
       "type": "http",
       "url": "https://coreai-ds-storybook.azurewebsites.net/mcp"
@@ -148,6 +140,11 @@ configuration after the user confirms. Common locations are `.vscode/mcp.json` f
   "inputs": []
 }
 ```
+
+The MCP returns read-only documentation, including selected Fluent examples and CoreAI
+overrides. It does not access your project or execute the returned code. See
+[MCP scope, safety, and data handling](../../apps/storybook/src/stories/docs/MCPSetup.mdx#scope-safety-and-data-handling)
+before connecting. Review and test examples before using them in your application.
 
 ## eslint
 
@@ -261,7 +258,7 @@ once against the latest releases and once against the peer minimums.
 
 ## Releasing
 
-Public npm publication is manual and disabled until recorded open-source approval,
+npm publication is manual and disabled until recorded open-source approval,
 package/access review, and protected-environment setup are complete. Nothing is
 published on merge. See [RELEASING.md](RELEASING.md) for the approval gates, publisher
 setup, tarball verification, and release process.

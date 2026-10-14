@@ -1,6 +1,6 @@
 ---
 name: release-package
-description: 'Prepare or release @coreai-ds/react-components on public npm. Read RELEASING.md first; publication requires explicit OSS approval, protected environment approval, and manual confirmation.'
+description: 'Prepare or release @coreai-ds/react-components on npm. Read RELEASING.md first; publication requires explicit OSS approval, protected environment approval, and manual confirmation.'
 ---
 
 # Releasing @coreai-ds/react-components
@@ -12,7 +12,7 @@ truth for approval, versioning, packaging checks, and manual publishing.
 - Preparation alone never authorizes publishing, pushes, version bumps, tags,
   repository creation or visibility changes. Do not enable release gates without
   recorded legal/open-source and package/access approval.
-- Target only `microsoft/coreai-design-system`, public npm, and approved `main`.
+- Target only `microsoft/coreai-design-system`, npm, and approved `main`.
   The manual workflow requires repository variables `OSS_RELEASE_APPROVED=true`
   and `NPM_PUBLISH_ENABLED=true`, a protected `npm-production` environment and
   exact `publish @coreai-ds/react-components@VERSION` confirmation.

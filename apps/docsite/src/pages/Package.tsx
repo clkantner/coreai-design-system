@@ -29,7 +29,7 @@ const packageSetupPrompt = `Read the @coreai-ds/react-components package README,
 
 ${siteLinks.packageReadme}
 
-Follow the README's current instructions for publication availability, public npm installation, optional Aptos setup and licensing, and CoreAIFluentProvider configuration. Make the required project changes directly and verify the result.`;
+Follow the README's instructions for npm installation, optional Aptos setup and licensing, and CoreAIFluentProvider configuration. Make the required project changes directly and verify the result.`;
 
 export function Package() {
   return (
@@ -73,26 +73,10 @@ export function Package() {
               <span className="package-step__number">1</span>
               <div className="package-step__content">
                 <Text as="h3" weight="semibold">
-                  Check availability
-                </Text>
-                <Text as="p" size={300} foreground={2}>
-                  Public npm publication is pending open-source approval. Once published, installing
-                  the package will not require an Azure Artifacts feed or Microsoft sign-in.
-                  Existing hosted documentation and MCP access controls are unchanged.
-                </Text>
-              </div>
-            </div>
-
-            <div className="package-step">
-              <span className="package-step__number">2</span>
-              <div className="package-step__content">
-                <Text as="h3" weight="semibold">
                   Install from npm
                 </Text>
                 <Text as="p" size={300} foreground={2}>
-                  After publication, run these commands in your project. Remove any old{' '}
-                  <code>@coreai-ds:registry</code> Azure Artifacts override from the project and
-                  user <code>.npmrc</code> files first. If your project uses a custom default
+                  Run these commands in your project. If your project uses a custom default
                   registry, follow the package README to route the <code>@coreai-ds</code> scope to
                   npm.
                 </Text>
@@ -101,7 +85,7 @@ export function Package() {
             </div>
 
             <div className="package-step">
-              <span className="package-step__number">3</span>
+              <span className="package-step__number">2</span>
               <div className="package-step__content">
                 <Text as="h3" weight="semibold">
                   Set up Aptos (recommended)
@@ -124,7 +108,7 @@ export function Package() {
             </div>
 
             <div className="package-step">
-              <span className="package-step__number">4</span>
+              <span className="package-step__number">3</span>
               <div className="package-step__content">
                 <Text as="h3" weight="semibold">
                   Add it to your app

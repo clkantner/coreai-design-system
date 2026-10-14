@@ -85,8 +85,8 @@ design file's existing permissions; users may need to sign in or request access.
 This design system ships a **Model Context Protocol (MCP)** server so AI agents read accurate,
 CoreAI-specific component knowledge (props, example stories, templates) instead of guessing prop
 names or pulling raw upstream Fluent APIs. This section documents how the MCP **content** is
-authored. For how the public hosted server is **deployed**, see
-[docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-azure-app-service--entra). For
+authored. For how the hosted server is **deployed**, see
+[docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-public-storybook-authenticated-docsite). For
 **connection setup** (`mcp.json`, server URLs), see [Docs/MCP Setup](src/stories/docs/MCPSetup.mdx).
 For the **behavioral rules** an agent should follow (which server to prefer, component-ID quirks,
 offline fallback), see the distributable
@@ -99,10 +99,10 @@ Storybook as [Docs/Agent Skill](src/stories/docs/AgentSkill.mdx) (generated — 
 Declared in [`.vscode/mcp.json`](../../.vscode/mcp.json); MCP-aware clients pick them up
 automatically.
 
-| Server                     | URL                                                 | Use                                                                                                                                   |
-| -------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `coreai-ds-docs`           | `https://coreai-ds-storybook.azurewebsites.net/mcp` | **Default.** Hosted, always on (deploy/auth in the [CI/CD doc](../../docs/CI-CD-SETUP.md#app--mcp-hosting-azure-app-service--entra)). |
-| `coreai-ds-docs-localhost` | `http://localhost:6006/mcp`                         | The local dev server — for authoring/previewing story changes before deploy. Only works while Storybook is running.                   |
+| Server                     | URL                                                 | Use                                                                                                                 |
+| -------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `coreai-ds-docs`           | `https://coreai-ds-storybook.azurewebsites.net/mcp` | **Default.** Hosted documentation.                                                                                  |
+| `coreai-ds-docs-localhost` | `http://localhost:6006/mcp`                         | The local dev server — for authoring/previewing story changes before deploy. Only works while Storybook is running. |
 
 Both Storybook servers expose the same content and toolset. The hosted one is powered by the
 standalone [`@storybook/mcp`](https://www.npmjs.com/package/@storybook/mcp) library reading the
@@ -112,6 +112,10 @@ against the local server; the hosted one picks up changes on the next deploy.
 
 The Storybook runtime, local addon, and standalone host are pinned to the same `10.6.1` release so
 both MCP surfaces use Storybook's shared docs toolset and manifest schema.
+
+Both servers return read-only design-system content, including selected upstream stories. See
+[MCP scope, safety, and data handling](src/stories/docs/MCPSetup.mdx#scope-safety-and-data-handling)
+for capabilities, limitations, client precautions, privacy, and licensing information.
 
 **Toolsets:**
 
@@ -124,13 +128,14 @@ both MCP surfaces use Storybook's shared docs toolset and manifest schema.
 Prop APIs come from Storybook's **React Component Meta (RCM)**, enabled in
 [`.storybook/main.ts`](.storybook/main.ts) (`features.componentsManifest` plus
 `features.experimentalDocgenServer`, with `typescript.reactDocgen: false`). RCM resolves component
-types through TypeScript. Current vendored Fluent entries report component-resolution errors;
-that observation does not establish which ingestion or TypeScript configuration change is needed.
+types through TypeScript. Generated owners belong to a dedicated configured TypeScript project.
+The build verifier rejects unexpected extraction errors; the two known exceptions are
+`components-portal-tomountnodeprops` and `templates-shell-and-navigation` (`No component found`).
 
 ### How the manifest works
 
 The manifest is a machine-readable index, not a rendered page. Storybook reads CSF story files,
-component types, and MDX docs. The public MCP tools use that data:
+component types, and MDX docs. The MCP tools use that data:
 
 - `docs-list` reads the index. With `withStoryIds: true`, it also loads story snapshots.
 - `docs-show` loads a component's prop API and initial examples.
@@ -611,4 +616,4 @@ next regeneration. If the content is wrong, fix `{Name}.tsx` or the generator sc
 This app deploys to Azure App Service (Storybook + the hosted MCP at `/mcp`), publishing to
 https://coreai-ds-storybook.azurewebsites.net. The pipeline and public hosting are
 documented in
-[docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-azure-app-service--entra).
+[docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-public-storybook-authenticated-docsite).

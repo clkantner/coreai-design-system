@@ -99,6 +99,16 @@ test('MCP publishes local examples and complete upstream variants under real com
   assert.match(reExportedStory, /Source: Fluent upstream/);
 });
 
+test('MCP publishes its scope, safety, and data-handling notice', async () => {
+  const documentation = await callTool(6, 'docs-show', { id: 'docs-mcp-setup--docs' });
+  assert.match(documentation, /All three tools return design-system documentation/);
+  assert.match(documentation, /Authentication: none/);
+  assert.match(documentation, /Do not include secrets, access tokens/);
+  assert.match(documentation, /privacy\.microsoft\.com\/privacystatement/);
+  assert.match(documentation, /security_best_practices/);
+  assert.match(documentation, /Report security vulnerabilities privately/);
+});
+
 test('only explicitly known component extraction errors are allowed', () => {
   const expected = ['components-portal-tomountnodeprops', 'templates-shell-and-navigation'].map(
     (id) => ({ id, error: { name: 'No component found', message: 'Specify meta.component' } }),

@@ -119,7 +119,6 @@ Prefer these over guessing from a prop table alone — pass the id to `docs-show
 
 ## If the CoreAI MCP server is unreachable
 
-The public Storybook host and MCP endpoint require no sign-in or access token.
 Do not silently fall back and guess; check the selected server first:
 
 1. **Missing from the client's MCP config?** Tell the user the CoreAI documentation server is needed,
@@ -132,8 +131,7 @@ Do not silently fall back and guess; check the selected server first:
    so it's available even with no network access to Storybook (e.g. read straight from
    `node_modules/@coreai-ds/react-components/README.md`).
 2. **Server configured but unavailable?** Check the URL and service availability.
-   For the local server, check that Storybook is running. A hosted login redirect indicates
-   outdated hosting configuration; contact the owner rather than configuring tokens.
+   For the local server, check that Storybook is running.
 3. **Still unreachable after that** (e.g. the documentation service is unavailable)? Only now fall
    back: use this file plus the package's own README and CHANGELOG — both ship in the installed
    package (`node_modules/@coreai-ds/react-components/README.md` and `.../CHANGELOG.md`; on GitHub:
@@ -142,14 +140,11 @@ Do not silently fall back and guess; check the selected server first:
    as your source of truth for that session, and tell the user live docs weren't available so
    they know your answers may be less precise.
 4. If the blocker is documentation-service access, ask the user to contact that
-   service's owner. Documentation-service availability is separate from npm consumption:
-   the approved public npm package requires no Azure feed membership or token.
-   Never ask for or configure private-feed credentials to install a public package.
+   service's owner. Do not change package registry settings to troubleshoot an MCP connection.
 
 ## Fonts and package installation
 
-Public npm distribution is prepared but requires maintainer approval before the
-first release. Use the package README for current installation status. The package
+Install from npm using the package README. The package
 contains compiled JavaScript/types, not source TS or licensed Aptos binaries.
 `@coreai-ds/react-components/fonts/fonts.css` only registers fonts already installed on
 the user's device. The proportional stack falls back to Inter and then system fonts;
