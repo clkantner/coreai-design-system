@@ -5,27 +5,27 @@ description: 'MANDATORY for @coreai-ds/react-components work. Use the CoreAI doc
 
 # CoreAI Design System - Using `@coreai-ds/react-components` as an agent
 
-This app-local guide is the entry point to CoreAI MCP documentation. It keeps lookup and
+This guide is the entry point to CoreAI MCP documentation for repositories consuming
+`@coreai-ds/react-components`. It keeps lookup and
 implementation rules here; component APIs, defaults, states, and examples belong in the MCP.
-CoreAI Sandbox treats the CoreAI documentation MCP as a hard prerequisite for CoreAI-dependent
+The CoreAI documentation MCP is a hard prerequisite for CoreAI-dependent
 implementation.
 
 This guide targets the public, combined documentation catalog introduced by
 [PR #17](https://github.com/microsoft/coreai-design-system/pull/17). Until that change is deployed
 to the hosted service, use a connected CoreAI documentation server that exposes the updated
 catalog. Discover the connected server's actual tool names and schemas before calling them.
-Paths below are relative to `apps/prototype/`.
 
 ## Skill boundary
 
 This skill owns the authoritative workflow for the external `@coreai-ds/react-components` package:
 CoreAI documentation lookup, included Fluent story lookup, and CoreAI import rules. It does
-not decide whether CoreAI Sandbox already owns a product-specific adapter or composition.
+not decide whether the consuming repository already owns a product-specific adapter or composition.
 
-For CoreAI Sandbox code, invoke `prototype-app-react-components` first to classify the repository boundary. That
-skill delegates every CoreAI API question back here, while it owns inspection of app components
-under `app/components/common/**`. Do not duplicate CoreAI Sandbox's local component catalog in this
-app-local skill.
+Follow the consuming repository's component guidance to identify existing local adapters and
+compositions, and inspect their source before using them. Local guidance owns repository-specific
+import boundaries and behavior; this skill owns CoreAI API questions. Keep local component
+catalogs and repository-specific exceptions in the repository's own guidance.
 
 ## Import components from `@coreai-ds/react-components`, not `@fluentui/react-components`
 
@@ -89,8 +89,10 @@ or implementation pattern until the selected CoreAI documentation server respond
 `mcp.json`, package source, TypeScript definitions, prior knowledge, and stock Fluent docs do
 not satisfy this requirement.
 
-1. Discover the connected server's tool names and argument schemas, then confirm the CoreAI
-   documentation server is connected by successfully calling `docs-list`.
+1. Discover the connected server's tool names and argument schemas. The tool names below refer
+   to `docs-list` (catalog index), `docs-show` (documentation), and `docs-show-story` (story
+   examples); use the connected server's equivalents if its names differ. Confirm the CoreAI
+   documentation server is connected by successfully calling its catalog index tool.
 2. Use that index to determine whether CoreAI documents the component, extension, or template.
    Do not infer from the component name whether it is modified or passed through unchanged.
 3. When the catalog has an entry, call `docs-show` before using the component. Call
@@ -167,8 +169,9 @@ You cannot know a component's CoreAI defaults or extensions until you check its 
 4. If the server is missing from the client configuration, show the HTTP entry above and ask
    for approval before adding it. Start the connection and retry the documentation call.
 5. If the hosted endpoint fails or denies access, report the actual response and verify the
-   public-host deployment status with the user. A connected local CoreAI documentation server
-   can supply the updated catalog. Pause CoreAI-dependent work until documentation is available.
+   public-host deployment status with the user. If the consuming repository has a local CoreAI
+   documentation server, it can supply the updated catalog. Pause CoreAI-dependent work until
+   documentation is available.
 6. Only proceed without the MCP when the user explicitly instructs you to do so after you have
    explained the risk. State the limitation in the final result and do not present offline
    findings as verified CoreAI documentation.
