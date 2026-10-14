@@ -64,6 +64,8 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       setIsLoading(true);
       setError(null);
 
+      let assistantMessageId: string | undefined;
+
       try {
         const { client, deployment } = createAzureOpenAIClient(settings);
 
@@ -97,7 +99,7 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
         });
 
         // Create an assistant message placeholder
-        const assistantMessageId = generateMessageId();
+        assistantMessageId = generateMessageId();
         const assistantMessage: ChatMessage = {
           id: assistantMessageId,
           role: 'assistant',
@@ -122,16 +124,18 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
             );
           }
         }
-
-        // Mark streaming as complete
-        setMessages((prev) =>
-          prev.map((msg) => (msg.id === assistantMessageId ? { ...msg, isStreaming: false } : msg)),
-        );
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
         setError(errorMessage);
         console.error('Chat error:', err);
       } finally {
+        if (assistantMessageId) {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId ? { ...msg, isStreaming: false } : msg,
+            ),
+          );
+        }
         setIsLoading(false);
       }
     },
