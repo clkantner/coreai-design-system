@@ -423,6 +423,10 @@ export const DataGridAccordion: StoryObj = {
         flex-direction: column;
         overflow: hidden;
       }
+      .data-grid-accordion-example__header-button.fui-AccordionHeader__button {
+        padding-left: var(--spacingHorizontalM);
+        padding-right: var(--spacingHorizontalM);
+      }
       .data-grid-accordion-example__panel {
         margin: 0;
       }
@@ -445,7 +449,9 @@ export const DataGridAccordion: StoryObj = {
         <style>{styles}</style>
         <Accordion className="data-grid-accordion-example" collapsible defaultOpenItems="files">
           <AccordionItem value="files">
-            <AccordionHeader>Shared documents</AccordionHeader>
+            <AccordionHeader button={{ className: 'data-grid-accordion-example__header-button' }}>
+              Shared documents
+            </AccordionHeader>
             <AccordionPanel className="data-grid-accordion-example__panel">
               <DataGrid
                 className="data-grid-accordion-example__grid"
