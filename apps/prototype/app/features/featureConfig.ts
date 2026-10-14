@@ -116,11 +116,5 @@ export function getFeaturePath(feature: Feature, pathname: string): string {
   if (feature.routes.some((path) => matchPath({ path, end: true }, pathname))) {
     return pathname;
   }
-  const params = Object.fromEntries(
-    Object.entries(feature.defaultParams ?? {}).map(([key, value]) => [
-      key,
-      encodeURIComponent(value),
-    ]),
-  );
-  return generatePath(feature.defaultRoute, params);
+  return generatePath(feature.defaultRoute, feature.defaultParams);
 }

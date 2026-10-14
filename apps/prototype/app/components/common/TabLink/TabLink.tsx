@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import type { ComponentPropsWithoutRef, JSX, ReactNode, Ref } from 'react';
+import type { ComponentPropsWithoutRef, JSX, MouseEventHandler, ReactNode, Ref } from 'react';
 
 import { Tab } from '@coreai-ds/react-components';
 import { clsx } from 'clsx';
@@ -14,6 +14,7 @@ export interface TabLinkProps {
   to: string;
   end?: boolean;
   preventScrollReset?: boolean;
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
   children?: ReactNode;
 }
 
@@ -25,13 +26,20 @@ export interface TabLinkProps {
  * or a future `disabled` tab (anchors have no native `disabled`; see `LinkButton.tsx` for
  * how that's hand-emulated elsewhere).
  */
-export function TabLink({ to, end, preventScrollReset, children }: TabLinkProps): JSX.Element {
+export function TabLink({
+  to,
+  end,
+  preventScrollReset,
+  onClick,
+  children,
+}: TabLinkProps): JSX.Element {
   const RouterTabSlot = useMemo(() => {
     return forwardRef<HTMLButtonElement, ComponentPropsWithoutRef<'button'>>(
       function RouterTabRoot(slotProps, forwardedRef) {
         const location = useLocation();
         const hasQuery = to.includes('?');
         const queryActive = isLinkSelected(to, end, location.pathname, location.search);
+        const anchorProps = slotProps as unknown as ComponentPropsWithoutRef<'a'>;
 
         return (
           <RouterNavLink
@@ -39,7 +47,13 @@ export function TabLink({ to, end, preventScrollReset, children }: TabLinkProps)
             end={end}
             to={to}
             preventScrollReset={preventScrollReset}
-            {...(slotProps as unknown as ComponentPropsWithoutRef<'a'>)}
+            {...anchorProps}
+            onClick={(event) => {
+              onClick?.(event);
+              if (!event.defaultPrevented) {
+                anchorProps.onClick?.(event);
+              }
+            }}
             aria-current={hasQuery ? (queryActive ? 'page' : false) : slotProps['aria-current']}
             className={({ isActive }) =>
               clsx(slotProps.className, (hasQuery ? queryActive : isActive) && 'active')
@@ -48,7 +62,7 @@ export function TabLink({ to, end, preventScrollReset, children }: TabLinkProps)
         );
       },
     );
-  }, [to, end, preventScrollReset]);
+  }, [to, end, preventScrollReset, onClick]);
 
   return (
     <Tab

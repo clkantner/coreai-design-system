@@ -33,7 +33,7 @@ implementations may import those underlying CoreAI components.
 
 - This skill owns CoreAI Sandbox's repository boundary: decide whether the need is satisfied by
   CoreAI or by an existing app-owned adapter, composition, hook, theme utility, or asset.
-- `coreai-ds-fluentui-react` owns the external package API and its mandatory CoreAI-first MCP
+- `prototype-app-coreai-ds-fluentui-react` owns the external package API and its mandatory CoreAI-first MCP
   workflow. Invoke it for every CoreAI component or prop decision instead of restating its catalog
   here.
 - Local source under `app/components/common/**` is authoritative only for Foundry-owned behavior;
@@ -41,11 +41,11 @@ implementations may import those underlying CoreAI components.
 
 ## Choose and Verify Components
 
-1. Invoke the `coreai-ds-fluentui-react` skill and successfully call the CoreAI MCP
+1. Invoke the `prototype-app-coreai-ds-fluentui-react` skill and successfully call the CoreAI MCP
    before selecting, changing, or reviewing a component or its props. Do not infer APIs
    from stock Fluent behavior.
 2. If the CoreAI MCP tools are missing or a call fails, stop CoreAI-dependent work. Tell
-   the user the MCP is required, ask them to enable or authenticate `coreai-ds-docs`, help
+   the user the MCP is required, ask them to start or reconnect `coreai-ds-docs-localhost`, help
    them troubleshoot it, and retry the call after they respond. Do not silently substitute
    package source, prior knowledge, or Fluent component documentation.
 3. Check `app/components/common/index.ts` for an existing Foundry-owned export only when the
@@ -67,6 +67,6 @@ the app.
 
 ## Related skills
 
-- `css-styling` — required when writing styles for the component
-- `icons` — for icon selection and bundling
-- `coreai-ds-fluentui-react` — required for CoreAI component documentation and API decisions
+- `prototype-app-css-styling` — required when writing styles for the component
+- `prototype-app-icons` — for icon selection and bundling
+- `prototype-app-coreai-ds-fluentui-react` — required for CoreAI component documentation and API decisions

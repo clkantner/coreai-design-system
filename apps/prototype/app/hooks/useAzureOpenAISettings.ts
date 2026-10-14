@@ -29,10 +29,23 @@ function loadSettings(): AzureOpenAISettings {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored) as AzureOpenAISettings;
+      const parsed: unknown = JSON.parse(stored);
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new Error('Stored Azure OpenAI settings must be an object.');
+      }
+      const settings = { ...DEFAULT_SETTINGS };
+      for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof AzureOpenAISettings)[]) {
+        if (!(key in parsed)) continue;
+        const value: unknown = Reflect.get(parsed, key);
+        if (typeof value !== 'string') {
+          throw new Error(`Stored Azure OpenAI setting "${key}" must be a string.`);
+        }
+        settings[key] = value;
+      }
+      return settings;
     }
-  } catch {
-    // Invalid JSON, return defaults
+  } catch (error: unknown) {
+    console.warn('Failed to load Azure OpenAI settings; using defaults:', error);
   }
   return DEFAULT_SETTINGS;
 }

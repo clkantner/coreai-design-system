@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 import type { JSX } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text } from '@coreai-ds/react-components';
 import { CoreAILogo, Link } from '~/components/common';
 import styles from './TopNav.module.css';
@@ -21,6 +21,25 @@ import { FeatureMenu } from '~/features/FeatureMenu';
 export function TopNav(): JSX.Element {
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
   const [isMobileLeftNavOpen, setIsMobileLeftNavOpen] = useState(false);
+
+  useEffect(() => {
+    const handleSearchShortcut = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        event.altKey ||
+        event.shiftKey ||
+        !(event.metaKey || event.ctrlKey) ||
+        event.key.toLowerCase() !== 'k'
+      ) {
+        return;
+      }
+      event.preventDefault();
+      setIsSearchDialogOpen(true);
+    };
+    window.addEventListener('keydown', handleSearchShortcut);
+    return () => window.removeEventListener('keydown', handleSearchShortcut);
+  }, []);
 
   return (
     <div className={styles.container}>
