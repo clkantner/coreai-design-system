@@ -4,3 +4,5 @@ description: 'Use only when editing ./apps/prototype/* with @coreai-ds/react-com
 ---
 
 Read and follow the canonical [coreai-ds-fluentui-react skill](../../../apps/prototype/.github/skills/coreai-ds-fluentui-react/SKILL.md).
+
+BUT, use the localhost version of the storybook mcp. not the remote one.

@@ -1,14 +1,31 @@
 ---
-name: coreai-ds-react-components
-description: 'How an AI agent should use the CoreAI Design System and consume @coreai-ds/react-components: MCP docs, imports, templates, design implementation, accessibility, and offline fallback. Use when building UI or translating designs with this package.'
+name: coreai-ds-fluentui-react
+description: 'MANDATORY for @coreai-ds/react-components work. Use the CoreAI documentation MCP to discover components, props, stories, templates, and implementation patterns. If the MCP is unavailable, stop and ask the user to enable or troubleshoot it with you.'
 ---
 
-# CoreAI Design System — Using `@coreai-ds/react-components` as an agent
+# CoreAI Design System - Using `@coreai-ds/react-components` as an agent
 
-This is the canonical, distributable agent-usage doc for `@coreai-ds/react-components`. It ships
-inside the package (`node_modules/@coreai-ds/react-components/agent/SKILL.md`) and is mirrored to
-the hosted Storybook so it's also reachable through the MCP tools — read either copy, they
-can't drift apart.
+This app-local guide is the entry point to CoreAI MCP documentation. It keeps lookup and
+implementation rules here; component APIs, defaults, states, and examples belong in the MCP.
+CoreAI Sandbox treats the CoreAI documentation MCP as a hard prerequisite for CoreAI-dependent
+implementation.
+
+This guide targets the public, combined documentation catalog introduced by
+[PR #17](https://github.com/microsoft/coreai-design-system/pull/17). Until that change is deployed
+to the hosted service, use a connected CoreAI documentation server that exposes the updated
+catalog. Discover the connected server's actual tool names and schemas before calling them.
+Paths below are relative to `apps/prototype/`.
+
+## Skill boundary
+
+This skill owns the authoritative workflow for the external `@coreai-ds/react-components` package:
+CoreAI documentation lookup, included Fluent story lookup, and CoreAI import rules. It does
+not decide whether CoreAI Sandbox already owns a product-specific adapter or composition.
+
+For CoreAI Sandbox code, invoke `prototype-app-react-components` first to classify the repository boundary. That
+skill delegates every CoreAI API question back here, while it owns inspection of app components
+under `app/components/common/**`. Do not duplicate CoreAI Sandbox's local component catalog in this
+app-local skill.
 
 ## Import components from `@coreai-ds/react-components`, not `@fluentui/react-components`
 
@@ -36,41 +53,57 @@ import { AddRegular } from '@fluentui/react-icons';
 
 ## MCP servers
 
-- **`coreai-ds-docs`** — required primary source. CoreAI-specific props, defaults, examples,
-  templates.
-- **`fluent-agent`** — required fallthrough for what `coreai-ds-docs` doesn't cover (icon/token
-  search, general Fluent Q&A). Don't use its _component_ tools — they return raw
-  `@fluentui/react-components` APIs that ignore CoreAI's wrappers/defaults.
+- **`coreai-ds-docs`** — primary source at `https://coreai-ds-storybook.azurewebsites.net/mcp`.
+  The updated public catalog combines CoreAI
+  documentation, extensions, templates, and selected Fluent component stories. CoreAI overrides
+  take precedence for matching story IDs; other included Fluent variants remain available.
+- **`fluent-agent`** — optional supplementary source at `https://chat.fluentui.dev/mcp/server/`
+  for icon/token search or general Fluent guidance.
+  CoreAI's combined catalog remains the source for component decisions.
+
+Connect the public hosted endpoint using your client's HTTP MCP configuration. In VS Code,
+the entry in `.vscode/mcp.json` is:
+
+```json
+{
+  "servers": {
+    "coreai-ds-docs": {
+      "type": "http",
+      "url": "https://coreai-ds-storybook.azurewebsites.net/mcp"
+    }
+  }
+}
+```
+
+For other clients, use their equivalent HTTP server configuration. Ask for approval before
+editing client configuration. The catalog covers selected upstream stories, not every Fluent
+story or API; inspect the index instead of assuming complete coverage.
 
 Connection config (`mcp.json`) and the full toolset list live in one place — see
 [Docs/MCP Setup](https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-mcp-setup--docs).
 
 ### Required MCP workflow
 
-1. Confirm the CoreAI documentation server is connected.
-2. Call `list-all-documentation` before assuming a component ID.
-3. Call `get-documentation` before using a component or prop.
-4. Call `get-documentation-for-story` when a specific state or pattern is needed.
-5. Implement only documented props, combinations, and patterns.
-6. If a component or prop is missing, report the gap. Do not invent it.
+**STOP CONDITION:** Do not select, add, change, or review a CoreAI component, prop, template,
+or implementation pattern until the selected CoreAI documentation server responds successfully. An entry in
+`mcp.json`, package source, TypeScript definitions, prior knowledge, and stock Fluent docs do
+not satisfy this requirement.
 
-**Never hallucinate a prop.** Even a common-sounding one (`shadow`, `variant`, `color`) — verify
-it's real via `get-documentation` or an example story before using it. If it isn't documented or
-shown in an example, ask the user instead of assuming.
-
-### Report documentation and component gaps
-
-When CoreAI documentation is missing, incorrect, or does not cover a needed component or prop:
-
-1. Tell the user exactly what is missing and what fallback, if any, you used.
-2. Ask whether they want you to file an issue in the
-   [CoreAI GitHub issue tracker](https://github.com/microsoft/coreai-design-system/issues/new).
-3. Only after the user confirms, use
-   `gh issue create --repo microsoft/coreai-design-system` to file an issue that
-   includes the component or documentation page, the expected behavior or
-   information, the observed gap, and a minimal example when available. Source,
-   pull requests, and issues share this GitHub repository.
-4. If you cannot create the issue, give the user a ready-to-submit title and body instead.
+1. Discover the connected server's tool names and argument schemas, then confirm the CoreAI
+   documentation server is connected by successfully calling `docs-list`.
+2. Use that index to determine whether CoreAI documents the component, extension, or template.
+   Do not infer from the component name whether it is modified or passed through unchanged.
+3. When the catalog has an entry, call `docs-show` before using the component. Call
+   `docs-show-story` when a specific state or pattern is needed. Record the
+   documented differences, defaults, constraints, and extensions.
+4. Use the component's story index to find included Fluent examples for additional states or
+   inherited APIs. Retrieve the relevant stories from the same CoreAI documentation server.
+5. When the index has no component entry or a response lacks the needed API detail, report the
+   documentation gap and ask the user how to proceed. Absence does not prove an unchanged API.
+6. If CoreAI and included Fluent guidance conflict, follow CoreAI. Do not use Fluent examples to
+   erase or override a CoreAI difference.
+7. Implement only documented props, combinations, and patterns. If the catalog does not document the
+   needed behavior, report the gap and ask the user instead of inventing it.
 
 ## Component IDs have no predictable scheme
 
@@ -79,20 +112,20 @@ folder alongside `CopyButton`/`DropdownButton`/etc., doubling category+name), bu
 `components-avatar` (not doubled), `components-datetime-calendar` (category `datetime`, name
 `calendar`). You cannot guess an id from a component name.
 
-- Call `list-all-documentation` first, every session, before assuming an id.
+- Call `docs-list` first, every session, before assuming an id.
 - Pass `withStoryIds: false` when you don't need story ids yet — it meaningfully cuts response
   size.
 
 ## Templates vs. components
 
-- **Components** are real, importable wrappers, ids like `components-button-button`,
+- **Components** are real, importable components, ids like `components-button-button`,
   `components-avatar` — import from the barrel as usual.
 - **Templates** (`templates-empty-state`, `templates-filterable-list`,
   `templates-shell-and-navigation`) are higher-level, copy-paste starting points, **not exported
-  from the package** — there's no import path for them. Call `get-documentation` with the
+  from the package** — there's no import path for them. Call `docs-show` with the
   template's id and copy its "Source Code" entry (story id `templates-empty-state--source-code`)
   verbatim into the consuming repo, then edit it freely to fit the app; it's meant to be
-  modified as needed, not imported and left as-is.
+  modified as needed.
 - Prefer an existing CoreAI component or template over recreating the same pattern with custom
   markup.
 
@@ -113,53 +146,32 @@ folder alongside `CopyButton`/`DropdownButton`/etc., doubling category+name), bu
 
 ## Higher-value docs for specific questions
 
-Prefer these over guessing from a prop table alone — pass the id to `get-documentation`:
+Prefer these over guessing from a prop table alone — confirm the entry in `docs-list`, then pass its id to `docs-show`:
 
 - **What CoreAI changes vs. stock Fluent** → `docs-variations-from-fluent--docs`
 - **Theming / token overrides** → `docs-theming--docs`
 - **Overriding styles with plain CSS/CSS Modules** → `docs-styling-with-css-modules--docs`
 
-## If neither MCP server is reachable
+## If the CoreAI MCP is unavailable
 
-Both require a one-time interactive Microsoft sign-in, which an agent can't complete unattended.
-Once done, tokens renew silently, so this shouldn't recur mid-session. Don't silently fall back
-and guess; push for the real thing first:
+Do not continue CoreAI-dependent implementation with package source, TypeScript definitions,
+README files, prior knowledge, or upstream component documentation as a substitute.
+You cannot know a component's CoreAI defaults or extensions until you check its documentation.
 
-1. **Missing from the client's MCP config?** Tell the user both servers are required for proper
-   usage, show them the destination path and configuration block, and ask for confirmation before
-   adding it. See
-   [Docs/MCP Setup](https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-mcp-setup--docs)
-   for the `mcp.json` block (VS Code: `.vscode/mcp.json`; Copilot CLI: `~/.copilot/mcp-config.json`).
-   The same block is also in this package's own
-   [README.md](https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/README.md),
-   so it's available even with no network access to Storybook (e.g. read straight from
-   `node_modules/@coreai-ds/react-components/README.md`).
-2. **Configured but not signed in?** Ask the user to complete the sign-in now (trigger it, or tell
-   them which client prompt to complete) before you proceed — this is the normal, expected first
-   step, not an edge case to route around.
-3. **Still unreachable after that** (e.g. the documentation service is unavailable)? Only now fall
-   back: use this file plus the package's own README and CHANGELOG — both ship in the installed
-   package (`node_modules/@coreai-ds/react-components/README.md` and `.../CHANGELOG.md`; on GitHub:
-   [README](https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/README.md),
-   [CHANGELOG](https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md)) —
-   as your source of truth for that session, and tell the user live docs weren't available so
-   they know your answers may be less precise.
-4. If the blocker is documentation-service access, ask the user to contact that
-   service's owner. Documentation authentication is separate from npm consumption:
-   the approved public npm package requires no Azure feed membership or token.
-   Never ask for or configure private-feed credentials to install a public package.
-
-## Fonts and package installation
-
-Public npm distribution is prepared but requires maintainer approval before the
-first release. Use the package README for current installation status. The package
-contains compiled JavaScript/types, not source TS or licensed Aptos binaries.
-`@coreai-ds/react-components/fonts/fonts.css` only registers fonts already installed on
-the user's device. The proportional stack falls back to Inter and then system fonts;
-applications may load Inter from Google Fonts. Ask the user to supply independently
-licensed assets and CSS for Aptos. Only Microsoft-hosted projects may host Aptos;
-non-Microsoft projects must use Inter instead. Do not download, bundle, host, or
-redistribute Aptos on assumption.
+1. Tell the user that the CoreAI MCP is required and that continuing without it risks using the
+   wrong wrapper API, defaults, or template.
+2. Ask the user to help enable it now. In VS Code, direct them to **MCP: List Servers**, then
+   the selected CoreAI documentation server, and ask them to start or restart it.
+3. Stay on the connection problem with the user. After they respond, retry
+   documentation index tool; do not assume that configuration succeeded.
+4. If the server is missing from the client configuration, show the HTTP entry above and ask
+   for approval before adding it. Start the connection and retry the documentation call.
+5. If the hosted endpoint fails or denies access, report the actual response and verify the
+   public-host deployment status with the user. A connected local CoreAI documentation server
+   can supply the updated catalog. Pause CoreAI-dependent work until documentation is available.
+6. Only proceed without the MCP when the user explicitly instructs you to do so after you have
+   explained the risk. State the limitation in the final result and do not present offline
+   findings as verified CoreAI documentation.
 
 ## Translating a Storybook URL into an MCP call
 
@@ -167,18 +179,22 @@ A link a human pastes in, e.g.
 `https://coreai-ds-storybook.azurewebsites.net/?path=/docs/components-button-button--docs` or
 `.../?path=/story/components-button-button--subtle-content-alignment`:
 
-- The segment before `--` (`components-button-button`) is the `id` for `get-documentation`.
-- The segment after `--` (kebab-case) maps to a story export name for `get-documentation-for-story`
-  (e.g. `subtle-content-alignment` → `SubtleContentAlignment`). If the guess doesn't hit, confirm
-  the exact name via `list-all-documentation` with story ids.
-- Not every story in the Storybook UI reaches the MCP — only inline-authored ones (`Default` plus
-  any CoreAI-specific variants). A canonical Fluent story that's merely re-exported renders fine
-  for humans but returns nothing from `get-documentation-for-story`. For stock Fluent behavior
-  that isn't covered by an inline story, fall through to `fluent-agent`.
+- The segment before `--` (`components-button-button`) identifies the component entry for
+  `docs-show`; confirm it in the catalog.
+- For a story URL, use the full story ID to locate its exact entry in the component's story
+  index or `docs-list` with story IDs. Pass the identifier or name required by the discovered
+  `docs-show-story` schema rather than guessing an export name from kebab-case.
+- The updated catalog includes selected canonical Fluent stories alongside local CoreAI
+  examples, including upstream variants that are not overridden locally. Retrieve these through
+  the same server. If a UI story is absent or its returned example is incomplete, report that
+  specific gap instead of assuming re-exported stories are always unavailable.
 
 ## Completion checklist
 
 - CoreAI MCP documentation checked for each component used.
+- Relevant included Fluent stories checked through the CoreAI catalog when additional states or
+  inherited APIs are needed.
+- CoreAI differences applied and given precedence over upstream examples in conflicts.
 - Imports come from `@coreai-ds/react-components`, except icons and packages the barrel does not wrap.
 - No undocumented props or invented component APIs.
 - Existing behavior and accessibility preserved.
