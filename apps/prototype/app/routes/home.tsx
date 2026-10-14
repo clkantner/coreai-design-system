@@ -91,9 +91,9 @@ export default function Home() {
       {/* Hero Section */}
       <div className={styles.hero}>
         <Text as="h1" className={styles.header} preset="heading2">
-          <span className={styles.headerPrimary}>CoreAI Sandbox</span>
+          <span className={styles.headerPrimary}>CoreAI DS Sandbox</span>
           <span className={styles.headerSpacer}>{' / '}</span>
-          <span className={styles.headerTagline}>CoreAI DS Alpha</span>
+          <span className={styles.headerTagline}>Alpha</span>
         </Text>
 
         <section aria-label="Get started" className={styles.getStarted}>
