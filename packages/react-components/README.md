@@ -258,7 +258,7 @@ once against the latest releases and once against the peer minimums.
 
 ## Releasing
 
-npm publication is manual and disabled until recorded open-source approval,
-package/access review, and protected-environment setup are complete. Nothing is
-published on merge. See [RELEASING.md](RELEASING.md) for the approval gates, publisher
-setup, tarball verification, and release process.
+npm publication is manual and disabled until package/access review and
+protected-environment setup are complete. Nothing is published on merge. See
+[RELEASING.md](RELEASING.md) for the publishing controls, publisher setup,
+tarball verification, and release process.

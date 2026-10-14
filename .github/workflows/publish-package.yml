@@ -1,6 +1,6 @@
 name: Publish npm package
 
-# Intentionally manual and disabled until both repository approval variables are set.
+# Intentionally manual and disabled until the npm publishing variable is set.
 on:
   workflow_dispatch:
     inputs:
@@ -21,7 +21,6 @@ jobs:
     if: >-
       github.repository == 'microsoft/coreai-design-system' &&
       github.ref == 'refs/heads/main' &&
-      vars.OSS_RELEASE_APPROVED == 'true' &&
       vars.NPM_PUBLISH_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20

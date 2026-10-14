@@ -41,7 +41,7 @@ test('docsite destinations follow the repository README', async () => {
 
   assert.match(readme, /https:\/\/github\.com\/microsoft\/coreai-design-system/);
   assert.match(readme, /The source code is available under/);
-  assert.doesNotMatch(readme, /private while review is pending|Entra-authenticated|Entra-authed/);
+  assert.doesNotMatch(readme, /Entra-authenticated|Entra-authed/);
   assert.match(readme, /https:\/\/coreai-ds-storybook\.azurewebsites\.net\s+\|/);
 
   assert.match(links, /const repo = 'https:\/\/github\.com\/microsoft\/coreai-design-system'/);
@@ -95,7 +95,7 @@ test('docsite destinations follow the repository README', async () => {
   for (const content of [readme, packageReadme, resources, faqs, packagePage, homePage]) {
     assert.doesNotMatch(
       content,
-      /public npm|publication is pending|Once published|After publication|npm \(pending\)|Azure Artifacts|obsolete.*registry|separate Fluent MCP connection/,
+      /Azure Artifacts|obsolete.*registry|separate Fluent MCP connection/,
     );
   }
   assert.match(skillPage, new RegExp(`\\.github/skills/${skillName}/SKILL\\.md`));

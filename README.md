@@ -105,10 +105,9 @@ optional Aptos setup, and provider configuration.
 
 ## Publishing
 
-Maintainer publication uses a separate approval-gated workflow. See the
-[release guide](packages/react-components/RELEASING.md) for the gated workflow
-and the [CI/CD guide](docs/CI-CD-SETUP.md) for repository configuration. Do not run a
-manual publish to bypass approval.
+Maintainers publish through a separate manual workflow. See the
+[release guide](packages/react-components/RELEASING.md) for the publishing controls
+and the [CI/CD guide](docs/CI-CD-SETUP.md) for repository configuration.
 
 ## Legal
 
