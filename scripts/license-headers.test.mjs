@@ -7,13 +7,24 @@ import { addLicenseHeader, getLicenseHeaderStatus, isEligibleSource } from './li
 
 const slashHeader =
   '// Copyright (c) Microsoft Corporation.\n// Licensed under the MIT license.\n\n';
+const hashHeader =
+  '# Copyright (c) Microsoft Corporation.\n# Licensed under the MIT license.\n\n';
 const blockHeader =
   '/*\n * Copyright (c) Microsoft Corporation.\n * Licensed under the MIT license.\n */\n\n';
 const htmlHeader =
   '<!--\n  Copyright (c) Microsoft Corporation.\n  Licensed under the MIT license.\n-->\n\n';
 
 test('selects supported source files and excludes external or generated paths', () => {
-  for (const filename of ['src/index.ts', 'src/view.tsx', 'scripts/build.mjs', 'styles/app.css']) {
+  for (const filename of [
+    'src/index.ts',
+    'src/types.d.mts',
+    'src/view.tsx',
+    'scripts/build.mjs',
+    'scripts/build.sh',
+    'styles/app.css',
+    'infra/main.bicep',
+    'infra/main.bicepparam',
+  ]) {
     assert.equal(isEligibleSource(filename), true, filename);
   }
   for (const filename of [
@@ -43,6 +54,22 @@ test('preserves shebangs and CRLF newlines', () => {
     `#!/usr/bin/env node\r\n${slashHeader.replaceAll('\n', '\r\n')}console.log("ok");\r\n`,
   );
   assert.equal(getLicenseHeaderStatus('scripts/example.mjs', fixed), 'valid');
+});
+
+test('uses hash comments after shell shebangs', () => {
+  const source = '#!/usr/bin/env bash\nset -euo pipefail\n';
+  const fixed = addLicenseHeader('scripts/example.sh', source);
+  assert.equal(fixed, `#!/usr/bin/env bash\n${hashHeader}set -euo pipefail\n`);
+  assert.equal(getLicenseHeaderStatus('scripts/example.sh', fixed), 'valid');
+});
+
+test('uses slash comments for TypeScript modules and Bicep files', () => {
+  for (const filename of ['src/types.d.mts', 'infra/main.bicep', 'infra/main.bicepparam']) {
+    const source = 'export const value = 1;\n';
+    const fixed = addLicenseHeader(filename, source);
+    assert.equal(fixed, `${slashHeader}${source}`, filename);
+    assert.equal(getLicenseHeaderStatus(filename, fixed), 'valid', filename);
+  }
 });
 
 test('uses block comments for stylesheets', () => {

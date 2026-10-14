@@ -10,7 +10,18 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const copyright = 'Copyright (c) Microsoft Corporation.';
 const license = 'Licensed under the MIT license.';
-const slashCommentExtensions = new Set(['.cjs', '.js', '.jsx', '.mjs', '.ts', '.tsx']);
+const slashCommentExtensions = new Set([
+  '.bicep',
+  '.bicepparam',
+  '.cjs',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.mts',
+  '.ts',
+  '.tsx',
+]);
+const hashCommentExtensions = new Set(['.sh']);
 const blockCommentExtensions = new Set(['.css', '.scss']);
 const htmlCommentExtensions = new Set(['.html']);
 const excludedPaths = [
@@ -26,6 +37,7 @@ function normalizePath(filename) {
 function getCommentStyle(filename) {
   const extension = path.extname(filename).toLowerCase();
   if (slashCommentExtensions.has(extension)) return 'slash';
+  if (hashCommentExtensions.has(extension)) return 'hash';
   if (blockCommentExtensions.has(extension)) return 'block';
   if (htmlCommentExtensions.has(extension)) return 'html';
   return undefined;
@@ -34,6 +46,9 @@ function getCommentStyle(filename) {
 function getHeader(style, newline = '\n') {
   if (style === 'slash') {
     return `// ${copyright}${newline}// ${license}${newline}${newline}`;
+  }
+  if (style === 'hash') {
+    return `# ${copyright}${newline}# ${license}${newline}${newline}`;
   }
   if (style === 'block') {
     return ['/*', ` * ${copyright}`, ` * ${license}`, ' */', '', ''].join(newline);
@@ -44,7 +59,7 @@ function getHeader(style, newline = '\n') {
 function getInsertionOffset(filename, content) {
   let offset = content.startsWith('\uFEFF') ? 1 : 0;
   const style = getCommentStyle(filename);
-  if (style === 'slash' && content.startsWith('#!', offset)) {
+  if ((style === 'slash' || style === 'hash') && content.startsWith('#!', offset)) {
     const lineEnd = content.indexOf('\n', offset);
     return lineEnd === -1 ? content.length : lineEnd + 1;
   }
@@ -71,6 +86,7 @@ export function getLicenseHeaderStatus(filename, content) {
   const preamble = normalizedContent.slice(offset, offset + 500);
   const startsWithComment =
     (style === 'slash' && preamble.startsWith('//')) ||
+    (style === 'hash' && preamble.startsWith('#')) ||
     (style === 'block' && preamble.startsWith('/*')) ||
     (style === 'html' && preamble.startsWith('<!--'));
   if (startsWithComment && (preamble.includes(copyright) || preamble.includes(license))) {
