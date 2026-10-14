@@ -7,8 +7,7 @@ import { addLicenseHeader, getLicenseHeaderStatus, isEligibleSource } from './li
 
 const slashHeader =
   '// Copyright (c) Microsoft Corporation.\n// Licensed under the MIT license.\n\n';
-const hashHeader =
-  '# Copyright (c) Microsoft Corporation.\n# Licensed under the MIT license.\n\n';
+const hashHeader = '# Copyright (c) Microsoft Corporation.\n# Licensed under the MIT license.\n\n';
 const blockHeader =
   '/*\n * Copyright (c) Microsoft Corporation.\n * Licensed under the MIT license.\n */\n\n';
 const htmlHeader =
