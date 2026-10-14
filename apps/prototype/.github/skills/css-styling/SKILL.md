@@ -17,21 +17,21 @@ You may also need to edit the matching `.tsx` file and its structure to properly
 
 ## CSS Architecture
 
-This project uses **CSS Modules**. All CSS files should be named `*.module.css` and placed alongside their corresponding `.tsx` component files.
+This project uses **CSS Modules**. Component CSS files should be named `*.module.css` and placed alongside their corresponding `.tsx` component files. Existing app-level stylesheets in `apps/prototype/app/styles/` are an exception for foundational styles such as resets and font registration; do not put component styles there.
 
 Do not write inline css in the style attribute (unless there is a javascript value being attached).
 
 ### Custom Fluent Components
 
-Do not use CSS to recreate components that already exist in CoreAI or Fluent. Before editing components, invoke the `react-components` skill for proper component usage guidelines. Most appearance and interaction styles are already handled by documented CoreAI components and props. If an appropriate prop is available, use it instead of writing CSS.
+Do not use CSS to recreate components that already exist in CoreAI or Fluent. Before editing components, invoke the `prototype-app-react-components` skill for proper component usage guidelines. Most appearance and interaction styles are already handled by documented CoreAI components and props. If an appropriate prop is available, use it instead of writing CSS.
 
 ### CSS @layers
 
-There are 3 `@layer`s of CSS in this project: no-layer, `common`, and `griffel`. The `griffel` layer encapsulates Fluent's styles - NEVER write CSS into the `griffel` layer. The `common` layer is for common components inside the `/common/components` folder; all components in this folder should use this layer, and none outside should use it. All other styles should be written outside of these layers.
+There are 3 named CSS `@layer`s in this app, ordered `base`, `griffel`, and `common`, plus unlayered CSS (which is not a named layer). The `base` layer contains the foundational box-sizing reset in `apps/prototype/app/styles/globals.css`. The `griffel` layer encapsulates Fluent's styles through the app-owned layered renderer - NEVER write CSS into the `griffel` layer. The `common` layer is for common components inside the `apps/prototype/app/components/common` folder and existing app-level resets; all components in this folder should use this layer, and component styles outside it should not. All other component styles should be written outside of these layers.
 
 ## General Guidelines
 
-**No Global CSS**: Do not write global CSS selectors (e.g., `body`, `h1`) outside of a scoped CSS class. All styles must be scoped to the component using CSS Modules.
+**No Global CSS**: Do not write global CSS selectors (e.g., `body`, `h1`) outside of a scoped CSS class for component styling. All component styles must be scoped using CSS Modules. Existing app-level stylesheets in `apps/prototype/app/styles/` are a narrow exception for foundational resets, font registration, and app-wide variable defaults, not component styling.
 **Use Nested Classes**: Scope styles to specific elements within the component using nested class selectors.
 **Avoid `!important`**: Do not use `!important` in CSS rules. Instead, refactor the CSS or component structure to achieve the desired specificity.
 
@@ -41,7 +41,7 @@ There are 3 `@layer`s of CSS in this project: no-layer, `common`, and `griffel`.
 
 This app uses **CSS container queries** so that responsive behavior responds to the actual available content width, not the viewport. Panels that reduce the content container's available width affect its breakpoints; the app-local floating feature selector is fixed-position and does not consume layout width.
 
-The `ContainerQueryProvider` component (wrapping `.mainContent` in `AppContent.tsx`) establishes `container-type: inline-size` with `container-name: app`.
+The `ContainerQueryProvider` component (wrapping the app children with `styles.fullscreenContainer` in `apps/prototype/app/components/shell/AppContent.tsx`) establishes `container-type: inline-size` with `container-name: app`.
 
 ### Correct — Container Query
 
@@ -103,13 +103,13 @@ import { Text } from '@coreai-ds/react-components';
 
 **Presets** (size from smallest to largest):
 
-- `bodyXS` (10px) / `bodyXSStrong` (10px bold)
-- `bodyS` (12px) / `bodySStrong` (12px bold)
-- `body` (14px) / `bodyStrong` (14px bold)
-- `heading4` (16px bold)
-- `heading3` (20px bold)
-- `heading2` (28px bold)
-- `heading1` (40px bold)
+- `bodyXS` (10px) / `bodyXSStrong` (10px semibold)
+- `bodyS` (12px) / `bodySStrong` (12px semibold); `heading6` is an alias of `bodySStrong`
+- `body` (14px) / `bodyStrong` (14px semibold); `heading5` is an alias of `bodyStrong`
+- `heading4` (16px semibold)
+- `heading3` (20px semibold)
+- `heading2` (28px semibold)
+- `heading1` (40px semibold)
 
 **Foreground** (text color intensity):
 
@@ -196,7 +196,7 @@ introducing application-level interaction-color aliases.
 - `--spacingXL` (20px)
 - `--spacingXXL` (24px)
 - `--spacingXXXL` (32px)
-- `--spacingPagePadding` - Special variable for horizontal page padding (adjusts by viewport width)
+- `--spacingPagePadding` - Special variable for horizontal page padding (adjusts by app container width, with a viewport-based fallback in the global stylesheet)
 
 **DO NOT** use Fluent spacing variables that include "Horizontal" or "Vertical" in their names.
 
@@ -249,5 +249,5 @@ Before submitting CSS edits, verify:
 - [ ] All colors use Fluent semantic tokens
 - [ ] All spacing uses `--spacing*` variables
 - [ ] Width breakpoints use `@container app (width ...)` not `@media (width ...)`
-- [ ] File is named `*.module.css`
+- [ ] Component CSS file is named `*.module.css`; any app-level stylesheet edit stays within the foundational-style exception
 - [ ] Classes combined with `clsx` when multiple are needed
