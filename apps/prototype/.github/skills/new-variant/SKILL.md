@@ -6,14 +6,16 @@ argument-hint: 'Optional: route or feature name the variant targets'
 
 # New Design Variant
 
-You are helping a designer create a new design variant using CoreaAI Sandbox's built-in feature/variant system. The designer may have no coding knowledge — they will describe what they want in plain language.
+You are helping a designer create a new design variant using CoreAI Sandbox's built-in feature/variant system. The designer may have no coding knowledge — they will describe what they want in plain language.
+
+Paths below are relative to `apps/prototype/`.
 
 ## Before You Start
 
-1. **Invoke the `features-variants` skill** — it is the definitive guide to the feature system (schemas, code patterns, field references, anti-patterns). Do not duplicate that information here — refer to it.
-2. **Read** `app/vellum.features.json` — understand what features already exist.
-3. **Invoke the `react-components` skill** — you will need to write `.tsx` code.
-4. **Invoke the `css-styling` skill** — if you need to write styles.
+1. **Invoke the `prototype-app-features-variants` skill** — it is the definitive guide to the feature system (schemas, code patterns, field references, anti-patterns). Do not duplicate that information here — refer to it.
+2. **Read** `app/features.json` — understand what features already exist.
+3. **Invoke the `prototype-app-react-components` skill** — you will need to write `.tsx` code.
+4. **Invoke the `prototype-app-css-styling` skill** — if you need to write styles.
 
 ## Workflow
 
@@ -33,16 +35,16 @@ Read `app/routes.ts` to discover the current route structure. Map the designer's
 
 ### Step 3: Check for Existing Features
 
-Read `app/vellum.features.json` and check if a feature already exists for this route.
+Read `app/features.json` and check if a feature already exists for this route.
 
-- **If a feature exists**: Add a new variant to the existing feature. Follow the "Adding a New Variant to an Existing Feature" section in the `features-variants` skill.
-- **If no feature exists**: Create a new feature. Follow the "Creating a New Feature" section in the `features-variants` skill.
+- **If a feature exists**: Add a new variant to the existing feature. Follow the "Adding a New Variant to an Existing Feature" section in the `prototype-app-features-variants` skill.
+- **If no feature exists**: Create a new feature. Follow the "Creating a New Feature" section in the `prototype-app-features-variants` skill.
 
 ### Step 4: Implement
 
-1. Update `app/vellum.features.json` following the schema in the `features-variants` skill.
+1. Update `app/features.json` following the schema in the `prototype-app-features-variants` skill.
 2. Read the route component file identified in Step 2 — understand its structure before editing.
-3. Import `useFeature` from `@redacted/vellum` and add conditional rendering to the route component, following the patterns in the `features-variants` skill.
+3. Import `useFeature` from `~/features/FeatureContext` and add conditional rendering to the route component, following the patterns in the `prototype-app-features-variants` skill.
 
 **Implementation sizing guidance:**
 
@@ -54,12 +56,12 @@ The designer's prototype will NOT be merged to `main`, so you have freedom to mo
 
 ### Step 5: Start the App and Verify
 
-If the dev server is not already running, invoke the `start-app` skill.
+If the dev server is not already running, invoke the `prototype-app-start-app` skill.
 
 Use Playwright MCP tools to:
 
 1. Navigate to the page
-2. Confirm the floating feature strip appears with the correct feature name and variant buttons
+2. Confirm the floating feature strip appears with the correct feature name and variant tab links; if hidden, enable **Show feature selector** in the **Prototype** menu
 3. Click each variant to verify switching works
 4. Take a screenshot to show the designer the result
 
@@ -69,4 +71,4 @@ Tell the designer:
 
 - What you built and which variant it is
 - The URL they can use to see each variant (include `?variant=feature-id--variant-id`)
-- How to switch between variants using the lime green floating strip at the bottom of the screen
+- How to switch between variants using the elevated tab links in the draggable floating strip (bottom-center by default)

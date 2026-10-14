@@ -39,7 +39,7 @@ There are 3 `@layer`s of CSS in this project: no-layer, `common`, and `griffel`.
 
 **CRITICAL**: Do NOT use `@media (width ...)` for responsive width breakpoints. Use `@container app (width ...)` instead.
 
-This app uses **CSS container queries** so that responsive behavior responds to the actual available content width, not the viewport. The Vellum dev sidebar (and any future panels) consume viewport space without affecting content breakpoints.
+This app uses **CSS container queries** so that responsive behavior responds to the actual available content width, not the viewport. Panels that reduce the content container's available width affect its breakpoints; the app-local floating feature selector is fixed-position and does not consume layout width.
 
 The `ContainerQueryProvider` component (wrapping `.mainContent` in `AppContent.tsx`) establishes `container-type: inline-size` with `container-name: app`.
 

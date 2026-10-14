@@ -1,9 +1,9 @@
 ---
 name: react-components
-description: 'CoreaAI Sandbox component usage: import boundaries, CoreAI MCP documentation, and local adapter inspection. USE WHEN: editing any `*.tsx` file, picking a component, or writing component imports.'
+description: 'CoreAI Sandbox component usage: import boundaries, CoreAI MCP documentation, and local adapter inspection. USE WHEN: editing any `*.tsx` file, picking a component, or writing component imports.'
 ---
 
-# CoreaAI Sandbox Component Usage
+# CoreAI Sandbox Component Usage
 
 ## Import Boundary
 
@@ -31,7 +31,7 @@ implementations may import those underlying CoreAI components.
 
 ## Skill Boundary
 
-- This skill owns CoreaAI Sandbox's repository boundary: decide whether the need is satisfied by
+- This skill owns CoreAI Sandbox's repository boundary: decide whether the need is satisfied by
   CoreAI or by an existing app-owned adapter, composition, hook, theme utility, or asset.
 - `coreai-ds-fluentui-react` owns the external package API and its mandatory CoreAI-first MCP
   workflow. Invoke it for every CoreAI component or prop decision instead of restating its catalog

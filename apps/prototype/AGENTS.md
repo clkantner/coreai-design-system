@@ -1,6 +1,6 @@
-# CoreaAI Sandbox — AI Coding Assistant Instructions
+# CoreAI Sandbox — AI Coding Assistant Instructions
 
-Microsoft Foundry is a platform for building, deploying, and managing AI-powered applications and agents. **CoreaAI Sandbox** is a demo app for agentic-assisted prototyping of design solutions intended for carryover into the real production codebase.
+Microsoft Foundry is a platform for building, deploying, and managing AI-powered applications and agents. **CoreAI Sandbox** is a demo app for agentic-assisted prototyping of design solutions intended for carryover into the real production codebase.
 
 ## Project Overview
 
@@ -12,7 +12,7 @@ Microsoft Foundry is a platform for building, deploying, and managing AI-powered
 To run it:
 
 1. Run `npm run setup` to authenticate the private `@coreai` feed and install dependencies.
-2. If the credential provider reports an authentication error, wait 1–2 hours and retry `npm run setup`; for persistent errors, follow the [CoreaAI Sandbox installation guide](../README.md#installation).
+2. If the credential provider reports an authentication error, wait 1–2 hours and retry `npm run setup`; for persistent errors, follow the [CoreAI Sandbox installation guide](../README.md#installation).
 3. `npm run dev` (background, serves `http://localhost:5173/`)
 4. Open via the Playwright MCP — or invoke the **`start-app`** skill.
 

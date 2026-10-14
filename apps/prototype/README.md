@@ -36,7 +36,7 @@ builds. Hover over an element and press **Ctrl+C** (Windows) or **Cmd+C** (macOS
 to copy its element and component-source context, then paste it into your coding
 agent. No external script or agent integration is configured.
 
-The development-only [context plugin](app/dev/reactGrab.ts) adapts CoreaAI Sandbox's
+The development-only [context plugin](app/dev/reactGrab.ts) adapts CoreAI Sandbox's
 Vellum reference mapping using Bippy and source maps. Copied context identifies
 the selected element, the nearest project component, an intermediate Fluent
 component when applicable, and project ancestor source locations. It removes

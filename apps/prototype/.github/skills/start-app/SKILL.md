@@ -1,6 +1,6 @@
 ---
 name: start-app
-description: 'Start the CoreaAI Sandbox dev server and open it via Playwright MCP. USE WHEN: the user asks you to "start the app", "run the dev server", "open the app", or "launch CoreaAI Sandbox".'
+description: 'Start the CoreAI Sandbox dev server and open it via Playwright MCP. USE WHEN: the user asks you to "start the app", "run the dev server", "open the app", or "launch CoreAI Sandbox".'
 ---
 
 # Start the App
@@ -11,7 +11,7 @@ Read the `README.md` file for any setup or configuration instructions before sta
 
 First, check whether the app is already available at `http://localhost:5173/`. Reuse the running server when it is healthy.
 
-If dependencies are missing, run `npm run setup` to authenticate the private `@coreai` feed and install dependencies. If the credential provider reports an authentication error, tell the user that waiting 1–2 hours and retrying `npm run setup` may resolve a temporary access or credential propagation delay. For persistent setup errors, follow the [CoreaAI Sandbox installation guide](../../../README.md#installation).
+If dependencies are missing, run `npm run setup` to authenticate the private `@coreai` feed and install dependencies. If the credential provider reports an authentication error, tell the user that waiting 1–2 hours and retrying `npm run setup` may resolve a temporary access or credential propagation delay. For persistent setup errors, follow the [CoreAI Sandbox installation guide](../../../README.md#installation).
 
 If no server is running, start `npm run dev` using asynchronous terminal execution (`mode: "async"`). Async mode is appropriate because the development server must remain active while work continues. Keep the returned terminal ID so the server can be stopped later.
 

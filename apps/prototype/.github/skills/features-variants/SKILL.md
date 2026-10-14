@@ -1,13 +1,15 @@
 ---
 name: features-variants
-description: 'Definitive guide to the Vellum-backed prototype feature/variant system: configuration, `useFeature()`, URL params, and anti-patterns. USE WHEN: editing `app/vellum.features.json`, using `useFeature()` in routes, creating design alternatives, A/B comparisons, layout options, alternate versions, or switching between design proposals. Trigger keywords: feature, variant, version, option, alternate, prototype, design option, A/B, comparison, switch between, try a different, another way, layout option, explore, side by side.'
+description: 'Definitive guide to the app-local prototype feature/variant system: configuration, `useFeature()`, URL params, and anti-patterns. USE WHEN: editing `apps/prototype/app/features.json`, using `useFeature()` in routes, creating design alternatives, A/B comparisons, layout options, alternate versions, or switching between design proposals. Trigger keywords: feature, variant, version, option, alternate, prototype, design option, A/B, comparison, switch between, try a different, another way, layout option, explore, side by side.'
 ---
 
 # Feature & Variant System Instructions
 
+Paths below are relative to `apps/prototype/`.
+
 ## What Is the Feature System?
 
-CoreaAI Sandbox has a **built-in feature/variant system** for tracking prototyped features and presenting multiple UI alternatives on the same page. It uses a lime green color scheme to distinguish itself from the designs being prototyped.
+CoreAI Sandbox has a **built-in feature/variant system** for tracking prototyped features and presenting multiple UI alternatives on the same page. It uses a neutral floating selector with small, elevated tab links and a brand-colored Prototype InteractionTag menu trigger to distinguish itself from the designs being prototyped.
 
 A **feature** represents a prototyped change from main. A feature may:
 
@@ -26,16 +28,16 @@ A **feature** represents a prototyped change from main. A feature may:
 
 **Do NOT** build a custom toggle, tab switcher, or parallel component tree. The feature system already handles all of this.
 
-> For a guided walk-through tailored to designer-style requests, invoke the `new-variant` skill.
+> For a guided walk-through tailored to designer-style requests, invoke the `prototype-app-new-variant` skill.
 
 ---
 
 ## How It Works (Summary)
 
-1. **Features** are defined in `app/vellum.features.json`. Each feature may have variant options.
+1. **Features** are defined in `app/features.json`. Each feature may have variant options. The registry is currently empty; add definitions to its top-level `features` array.
 2. Active variants are encoded in the URL as repeated `?variant=feature-id--variant-id` params — every combination is a shareable deep link.
-3. When a user navigates to a page with applicable features, the system **automatically populates** default variant selections.
-4. A **floating lime green switcher strip** appears at the bottom of the screen showing each feature's variants.
+3. When a user navigates to a page with applicable features, the system **automatically populates** selections from valid URL values, then remembered client-navigation selections, then the first configured variant.
+4. A **draggable floating switcher strip** appears bottom-center by default showing each feature's variants as small, elevated router-backed tab links, when applicable variants exist and **Show feature selector** is enabled in the Prototype menu.
 5. Route components use the `useFeature(featureId)` hook to conditionally render based on the active variant.
 6. **Multiple features** can be active on the same page simultaneously with independent variant selections.
 
@@ -45,13 +47,13 @@ A **feature** represents a prototyped change from main. A feature may:
 
 | File                                                 | Purpose                                                                |
 | ---------------------------------------------------- | ---------------------------------------------------------------------- |
-| `app/vellum.features.json`                           | App configuration: all features, routes, and variant labels            |
-| `app/vellum.config.tsx`                              | React Router adapters and typed feature configuration                  |
-| `packages/vellum/src/features/FeatureContext.ts`     | Feature schema, context, and public types                              |
-| `packages/vellum/src/features/FeatureProvider.tsx`   | URL state, route matching, defaults, and floating selector composition |
-| `packages/vellum/src/features/useFeature.ts`         | Public hook for reading the active variant                             |
-| `packages/vellum/src/features/FeatureFloatingUI.tsx` | Floating variant selector                                              |
-| `packages/vellum/src/features/FeatureMenu.tsx`       | Prototype feature menu used by the app adapter                         |
+| `app/features.json`                                 | App configuration: all features, routes, and variant labels            |
+| `app/features/featureConfig.ts`                     | Feature schema, configuration validation, and route/URL helpers        |
+| `app/features/FeatureContext.ts`                    | Feature context and public context types                               |
+| `app/features/FeatureProvider.tsx`                  | URL state, route matching, defaults, and floating selector composition |
+| `app/features/FeatureContext.ts` (`useFeature`)      | Public hook for reading the active variant                             |
+| `app/features/FeatureFloatingUI.tsx`                | Floating variant selector                                              |
+| `app/features/FeatureMenu.tsx`                      | Prototype feature menu used by the app shell                           |
 
 ---
 
@@ -66,7 +68,7 @@ Variants are encoded as repeated `variant` query params:
 # Two features active simultaneously
 ?variant=agent-playground-layout--accordion&variant=code-tab--visible
 
-# Variant-less features have no URL representation (they are always on)
+# Variant-less features have no variant query param (they apply only on matching routes)
 ```
 
 Each `variant` param is a `feature-id--variant-id` pair using kebab-case string identifiers.
@@ -75,9 +77,9 @@ Each `variant` param is a `feature-id--variant-id` pair using kebab-case string 
 
 ## Step-by-Step: Adding a New Variant to an Existing Feature
 
-If a feature already exists in `app/vellum.features.json` and has variants, add a new variant:
+If a feature already exists in `app/features.json` and has variants, add a new variant:
 
-### 1. Update `app/vellum.features.json`
+### 1. Update `app/features.json`
 
 Add a new entry to the `variants` array of the existing feature:
 
@@ -95,7 +97,7 @@ Variant `id` values are **kebab-case strings**. Choose a descriptive, URL-friend
 In the route component that uses this feature, add a conditional branch for the new variant:
 
 ```tsx
-import { useFeature } from '@redacted/vellum';
+import { useFeature } from '~/features/FeatureContext';
 
 function MyPage() {
   const variant = useFeature('agent-playground-layout');
@@ -106,7 +108,7 @@ function MyPage() {
 }
 ```
 
-That's it. The floating UI automatically shows the new button.
+That's it. The floating UI automatically shows the new tab link when the selector is visible on an applicable route.
 
 ---
 
@@ -116,7 +118,9 @@ That's it. The floating UI automatically shows the new button.
 
 When the feature explores multiple design alternatives:
 
-#### 1. Add the feature to `app/vellum.features.json`
+#### 1. Add the feature to `app/features.json`
+
+Add this object to the registry's top-level `features` array:
 
 ```json
 {
@@ -136,7 +140,7 @@ When the feature explores multiple design alternatives:
 #### 2. Add `useFeature()` to the Route Component
 
 ```tsx
-import { useFeature } from '@redacted/vellum';
+import { useFeature } from '~/features/FeatureContext';
 
 function MyPage() {
   const variant = useFeature('agent-playground-layout');
@@ -150,7 +154,9 @@ function MyPage() {
 
 When the feature is a single prototyped change with no alternatives:
 
-#### 1. Add the feature to `app/vellum.features.json`
+#### 1. Add the feature to `app/features.json`
+
+Add this object to the registry's top-level `features` array:
 
 ```json
 {
@@ -162,7 +168,7 @@ When the feature is a single prototyped change with no alternatives:
 }
 ```
 
-No `variants` array needed. The feature appears in the Prototype Badge menu as a navigation link. No `useFeature()` call is needed in the route component.
+No `variants` array needed. The feature appears in the Prototype InteractionTag menu as a navigation link. No `useFeature()` call is needed in the route component.
 
 ---
 
@@ -173,8 +179,8 @@ No `variants` array needed. The feature appears in the Prototype Badge menu as a
 | `id`            | Yes      | Kebab-case string identifier (used in URL params)                                |
 | `label`         | Yes      | Human-readable name shown in the floating UI                                     |
 | `notes`         | Yes      | Design context — what question does this feature explore?                        |
-| `defaultRoute`  | Yes      | The primary route to navigate to when selecting this feature from the badge menu |
-| `defaultParams` | No       | Fallback values for `:param` segments (e.g., `{ "agent": "agent-001" }`)         |
+| `defaultRoute`  | Yes      | The primary route to navigate to from the Prototype menu; must be in `routes` |
+| `defaultParams` | No       | Fallback values for `:param` segments (e.g., `{ "agent": "agent-001" }`); required when `defaultRoute` has required parameters |
 | `routes`        | Yes      | Route patterns this feature applies to. Supports `:param` wildcards              |
 | `variants`      | No       | Array of `{ id: string, label: string }`. Omit for variant-less features         |
 
@@ -206,7 +212,7 @@ const codeTab = useFeature('code-tab-visibility');
 // URL: ?variant=agent-playground-layout--accordion&variant=code-tab-visibility--visible
 ```
 
-The floating strip shows variant buttons for all applicable features with variants, separated by dividers.
+The floating strip shows variant tab links for all applicable features with variants, separated by dividers.
 
 ---
 
@@ -231,7 +237,7 @@ return (
       ? 'Start Building with AI'
       : variant === 'version-c'
         ? 'Your AI Development Platform'
-        : 'Welcome to CoreaAI Sandbox'}
+        : 'Welcome to CoreAI Sandbox'}
   </Text>
 );
 ```
@@ -266,13 +272,13 @@ Keep this guard **in the route component itself**, colocated with the route that
 
 | ❌ Don't                                                                          | ✅ Do Instead                                                      |
 | --------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Build a custom toggle/switch for design alternatives                              | Use `useFeature()` + `app/vellum.features.json`                    |
+| Build a custom toggle/switch for design alternatives                              | Use `useFeature()` + `app/features.json`                    |
 | Store variant state in localStorage or React state                                | URL query params (`?variant=...`) handle everything                |
 | Create separate routes for each design alternative                                | One route, conditional rendering via `useFeature()`                |
-| Import feature internals from `packages/vellum/src/features/**` in app components | Use `useFeature()` from `@redacted/vellum`                         |
+| Import feature implementation internals from `app/features/featureConfig.ts` or `app/features/FeatureProvider.tsx` in app components | Use `useFeature()` from `~/features/FeatureContext`                         |
 | Hard-code variant IDs as numbers                                                  | Feature and variant IDs are **kebab-case strings**                 |
-| Add a new variant switching UI element into the product design                    | The lime green floating UI is the switcher — it's meta-UI          |
-| Modify Vellum feature internals for an app feature                                | Only modify `app/vellum.features.json` and the consuming component |
+| Add a new variant switching UI element into the product design                    | The floating tab-link UI is the switcher — it's meta-UI          |
+| Modify app-local feature-system internals for an app feature                       | Only modify `app/features.json` and the consuming component |
 
 ---
 
@@ -280,8 +286,9 @@ Keep this guard **in the route component itself**, colocated with the route that
 
 **Floating strip doesn't appear on my page:**
 
-- Check that the route pattern in `app/vellum.features.json` matches your page's URL exactly (segment-by-segment)
+- Check that the route pattern in `app/features.json` matches your page's URL exactly (segment-by-segment)
 - `:param` segments match any value, but the number of segments must match
+- Ensure the applicable feature has variants and **Show feature selector** is enabled in the Prototype menu
 - Check browser console for errors
 
 **`useFeature()` returns null:**
@@ -289,11 +296,11 @@ Keep this guard **in the route component itself**, colocated with the route that
 - Verify you're passing the **feature ID** (string), not the variant ID
 - Verify the feature's `routes` array includes a pattern matching the current page
 
-**Variant buttons show but clicking doesn't change anything:**
+**Variant tab links show but clicking doesn't change anything:**
 
 - Ensure your component reads `useFeature()` and conditionally renders based on it
 - Make sure you're checking the correct variant IDs (kebab-case strings)
 
 **URL params get cleared when navigating:**
 
-- This is expected behavior. When leaving a page with features, params are cleared. When returning, default variants are auto-selected.
+- This is expected for off-route `variant` params: they are removed. When returning during client navigation, valid URL selections take priority, then remembered selections, then the first configured variant. A reload uses the URL or the first variant, not remembered client-navigation state. Unrelated query params are preserved.

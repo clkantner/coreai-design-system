@@ -6,18 +6,18 @@ description: 'MANDATORY for @coreai-ds/react-components work. Requires the CoreA
 # CoreAI Design System - Using `@coreai-ds/react-components` as an agent
 
 This guide is based on the agent-usage doc shipped with `@coreai-ds/react-components` at
-`node_modules/@coreai-ds/react-components/agent/SKILL.md`. CoreaAI Sandbox additionally treats the
+`node_modules/@coreai-ds/react-components/agent/SKILL.md`. CoreAI Sandbox additionally treats the
 CoreAI documentation MCP as a hard prerequisite for CoreAI-dependent implementation.
 
 ## Skill boundary
 
 This skill owns the authoritative workflow for the external `@coreai-ds/react-components` package:
 CoreAI-first documentation lookup, inherited Fluent API lookup, and CoreAI import rules. It does
-not decide whether CoreaAI Sandbox already owns a product-specific adapter or composition.
+not decide whether CoreAI Sandbox already owns a product-specific adapter or composition.
 
-For CoreaAI Sandbox code, invoke `react-components` first to classify the repository boundary. That
+For CoreAI Sandbox code, invoke `react-components` first to classify the repository boundary. That
 skill delegates every CoreAI API question back here, while it owns inspection of app components
-under `app/components/common/**`. Do not duplicate CoreaAI Sandbox's local component catalog in this
+under `app/components/common/**`. Do not duplicate CoreAI Sandbox's local component catalog in this
 mirrored package skill.
 
 ## Import components from `@coreai-ds/react-components`, not `@fluentui/react-components`
