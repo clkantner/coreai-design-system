@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT license.
+ */
+
 @layer common {
   .resizeHandle {
     transition: background-color 0.1s ease;

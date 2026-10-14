@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { ResourceNotFoundProps } from '../ResourceNotFound/ResourceNotFound';
 import type {
   DataGridCellFocusMode,

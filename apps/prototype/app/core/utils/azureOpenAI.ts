@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { AzureOpenAI } from 'openai';
 import type { AzureOpenAISettings } from '~/hooks/useAzureOpenAISettings';
 

@@ -64,6 +64,9 @@ jobs:
       - name: Check tracked source for public-distribution blockers
         run: npm run check:public-source
 
+      - name: Check source license headers
+        run: npm run license:check
+
       - name: Build and inspect the exact release tarball
         run: |
           npm run clean --workspace packages/react-components

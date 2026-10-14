@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 import { createPath, useLocation, useNavigate, type Path } from 'react-router';
 import { FeatureContext } from './FeatureContext';

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { TableColumnDefinition } from './DataGridWithFilters';
 
 import { Button, Tooltip } from '@coreai-ds/react-components';

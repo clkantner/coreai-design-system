@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { ReactNode } from 'react';
 
 // Simplified catalog item for coreai-sandbox

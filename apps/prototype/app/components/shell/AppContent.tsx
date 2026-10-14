@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { JSX, PropsWithChildren } from 'react';
 import { ContainerQueryProvider } from '~/components/common';
 import { AppThemeProvider } from '~/theme/AppThemeProvider';

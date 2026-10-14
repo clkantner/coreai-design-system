@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { ThemeContextValue, Theme } from './ThemeContext';
 import type { DataVizTokens } from './themes';
 

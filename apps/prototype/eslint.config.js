@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { fileURLToPath, URL } from 'node:url';
 import rootConfig from '../../eslint.config.mjs';
 

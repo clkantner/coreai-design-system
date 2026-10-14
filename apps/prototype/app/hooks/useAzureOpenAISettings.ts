@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { useState, useCallback, useEffect, useMemo } from 'react';
 
 const STORAGE_KEY = 'azure-openai-settings';

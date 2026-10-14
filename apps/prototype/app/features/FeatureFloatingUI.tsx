@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { Button, Text } from '@coreai-ds/react-components';
 import { ReOrderDotsVerticalRegular } from '@fluentui/react-icons';
 import { clsx } from 'clsx';

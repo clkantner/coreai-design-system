@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 const libraryFiles = ['app/components/common/**', 'app/core/**', 'app/features/**'];
 
 const fluentBoundary = {

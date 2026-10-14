@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { useEffect, useState } from 'react';
 
 export function useMediaQuery(query: string): boolean {

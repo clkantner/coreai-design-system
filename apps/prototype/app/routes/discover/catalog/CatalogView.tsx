@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { ICatalogItem, ISortOption } from './Catalog.types';
 import type { IFilterCategory, IFilterState } from './FilterSidebar';
 import type { OptionOnSelectData, SelectionEvents } from '@coreai-ds/react-components';

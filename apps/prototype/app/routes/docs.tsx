@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { PageBody, PageHeader, PageLayout, ResourceNotFound } from '~/components/common';
 
 export default function Docs() {

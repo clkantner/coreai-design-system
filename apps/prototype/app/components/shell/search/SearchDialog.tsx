@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { JSX } from 'react';
 import { useState } from 'react';
 import { Dismiss24Regular, SearchRegular } from '@fluentui/react-icons';

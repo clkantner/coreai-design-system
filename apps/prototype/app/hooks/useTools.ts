@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { Tool, ToolCategory } from '~/data';
 
 import { useQuery } from '@tanstack/react-query';

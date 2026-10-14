@@ -135,6 +135,3 @@ on `main` is not a substitute for PR-head checks. Do not bypass branch protectio
 4. Configure dependency-update permissions/labels and opt in separately.
 5. Complete the separate npm publishing approval and authentication setup in
    [RELEASING.md](../packages/react-components/RELEASING.md).
-
-Historical source handoff and retirement of the previous automation are covered
-in [the open-source preparation checklist](OPEN-SOURCE-PREPARATION.md).

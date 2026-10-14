@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { PageHeaderProps } from './PageHeader';
 import type { TabLinkListProps } from '../TabLinkList/TabLinkList';
 

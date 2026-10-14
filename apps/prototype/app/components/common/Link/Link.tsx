@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { ComponentPropsWithoutRef } from 'react';
 import type {
   LinkProps as RouterLinkProps,

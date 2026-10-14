@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { useState, useCallback } from 'react';
 import { useAzureOpenAISettings } from './useAzureOpenAISettings';
 import { createAzureOpenAIClient } from '~/core/utils/azureOpenAI';

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { Agent, AgentStatus } from '~/data';
 
 import { useQuery } from '@tanstack/react-query';

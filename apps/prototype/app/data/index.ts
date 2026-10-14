@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /**
  * Mock data types and exports for the coreai-sandbox demo application.
  * This data is used throughout the app to simulate API responses.

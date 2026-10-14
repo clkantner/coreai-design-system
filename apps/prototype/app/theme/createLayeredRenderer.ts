@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { createDOMRenderer, type GriffelRenderer } from '@griffel/react';
 
 type CSSRulesByBucket = Parameters<GriffelRenderer['insertCSSRules']>[0];

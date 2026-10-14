@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { JSX } from 'react';
 
 import type { FluentIcon } from '@fluentui/react-icons';

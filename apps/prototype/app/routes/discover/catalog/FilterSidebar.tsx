@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { ICatalogItem } from './Catalog.types';
 import type { CheckboxOnChangeData, RadioGroupOnChangeData } from '@coreai-ds/react-components';
 import type { ReactElement } from 'react';

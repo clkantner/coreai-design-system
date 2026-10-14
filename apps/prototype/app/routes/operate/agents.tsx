@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { Agent } from '~/data';
 import type { TableColumnDefinition } from '~/components/common';
 

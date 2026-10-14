@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { Theme } from './ThemeContext';
 
 import { useThemeContext } from './useThemeContext';

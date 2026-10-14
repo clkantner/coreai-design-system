@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 
 interface Position {

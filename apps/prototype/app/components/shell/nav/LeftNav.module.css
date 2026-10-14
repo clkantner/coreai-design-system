@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT license.
+ */
+
 @layer common {
   .leftNav {
     --left-nav-width: 218px;

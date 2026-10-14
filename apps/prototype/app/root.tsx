@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /* eslint-disable no-restricted-syntax */
 import {
   isRouteErrorResponse,

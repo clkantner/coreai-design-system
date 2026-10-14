@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { JSX, Key, ReactNode } from 'react';
 
 import { Text } from '@coreai-ds/react-components';

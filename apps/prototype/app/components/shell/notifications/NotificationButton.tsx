@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { AlertFilled, AlertRegular, bundleIcon } from '@fluentui/react-icons';
 import React from 'react';
 import { Button, type ButtonProps } from '@coreai-ds/react-components';

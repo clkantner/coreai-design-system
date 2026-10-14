@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { ComponentPropsWithoutRef, JSX, ReactNode } from 'react';
 
 import { Tab } from '@coreai-ds/react-components';

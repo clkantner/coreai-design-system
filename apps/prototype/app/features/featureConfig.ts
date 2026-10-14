@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { generatePath, matchPath } from 'react-router';
 import featureData from '../features.json';
 

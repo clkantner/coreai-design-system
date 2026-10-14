@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { TableRowId } from '@coreai-ds/react-components';
 import type { DataGridWithFiltersProps } from '../DataGridWithFilters/DataGridWithFilters';
 import type { PanelDetails } from './DetailsLayout';

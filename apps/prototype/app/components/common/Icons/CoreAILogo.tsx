@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { wrapIcon } from '@fluentui/react-icons';
 import type { FluentIconsProps } from '@fluentui/react-icons';
 

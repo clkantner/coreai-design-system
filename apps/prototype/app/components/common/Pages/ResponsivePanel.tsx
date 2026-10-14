@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { CSSProperties, ReactNode, RefObject } from 'react';
 
 import { Button, Drawer, DrawerBody, DrawerHeader, Text } from '@coreai-ds/react-components';

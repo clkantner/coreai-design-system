@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { ImageProps as CoreAIImageProps } from '@coreai-ds/react-components';
 import type { JSX } from 'react';
 

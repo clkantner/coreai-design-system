@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import type { TableColumnDefinition } from '../DataGridWithFilters';
 import type { ReactNode } from 'react';
 

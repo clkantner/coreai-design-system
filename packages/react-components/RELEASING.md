@@ -9,8 +9,6 @@ creation, or a change to repository visibility.
 
 Publishing is disabled by default. Leave `OSS_RELEASE_APPROVED` and
 `NPM_PUBLISH_ENABLED` unset (or `false`) until maintainers have recorded approval.
-Approved notices and governance remain blockers in the
-[open-source preparation checklist](../../docs/OPEN-SOURCE-PREPARATION.md).
 The repository documentation is licensed under CC-BY-4.0, and its code is licensed under MIT.
 
 Before enabling either variable, the owners must:
