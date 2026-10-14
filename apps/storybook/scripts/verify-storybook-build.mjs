@@ -69,18 +69,16 @@ if (componentsManifest.meta?.docgen !== 'react-component-meta') {
 }
 
 const entries = Object.values(index.entries);
-if (process.env.STORYBOOK_INGESTION_EXPERIMENTS !== 'true') {
-  const experimentEntries = [...entries, ...componentEntries, ...Object.values(docs)].filter(
-    (entry) =>
-      entry.id?.startsWith('experiments-') ||
-      entry.importPath?.includes('/experiments/') ||
-      entry.path?.includes('/experiments/'),
+const experimentEntries = [...entries, ...componentEntries, ...Object.values(docs)].filter(
+  (entry) =>
+    entry.id?.startsWith('experiments-') ||
+    entry.importPath?.includes('/experiments/') ||
+    entry.path?.includes('/experiments/'),
+);
+if (experimentEntries.length) {
+  throw new Error(
+    `Temporary experiments leaked into normal build: ${experimentEntries.map((entry) => entry.id).join(', ')}`,
   );
-  if (experimentEntries.length) {
-    throw new Error(
-      `Temporary experiments leaked into normal build: ${experimentEntries.map((entry) => entry.id).join(', ')}`,
-    );
-  }
 }
 const normalizedImportPaths = entries.map((entry) => entry.importPath?.replaceAll('\\', '/') ?? '');
 
@@ -181,13 +179,7 @@ if (disclosureFindings.length > 0) {
   );
 }
 
-const manifestProblems = assertExpectedManifestProblems(
-  componentEntries.filter(
-    (component) =>
-      process.env.STORYBOOK_INGESTION_EXPERIMENTS !== 'true' ||
-      !component.id.startsWith('experiments-'),
-  ),
-);
+const manifestProblems = assertExpectedManifestProblems(componentEntries);
 
 console.log(
   `Verified Storybook build with ${fluentStoryCount} generated component story entries, ` +

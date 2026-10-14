@@ -6,7 +6,6 @@ import * as fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { generateTemplateDocs } from '../scripts/generate-template-docs.mjs';
 import { generateSkillDoc } from '../scripts/generate-skill-doc.mjs';
-import { ingestionExperimentProvider } from './ingestion-experiment-provider';
 import { componentStoryDocsProvider } from '../scripts/component-story-docs.mjs';
 import { publicMarkdown } from '../scripts/public-markdown.mjs';
 import { generatedStoryIndexer } from '../scripts/generate-component-stories.mjs';
@@ -14,7 +13,6 @@ import { generatedStoryIndexer } from '../scripts/generate-component-stories.mjs
 // Storybook 10 loads config files as native ESM, where `__dirname` doesn't
 // exist. Recreate it from `import.meta.url` for the path math below.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ingestionExperiments = process.env.STORYBOOK_INGESTION_EXPERIMENTS === 'true';
 if (!fs.existsSync(path.resolve(__dirname, '.cache/component-stories/inventory.json'))) {
   throw new Error(
     'Generated component stories are missing. Run `npm --workspace apps/storybook run stories:generate`.',
@@ -25,7 +23,6 @@ const config: StorybookConfig = {
   stories: [
     '../src/**/*.mdx',
     '../src/stories/templates/**/*.stories.@(ts|tsx)',
-    ...(ingestionExperiments ? ['../src/stories/experiments/**/*.stories.@(ts|tsx)'] : []),
     './.cache/component-stories/*.stories.js',
   ],
 
@@ -54,7 +51,7 @@ const config: StorybookConfig = {
   },
 
   experimental_storyDocsProvider: (next: StoryDocsProvider | undefined) =>
-    componentStoryDocsProvider(ingestionExperiments ? ingestionExperimentProvider(next) : next),
+    componentStoryDocsProvider(next),
 
   core: {
     disableTelemetry: true,
