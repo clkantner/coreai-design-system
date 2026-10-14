@@ -30,7 +30,7 @@ export function TopNav(): JSX.Element {
             <div className={styles.logoWrapper}>
               <CoreAILogo />
             </div>
-            <Text preset="body" foreground={2} className={styles.foundryText}>
+            <Text preset="body" foreground={2} className={styles.appName}>
               CoreAI Sandbox
             </Text>
           </Link>

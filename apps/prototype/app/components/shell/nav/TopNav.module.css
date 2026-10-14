@@ -30,12 +30,7 @@
   color: var(--colorNeutralForeground1);
 }
 
-.foundryIcon {
-  width: auto;
-  height: 16px;
-}
-
-.foundryText {
+.appName {
   margin-right: var(--spacingS);
   font-weight: 400;
   white-space: nowrap;
@@ -215,7 +210,7 @@
 }
 
 @container app (width <= 970px) {
-  .foundryText {
+  .appName {
     display: none;
   }
 }

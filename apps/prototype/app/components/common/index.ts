@@ -1,4 +1,3 @@
-// Export only Foundry-owned components and adapters. CoreAI components import directly.
 export { Card } from './Card/Card';
 export type {
   CardButtonProps,
