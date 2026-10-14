@@ -9,15 +9,15 @@ creation, or a change to repository visibility.
 
 Publishing is disabled by default. Leave `OSS_RELEASE_APPROVED` and
 `NPM_PUBLISH_ENABLED` unset (or `false`) until maintainers have recorded approval.
-An approved license, notices, and governance remain blockers in the
+Approved notices and governance remain blockers in the
 [open-source preparation checklist](../../docs/OPEN-SOURCE-PREPARATION.md).
-No root license file or approval is implied by these preparation changes.
+The repository documentation is licensed under CC-BY-4.0, and its code is licensed under MIT.
 
 Before enabling either variable, the owners must:
 
 1. Record legal/open-source approval for this repository, its license, dependencies,
-   notices, branding, documentation, and redistribution rights. Replace `UNLICENSED`
-   only with the approved license and include its license text. Review the complete
+   notices, branding, documentation, and redistribution rights. Confirm that the package uses the
+   approved MIT license and includes its license text. Review the complete
    repository and history before any visibility change; this workflow cannot perform
    that review.
 2. Identify **every package currently selected for private distribution**. Review

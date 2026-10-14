@@ -26,7 +26,7 @@ Do not treat completion of one as authorization for another.
 
 ## Legal and third-party review
 
-- [x] Verify that `LICENSE.txt`, `NOTICE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
+- [x] Verify that `LICENSE`, `LICENSE-CODE`, `NOTICE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
       and `SUPPORT.md` are complete, contain no template placeholders, and use the current Microsoft
       security, code-of-conduct, CLA, support, and MIT boilerplate where applicable.
 - [ ] Obtain final approval for the repository's license, notices, contribution terms, security
@@ -75,9 +75,8 @@ Do not treat completion of one as authorization for another.
 - [ ] Confirm ownership and publishing permissions for the `@coreai-ds` npm scope and
       `@coreai-ds/react-components`.
 - [ ] Choose an unused public package version and confirm the intended release notes.
-- [ ] After license approval, change `packages/react-components/package.json` from
-      `"license": "UNLICENSED"` to the approved SPDX license identifier, include the approved
-      license text in the packed package, update the package-lock metadata, and verify the tarball.
+- [ ] Update the package-lock license metadata, then verify that the packed package includes the
+      approved MIT license text.
 - [ ] Configure and review the protected npm publishing environment and least-privileged publishing
       identity while leaving release gates disabled until publication is authorized.
 

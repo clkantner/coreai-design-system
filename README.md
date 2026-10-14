@@ -7,7 +7,9 @@ This is the monorepo for **CoreAI**, a Fluent UI v9 design system.
 Code, issues, pull requests, and GitHub Actions are available at
 [microsoft/coreai-design-system](https://github.com/microsoft/coreai-design-system).
 
-The source code is available under the [MIT license](LICENSE.txt).
+Documentation is available under the
+[Creative Commons Attribution 4.0 International license](LICENSE), and source code is available
+under the [MIT license](LICENSE-CODE).
 Use the links below to explore the documentation, Storybook, and read-only MCP endpoint.
 
 ## Live links
@@ -113,7 +115,9 @@ manual publish to bypass approval.
 
 ### License and hosted-service terms
 
-The source code is licensed under the [MIT license](LICENSE.txt).
+Documentation is licensed under the
+[Creative Commons Attribution 4.0 International license](LICENSE). Source code is licensed under
+the [MIT license](LICENSE-CODE).
 
 Use of the hosted MCP endpoint is subject to the
 [Microsoft APIs Terms of Use](https://learn.microsoft.com/en-us/legal/microsoft-apis/terms-of-use).

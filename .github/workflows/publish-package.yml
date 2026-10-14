@@ -46,8 +46,9 @@ jobs:
           assert.equal(p.repository.url, 'git+https://github.com/microsoft/coreai-design-system.git');
           assert.equal(p.publishConfig.registry, 'https://registry.npmjs.org/');
           assert.equal(p.publishConfig.access, 'public');
-          assert.ok(p.license && p.license !== 'UNLICENSED', 'An approved open-source license is required');
-          assert.ok(fs.existsSync('LICENSE'), 'The approved license file is required');
+          assert.equal(p.license, 'MIT', 'The package must use the approved MIT license');
+          assert.ok(fs.existsSync('LICENSE-CODE'), 'The root MIT license file is required');
+          assert.ok(fs.existsSync('packages/react-components/LICENSE'), 'The package MIT license file is required');
           assert.ok(fs.readFileSync('packages/react-components/CHANGELOG.md', 'utf8').includes(`## [${p.version}] - `), 'Roll the changelog before publishing');
           NODE
 
