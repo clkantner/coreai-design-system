@@ -38,9 +38,7 @@ import { AddRegular } from '@fluentui/react-icons';
 
 - **`coreai-ds-docs`** — required primary source. CoreAI-specific props, defaults, examples,
   templates.
-- **`fluent-agent`** — required fallthrough for what `coreai-ds-docs` doesn't cover (icon/token
-  search, general Fluent Q&A). Don't use its _component_ tools — they return raw
-  `@fluentui/react-components` APIs that ignore CoreAI's wrappers/defaults.
+- **`coreai-ds-docs-localhost`** — local documentation source when developing this repository.
 
 Connection config (`mcp.json`) and the full toolset list live in one place — see
 [Docs/MCP Setup](https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-mcp-setup--docs).
@@ -48,14 +46,14 @@ Connection config (`mcp.json`) and the full toolset list live in one place — s
 ### Required MCP workflow
 
 1. Confirm the CoreAI documentation server is connected.
-2. Call `list-all-documentation` before assuming a component ID.
-3. Call `get-documentation` before using a component or prop.
-4. Call `get-documentation-for-story` when a specific state or pattern is needed.
+2. Call `docs-list` before assuming a component ID.
+3. Call `docs-show` before using a component or prop.
+4. Call `docs-show-story` when a specific state or pattern is needed.
 5. Implement only documented props, combinations, and patterns.
 6. If a component or prop is missing, report the gap. Do not invent it.
 
 **Never hallucinate a prop.** Even a common-sounding one (`shadow`, `variant`, `color`) — verify
-it's real via `get-documentation` or an example story before using it. If it isn't documented or
+it's real via `docs-show` or an example story before using it. If it isn't documented or
 shown in an example, ask the user instead of assuming.
 
 ### Report documentation and component gaps
@@ -79,7 +77,7 @@ folder alongside `CopyButton`/`DropdownButton`/etc., doubling category+name), bu
 `components-avatar` (not doubled), `components-datetime-calendar` (category `datetime`, name
 `calendar`). You cannot guess an id from a component name.
 
-- Call `list-all-documentation` first, every session, before assuming an id.
+- Call `docs-list` first, every session, before assuming an id.
 - Pass `withStoryIds: false` when you don't need story ids yet — it meaningfully cuts response
   size.
 
@@ -89,7 +87,7 @@ folder alongside `CopyButton`/`DropdownButton`/etc., doubling category+name), bu
   `components-avatar` — import from the barrel as usual.
 - **Templates** (`templates-empty-state`, `templates-filterable-list`,
   `templates-shell-and-navigation`) are higher-level, copy-paste starting points, **not exported
-  from the package** — there's no import path for them. Call `get-documentation` with the
+  from the package** — there's no import path for them. Call `docs-show` with the
   template's id and copy its "Source Code" entry (story id `templates-empty-state--source-code`)
   verbatim into the consuming repo, then edit it freely to fit the app; it's meant to be
   modified as needed, not imported and left as-is.
@@ -113,20 +111,18 @@ folder alongside `CopyButton`/`DropdownButton`/etc., doubling category+name), bu
 
 ## Higher-value docs for specific questions
 
-Prefer these over guessing from a prop table alone — pass the id to `get-documentation`:
+Prefer these over guessing from a prop table alone — pass the id to `docs-show`:
 
 - **What CoreAI changes vs. stock Fluent** → `docs-variations-from-fluent--docs`
 - **Theming / token overrides** → `docs-theming--docs`
 - **Overriding styles with plain CSS/CSS Modules** → `docs-styling-with-css-modules--docs`
 
-## If neither MCP server is reachable
+## If the CoreAI MCP server is unreachable
 
-Both require a one-time interactive Microsoft sign-in, which an agent can't complete unattended.
-Once done, tokens renew silently, so this shouldn't recur mid-session. Don't silently fall back
-and guess; push for the real thing first:
+Do not silently fall back and guess; check the selected server first:
 
-1. **Missing from the client's MCP config?** Tell the user both servers are required for proper
-   usage, show them the destination path and configuration block, and ask for confirmation before
+1. **Missing from the client's MCP config?** Tell the user the CoreAI documentation server is needed,
+   show them the destination path and configuration block, and ask for confirmation before
    adding it. See
    [Docs/MCP Setup](https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-mcp-setup--docs)
    for the `mcp.json` block (VS Code: `.vscode/mcp.json`; Copilot CLI: `~/.copilot/mcp-config.json`).
@@ -134,9 +130,8 @@ and guess; push for the real thing first:
    [README.md](https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/README.md),
    so it's available even with no network access to Storybook (e.g. read straight from
    `node_modules/@coreai-ds/react-components/README.md`).
-2. **Configured but not signed in?** Ask the user to complete the sign-in now (trigger it, or tell
-   them which client prompt to complete) before you proceed — this is the normal, expected first
-   step, not an edge case to route around.
+2. **Server configured but unavailable?** Check the URL and service availability.
+   For the local server, check that Storybook is running.
 3. **Still unreachable after that** (e.g. the documentation service is unavailable)? Only now fall
    back: use this file plus the package's own README and CHANGELOG — both ship in the installed
    package (`node_modules/@coreai-ds/react-components/README.md` and `.../CHANGELOG.md`; on GitHub:
@@ -145,14 +140,11 @@ and guess; push for the real thing first:
    as your source of truth for that session, and tell the user live docs weren't available so
    they know your answers may be less precise.
 4. If the blocker is documentation-service access, ask the user to contact that
-   service's owner. Documentation authentication is separate from npm consumption:
-   the approved public npm package requires no Azure feed membership or token.
-   Never ask for or configure private-feed credentials to install a public package.
+   service's owner. Do not change package registry settings to troubleshoot an MCP connection.
 
 ## Fonts and package installation
 
-Public npm distribution is prepared but requires maintainer approval before the
-first release. Use the package README for current installation status. The package
+Install from npm using the package README. The package
 contains compiled JavaScript/types, not source TS or licensed Aptos binaries.
 `@coreai-ds/react-components/fonts/fonts.css` only registers fonts already installed on
 the user's device. The proportional stack falls back to Inter and then system fonts;
@@ -167,14 +159,13 @@ A link a human pastes in, e.g.
 `https://coreai-ds-storybook.azurewebsites.net/?path=/docs/components-button-button--docs` or
 `.../?path=/story/components-button-button--subtle-content-alignment`:
 
-- The segment before `--` (`components-button-button`) is the `id` for `get-documentation`.
-- The segment after `--` (kebab-case) maps to a story export name for `get-documentation-for-story`
+- The segment before `--` (`components-button-button`) is the `id` for `docs-show`.
+- The segment after `--` (kebab-case) maps to a story export name for `docs-show-story`
   (e.g. `subtle-content-alignment` → `SubtleContentAlignment`). If the guess doesn't hit, confirm
-  the exact name via `list-all-documentation` with story ids.
-- Not every story in the Storybook UI reaches the MCP — only inline-authored ones (`Default` plus
-  any CoreAI-specific variants). A canonical Fluent story that's merely re-exported renders fine
-  for humans but returns nothing from `get-documentation-for-story`. For stock Fluent behavior
-  that isn't covered by an inline story, fall through to `fluent-agent`.
+  the exact name via `docs-show`, which includes the component's story index.
+- Use the exact `storyId` returned by `docs-show` or `docs-list` with `withStoryIds: true`.
+  Do not infer extraction support from a story's source shape. If the returned example is
+  missing or incomplete, report the documentation gap.
 
 ## Completion checklist
 

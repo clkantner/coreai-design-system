@@ -173,7 +173,7 @@ const developerResources: Resource[] = [
   },
   {
     title: 'npm package',
-    description: 'Available after the first approved public npm release',
+    description: 'Install the React components from npm',
     href: siteLinks.npmPackage,
   },
   {

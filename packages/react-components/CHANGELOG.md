@@ -59,7 +59,7 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 - Added Vite SSR and Vitest guidance for working around Fluent Icons' invalid Node ESM output.
 - Source code, pull requests, and CI/CD moved from GitHub to Azure DevOps during the pre-public period. At that time, the former GitHub repository remained the issue tracker.
 - Agent and MCP setup guidance now requires user confirmation before writing skill files, changing client configuration, or filing GitHub issues.
-- MCP setup guidance no longer requires corp-network access (VPN or Devbox/SAW) for `fluent-agent`; both MCP servers need only a Microsoft sign-in in the browser, with no VPN, headers, or secrets.
+- MCP setup guidance no longer requires corp-network access (VPN or Devbox/SAW); documented hosted access uses a Microsoft sign-in in the browser, with no VPN, headers, or secrets.
 - The hosted `coreai-ds-docs` MCP server renews its session without a repeat sign-in, so agent sessions are no longer interrupted when the previous token expires. Fixes pre-public issue 468.
 - `Select` now defaults to `appearance="filled-darker"` when CoreAI component defaults are enabled; pass `appearance="outline"` to retain Fluent's default appearance.
 - `LinkButton` accepts an anchor-compatible component through `as`, enabling framework router links while retaining its Button API and anchor semantics.

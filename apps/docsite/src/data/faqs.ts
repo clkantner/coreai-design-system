@@ -102,22 +102,13 @@ export const faqGroups: FaqGroup[] = [
     title: 'Getting started',
     items: [
       {
-        id: 'previews-not-loading',
-        question: 'Why are the component previews not loading?',
-        answer: [
-          'Open Storybook and sign in with your Microsoft account, then return to the docsite. The live code previews require authentication.',
-        ],
-        sources: [sources.storybook],
-        links: [{ label: 'Open Storybook', href: siteLinks.storybook }],
-      },
-      {
         id: 'package-access',
         question: 'How do I install the npm package?',
         answer: [
-          'Public npm publication is pending open-source approval. After an approved release, install @coreai-ds/react-components from npm, then follow the package README for provider, font, and usage guidance.',
+          'Install @coreai-ds/react-components from npm, then follow the package README for provider, font, and usage guidance.',
         ],
         sources: [sources.package],
-        links: [{ label: 'View the npm destination', href: siteLinks.npmPackage }, sources.package],
+        links: [{ label: 'View the npm package', href: siteLinks.npmPackage }, sources.package],
       },
       {
         id: 'coreai-appearance',
@@ -163,8 +154,8 @@ export const faqGroups: FaqGroup[] = [
         id: 'package-skill-and-mcp',
         question: 'What does my coding agent need to use CoreAI?',
         answer: [
-          'CoreAI agent setup requires the package, its installed agent skill, and both documentation servers. Public npm installation remains pending until the first approved release.',
-          'Use CoreAI documentation for components and templates. Use Fluent documentation for gaps such as icon and token lookup. Follow the agent skill and MCP setup guides.',
+          'CoreAI agent setup requires the package, its installed agent skill, and the CoreAI documentation MCP server.',
+          'The CoreAI MCP combines selected Fluent stories with CoreAI stories and overrides. Report missing documentation rather than guessing APIs. Follow the agent skill and MCP setup guides.',
         ],
         sources: [sources.package, sources.skill, sources.mcp],
         links: [sources.skill, sources.mcp],
@@ -181,8 +172,8 @@ export const faqGroups: FaqGroup[] = [
         id: 'mcp-sign-in',
         question: 'What if the documentation server will not connect?',
         answer: [
-          'Check the MCP setup guide and complete the Microsoft sign-in. You do not need a VPN or custom headers.',
-          'A persistent "Need admin approval" message requires tenant consent. Until access works, have your agent use the installed package README, changelog, and skill, and state that it cannot access live docs.',
+          'Check the endpoint URL and your network connection against the MCP setup guide.',
+          'If the server is unavailable, have your agent use the installed package README, changelog, and skill, and state that it cannot access live docs. Report persistent connection problems through GitHub issues.',
         ],
         sources: [sources.mcp, sources.skill],
         links: [sources.mcp],

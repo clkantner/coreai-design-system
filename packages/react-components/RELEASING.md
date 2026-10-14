@@ -1,10 +1,9 @@
 # Releasing
 
-`@coreai-ds/react-components` is being prepared for public distribution through
+Maintainers publish `@coreai-ds/react-components` through
 <https://registry.npmjs.org/> from <https://github.com/microsoft/coreai-design-system>.
-Preparation does **not** authorize publication, a version bump, tags, repository
-creation, or a change to repository visibility. Do not assume that a public npm
-release exists yet. Consumers will not need authentication.
+Release preparation does **not** authorize publication, a version bump, tags, repository
+creation, or a change to repository visibility.
 
 ## Required approval and initial access review
 
@@ -139,10 +138,8 @@ verification result. Published versions are immutable; rerunning the same versio
 fails instead of overwriting it. If publication succeeds but the run reports failure,
 inspect npm before retrying; do not automatically bump or delete releases.
 
-Consumers remove obsolete Azure scope routing from their project/user `.npmrc`,
-then run `npm install @coreai-ds/react-components`. No Azure feed membership, credential
-provider, token, or `always-auth` setting is required for public npm consumption.
-Keep credentials needed for unrelated private packages intact.
+Consumers run `npm install @coreai-ds/react-components`. See the
+[package README](README.md#install) for installation and registry configuration.
 
 This is a single-package workflow. Adding another publishable workspace requires
 a new access/license review and a separately reviewed release design.

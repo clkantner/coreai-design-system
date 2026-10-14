@@ -7,13 +7,10 @@ dependency automation. Publishing has a separate approval process documented in
 
 ## Package consumption in CI
 
-The package targets public npm. Once an approved public release is published,
-consumers can install `@coreai-ds/react-components` from
-`https://registry.npmjs.org/`; no Azure Artifacts credential provider, scoped
-Azure registry mapping, PAT, or Azure identity is needed for public releases.
-Remove legacy `@coreai-ds:registry` mappings when moving to the public package.
-Until the first approved public release exists, do not assume a specific version
-is available on npm. This migration itself does not publish anything.
+Consumers install `@coreai-ds/react-components` from npm at
+`https://registry.npmjs.org/`.
+Check npm for available versions. Maintainer publication remains a separate
+approval-gated operation.
 
 For this repository, run `npm ci` with Node.js 22 at the root. The docsite and
 Storybook use the local package workspace, not a separately published artifact.
@@ -39,7 +36,7 @@ Before enabling deployment, an administrator must:
    This must be a repository variable, not just an environment variable: the
    workflow evaluates it before starting environment jobs.
 
-Deploying these existing Entra-authenticated sites does not publish an npm
+Deploying these sites does not publish an npm
 package or make the sites public. It does not require `OSS_RELEASE_APPROVED`.
 Keep `OSS_RELEASE_APPROVED` and `NPM_PUBLISH_ENABLED` absent/false until the
 separate package-release approvals are complete.
@@ -124,7 +121,7 @@ Manual dispatch on `main` retries the same deployment path. A failed validation,
 build, login, or preflight prevents subsequent deployment steps; inspect the failed
 step before retrying. Set `ENABLE_AZURE_DEPLOY=false` to stop new deployments.
 
-## App & MCP hosting (Azure App Service + Entra)
+## App & MCP hosting (public Storybook, authenticated docsite)
 
 ### Architecture and deployment contract
 
@@ -135,8 +132,8 @@ The existing shared Linux App Service plan hosts:
   with the MCP endpoint at `/mcp`.
 
 These are URL patterns, not deployment targets. Use the existing host names
-provided by the hosting owners. Existing hosting requires authorization;
-moving source to GitHub does not change those access restrictions.
+provided by the hosting owners. Storybook and MCP are public after an approved hosting
+migration; docsite authentication is unchanged. Local edits do not change remote settings.
 The Bicep source remains at [infra/main.bicep](../infra/main.bicep) for
 separately approved infrastructure management. GitHub Actions does **not** apply it.
 Infrastructure-only merges still trigger an application redeployment, but do not
@@ -146,10 +143,10 @@ The deployment job provisions the pinned Fluent story checkout, builds Storybook
 and its MCP manifests, verifies its content, then builds the docsite against that
 exact Storybook index. The ZIP layouts are:
 
-| App           | ZIP root                                                                                   | Startup                                  |
-| ------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------- |
-| Docsite       | `dist/`, `package.json`, `server.js`                                                       | Existing `npm start` → `node server.js`  |
-| Storybook/MCP | `storybook-static/`, `package.json`, `server.mjs`, `oauth.mjs`, production `node_modules/` | Existing `npm start` → `node server.mjs` |
+| App           | ZIP root                                                                      | Startup                                  |
+| ------------- | ----------------------------------------------------------------------------- | ---------------------------------------- |
+| Docsite       | `dist/`, `package.json`, `server.js`                                          | Existing `npm start` → `node server.js`  |
+| Storybook/MCP | `storybook-static/`, `package.json`, `server.mjs`, production `node_modules/` | Existing `npm start` → `node server.mjs` |
 
 Preserve the hosts' Node 22 runtime, existing startup command/default npm-start
 behavior, Always On where supported, and `SCM_DO_BUILD_DURING_DEPLOYMENT=false`.
@@ -162,71 +159,43 @@ Azure app settings are never copied into ZIPs or uploaded as workflow artifacts.
 
 The docsite deploy waits for the normal ZIP deployment response. Storybook keeps
 `--track-status false`, so successful submission does not guarantee successful
-runtime startup. An operator must confirm `/healthz`, both UI sign-in flows, and
-an authenticated MCP request after deployment. The two ZIP deploys are sequential,
+runtime startup. An operator must confirm docsite `/healthz` and sign-in, anonymous
+Storybook access, and an anonymous MCP request after deployment. The two ZIP deploys are sequential,
 not transactional; rerun an approved main revision if one host fails.
 
-### Preserve authentication
+### Public Storybook migration
 
-Both browser UIs remain gated by single-tenant Microsoft Entra **Easy Auth**.
-The Storybook `/mcp` endpoint and OAuth discovery/facade routes remain excluded
-from Easy Auth so clients receive protocol-compatible OAuth challenges rather
-than an HTML login redirect. Each facade route validates its own input.
+Storybook UI, manifests, and `/mcp` require no user authentication or access tokens.
+The host has no OAuth facade, JWT validation, or Entra dependency. MCP clients need only
+the endpoint URL. The public endpoint limits request bodies to 64 KiB.
 
-Before deploying any ZIP and again after deployment, the workflow reads existing
-V2 auth settings directly from the ARM `config/authsettingsV2` endpoint into memory
-and requires enabled Entra Easy Auth with `requireAuthentication=true` for both
-apps. It requires all of the following existing Storybook app settings and
-rejects `MCP_AUTH_ENABLED=false`:
+Before an approved deployment, the hosting owner must disable Storybook Easy Auth
+(`platform.enabled=false`, `globalValidation.requireAuthentication=false`) and remove
+retired `MCP_ENTRA_*`, `MCP_OAUTH_*`, and `MCP_AUTH_ENABLED` app settings. Retire
+Storybook-only registrations only after verifying they are not shared with the docsite
+or another service. Do not remove shared deployment identities.
 
-| Existing App Service setting | Meaning                                                                     |
-| ---------------------------- | --------------------------------------------------------------------------- |
-| `MCP_ENTRA_TENANT_ID`        | Single tenant for JWT issuer and tenant validation                          |
-| `MCP_ENTRA_AUDIENCE`         | API app client ID GUID accepted as the v2 token `aud`; not its `api://` URI |
-| `MCP_ENTRA_SCOPE`            | Delegated scope, e.g. `api://<clientId>/access_as_user`                     |
-| `MCP_OAUTH_CLIENT_ID`        | Same client registration as Storybook Easy Auth                             |
+The workflow checks this public configuration before and after deployment. It still
+requires enabled single-tenant Easy Auth on the separate docsite. It reads settings into
+memory without printing values and does not modify Azure configuration.
+[infra/main.bicep](../infra/main.bicep) describes public Storybook hosting, but application
+deployment does not apply Bicep. A separately approved infrastructure migration is required.
 
-These are **not new GitHub variables**: the workflow reads but does not overwrite
-the current values. Preflight errors show setting names only, never Azure
-responses or values. The preflight is a missing/disabled-auth guard, not a full
-audit of every Entra policy or excluded route. Owners must preserve the existing
-issuer, audience, route exclusions, allowed tenant, redirects, and authorization
-policy.
-
-The host validates JWT signature, issuer, audience, tenant, and delegated scope
-on MCP/manifests requests. Scope validation is essential: an ID token for the
-same client can share the audience but does not carry delegated `scp`.
-The local OAuth facade supports discovery, registration, PKCE authorization-code
-exchange, and refresh-token grants; tokens are never logged.
-
-Keep the existing single-tenant app registration, ID-token issuance for the
-Storybook browser callback, `isFallbackPublicClient: true`, delegated
-`access_as_user` scope, existing admin consent/pre-authorized applications, and
-all existing redirect URIs. In particular:
-
-- Storybook's `/.auth/login/aad/callback` on the existing host.
-- `https://insiders.vscode.dev/redirect` and `https://vscode.dev/redirect`.
-- Native loopback `http://127.0.0.1/` (port-agnostic) and any existing explicit
-  loopback registrations.
-
-VS Code and Copilot CLI discover/register through the facade; clients need the
-MCP URL, not a distributed secret. The host permits native literal-loopback
-callbacks with ephemeral ports; `localhost` is deliberately not accepted.
-Compatible clients cache and renew their refresh tokens via the no-store facade.
-Keep an active owner for the API app registration to meet tenant lifecycle policy.
+GitHub Actions still uses OIDC to authorize deployment uploads. That identity is not
+visitor authentication and must remain. No remote changes were made as part of this migration.
 
 ### Troubleshooting
 
-| Symptom                         | Check                                                                                                                        |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Deployment jobs skipped         | Workflow enabled, exact repository/main ref, and repository `ENABLE_AZURE_DEPLOY=true`                                       |
-| Waiting for deployment          | Earlier deployment in the concurrency group; remove unintended environment reviewer/wait gates per the merge-approval policy |
-| OIDC `AADSTS70021`              | Exact environment subject, issuer, audience, tenant, and client ID                                                           |
-| Azure preflight fails           | Identity read/list permissions and existing Easy Auth/MCP configuration; inspect securely in Azure, not workflow logs        |
-| ZIP deploy forbidden            | Both target app scopes and publishing/configuration permissions                                                              |
-| MCP returns `401` after sign-in | Existing tenant, v2 GUID audience, delegated scope, and registration agreement                                               |
-| Bot PR has no CI                | Maintainer must close/reopen after the latest bot update; `GITHUB_TOKEN` does not trigger downstream workflows               |
+| Symptom                                  | Check                                                                                                                        |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Deployment jobs skipped                  | Workflow enabled, exact repository/main ref, and repository `ENABLE_AZURE_DEPLOY=true`                                       |
+| Waiting for deployment                   | Earlier deployment in the concurrency group; remove unintended environment reviewer/wait gates per the merge-approval policy |
+| OIDC `AADSTS70021`                       | Exact environment subject, issuer, audience, tenant, and client ID                                                           |
+| Azure preflight fails                    | Identity read/list permissions and existing Easy Auth/MCP configuration; inspect securely in Azure, not workflow logs        |
+| ZIP deploy forbidden                     | Both target app scopes and publishing/configuration permissions                                                              |
+| Storybook/MCP redirects or returns `401` | Storybook Easy Auth must be disabled; no client token setup is required                                                      |
+| Bot PR has no CI                         | Maintainer must close/reopen after the latest bot update; `GITHUB_TOKEN` does not trigger downstream workflows               |
 
-Do not work around authentication errors by disabling Easy Auth or MCP validation.
+Do not disable docsite authentication to resolve Storybook hosting errors.
 Do not print `az webapp config appsettings list` output or enable shell tracing in
 deployment jobs.
