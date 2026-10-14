@@ -5,16 +5,9 @@ description: 'MANDATORY for @coreai-ds/react-components work. Use the CoreAI doc
 
 # CoreAI Design System - Using `@coreai-ds/react-components` as an agent
 
-This guide is the entry point to CoreAI MCP documentation for repositories consuming
-`@coreai-ds/react-components`. It keeps lookup and
-implementation rules here; component APIs, defaults, states, and examples belong in the MCP.
-The CoreAI documentation MCP is a hard prerequisite for CoreAI-dependent
-implementation.
-
-This guide targets the public, combined documentation catalog introduced by
-[PR #17](https://github.com/microsoft/coreai-design-system/pull/17). Until that change is deployed
-to the hosted service, use a connected CoreAI documentation server that exposes the updated
-catalog. Discover the connected server's actual tool names and schemas before calling them.
+Use the CoreAI documentation MCP before CoreAI-dependent implementation. This skill provides
+lookup and implementation rules for consuming repositories; component APIs, defaults, states,
+and examples belong in the MCP.
 
 ## Skill boundary
 
@@ -53,41 +46,23 @@ import { AddRegular } from '@fluentui/react-icons';
 
 ## MCP servers
 
-- **`coreai-ds-docs`** — primary source at `https://coreai-ds-storybook.azurewebsites.net/mcp`.
-  The updated public catalog combines CoreAI
-  documentation, extensions, templates, and selected Fluent component stories. CoreAI overrides
-  take precedence for matching story IDs; other included Fluent variants remain available.
+- **`coreai-ds-docs`** — public documentation at `https://coreai-ds-storybook.azurewebsites.net/mcp`,
+  combining CoreAI components, extensions, templates, and selected Fluent stories.
+  CoreAI overrides take precedence for matching story IDs.
 - **`fluent-agent`** — optional supplementary source at `https://chat.fluentui.dev/mcp/server/`
   for icon/token search or general Fluent guidance.
   CoreAI's combined catalog remains the source for component decisions.
 
-Connect the public hosted endpoint using your client's HTTP MCP configuration. In VS Code,
-the entry in `.vscode/mcp.json` is:
-
-```json
-{
-  "servers": {
-    "coreai-ds-docs": {
-      "type": "http",
-      "url": "https://coreai-ds-storybook.azurewebsites.net/mcp"
-    }
-  }
-}
-```
-
-For other clients, use their equivalent HTTP server configuration. Ask for approval before
-editing client configuration. The catalog covers selected upstream stories, not every Fluent
-story or API; inspect the index instead of assuming complete coverage.
-
-Connection config (`mcp.json`) and the full toolset list live in one place — see
+For connection instructions, point the user to
 [Docs/MCP Setup](https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-mcp-setup--docs).
+Keep client configuration and setup details in that guide. Ask for approval before editing
+the user's MCP configuration.
 
 ### Required MCP workflow
 
-**STOP CONDITION:** Do not select, add, change, or review a CoreAI component, prop, template,
-or implementation pattern until the selected CoreAI documentation server responds successfully. An entry in
-`mcp.json`, package source, TypeScript definitions, prior knowledge, and stock Fluent docs do
-not satisfy this requirement.
+Before selecting, adding, changing, or reviewing a CoreAI component, prop, template, or pattern,
+successfully query the CoreAI documentation server. Package source, types, prior knowledge,
+and stock Fluent docs are not substitutes.
 
 1. Discover the connected server's tool names and argument schemas. The tool names below refer
    to `docs-list` (catalog index), `docs-show` (documentation), and `docs-show-story` (story
@@ -156,25 +131,12 @@ Prefer these over guessing from a prop table alone — confirm the entry in `doc
 
 ## If the CoreAI MCP is unavailable
 
-Do not continue CoreAI-dependent implementation with package source, TypeScript definitions,
-README files, prior knowledge, or upstream component documentation as a substitute.
-You cannot know a component's CoreAI defaults or extensions until you check its documentation.
+Pause CoreAI-dependent work, report the connection error or missing server, and point the user
+to [Docs/MCP Setup](https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-mcp-setup--docs).
+Help them connect, then retry the catalog index call to verify the connection.
 
-1. Tell the user that the CoreAI MCP is required and that continuing without it risks using the
-   wrong wrapper API, defaults, or template.
-2. Ask the user to help enable it now. In VS Code, direct them to **MCP: List Servers**, then
-   the selected CoreAI documentation server, and ask them to start or restart it.
-3. Stay on the connection problem with the user. After they respond, retry
-   documentation index tool; do not assume that configuration succeeded.
-4. If the server is missing from the client configuration, show the HTTP entry above and ask
-   for approval before adding it. Start the connection and retry the documentation call.
-5. If the hosted endpoint fails or denies access, report the actual response and verify the
-   public-host deployment status with the user. If the consuming repository has a local CoreAI
-   documentation server, it can supply the updated catalog. Pause CoreAI-dependent work until
-   documentation is available.
-6. Only proceed without the MCP when the user explicitly instructs you to do so after you have
-   explained the risk. State the limitation in the final result and do not present offline
-   findings as verified CoreAI documentation.
+Proceed offline only if the user explicitly authorizes it after being told that CoreAI APIs
+and defaults cannot be verified. Disclose that limitation in the final result.
 
 ## Translating a Storybook URL into an MCP call
 
@@ -187,7 +149,7 @@ A link a human pastes in, e.g.
 - For a story URL, use the full story ID to locate its exact entry in the component's story
   index or `docs-list` with story IDs. Pass the identifier or name required by the discovered
   `docs-show-story` schema rather than guessing an export name from kebab-case.
-- The updated catalog includes selected canonical Fluent stories alongside local CoreAI
+- The catalog includes selected canonical Fluent stories alongside local CoreAI
   examples, including upstream variants that are not overridden locally. Retrieve these through
   the same server. If a UI story is absent or its returned example is incomplete, report that
   specific gap instead of assuming re-exported stories are always unavailable.
