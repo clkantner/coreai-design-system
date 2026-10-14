@@ -38,7 +38,7 @@ test('docsite destinations follow the repository README', async () => {
   ]);
   const skillName = agentSkill.match(/^name: ([^\r\n]+)$/m)?.[1];
   assert.ok(skillName, 'The package skill must declare a frontmatter name.');
-  const installedSkillDirectory = 'coreai-ds-react-components';
+  const installedSkillDirectory = 'coreai-ds-fluentui-react';
 
   assert.match(readme, /https:\/\/github\.com\/microsoft\/coreai-design-system/);
   assert.match(readme, /source code is available\s+under/);
