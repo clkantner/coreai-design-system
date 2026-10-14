@@ -1,5 +1,3 @@
-/* eslint-disable no-restricted-imports -- This adapter wraps the underlying CoreAI Link. */
-
 import type { ComponentPropsWithoutRef, MouseEvent } from 'react';
 import type {
   LinkProps as RouterLinkProps,

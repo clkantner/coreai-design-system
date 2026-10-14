@@ -20,7 +20,7 @@ export default function DiscoverModels() {
             aria-hidden="true"
             className={styles.toolMark}
             preset="body"
-            // eslint-disable-next-line react/forbid-component-props -- color comes from model data
+            // eslint-disable-next-line no-restricted-syntax -- color comes from model data
             style={{ color: model.initialsColor }}
           >
             {model.mark}

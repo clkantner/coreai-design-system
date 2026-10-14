@@ -1,5 +1,3 @@
-/* eslint-disable no-restricted-imports -- This adapter wraps the underlying CoreAI Card. */
-
 import type { CardProps as CoreAICardProps } from '@coreai-ds/react-components';
 import type { ComponentPropsWithoutRef, JSX, Ref } from 'react';
 import type { LinkProps as RouterLinkProps } from 'react-router';

@@ -29,6 +29,22 @@ serve `index.html` for app routes while serving assets normally.
 This workspace intentionally contains no automated tests. Validate changes with
 type-check, build, and manual browser checks.
 
+## Lint configuration
+
+The app's `eslint.config.js` loads the repository configuration, which applies
+the prototype-only rules in `eslint.rules.js`. Root and workspace lint commands
+therefore enforce the same TypeScript, React Hooks, and prototype conventions.
+The prototype rules use ESLint 10's built-in import and AST-selector restrictions;
+they do not require `eslint-plugin-react`.
+
+Use app-owned Card, Image, and Link adapters; their implementations may import
+their corresponding underlying CoreAI component. Product components must use
+CoreAI components instead of native controls and text elements, and CSS Modules
+instead of inline styles. JavaScript-driven style values may use a targeted
+`eslint-disable-next-line no-restricted-syntax` comment with a reason. Common
+components, core infrastructure, and feature infrastructure retain their
+exemptions from the native-element and inline-style restrictions.
+
 ## React Grab
 
 React Grab loads only in the development browser and is excluded from production

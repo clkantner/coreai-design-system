@@ -209,7 +209,7 @@ export default function Home() {
                           image={
                             <span
                               className={styles.modelIcon}
-                              // eslint-disable-next-line react/forbid-dom-props
+                              // eslint-disable-next-line no-restricted-syntax -- color comes from model data
                               style={{ color: model.initialsColor }}
                             >
                               {model.mark}

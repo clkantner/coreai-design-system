@@ -4,6 +4,8 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import storybook from 'eslint-plugin-storybook';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import { fileURLToPath } from 'node:url';
+import prototypeRules from './apps/prototype/eslint.rules.js';
 
 export default tseslint.config(
   {
@@ -92,5 +94,9 @@ export default tseslint.config(
     },
   },
   ...storybook.configs['flat/recommended'],
+  ...prototypeRules.map((config) => ({
+    ...config,
+    basePath: fileURLToPath(new URL('./apps/prototype', import.meta.url)),
+  })),
   prettier,
 );

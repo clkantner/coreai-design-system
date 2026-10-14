@@ -33,7 +33,7 @@ export default function DiscoverTools() {
             aria-hidden="true"
             className={styles.toolMark}
             preset="body"
-            // eslint-disable-next-line react/forbid-component-props -- color comes from tool data
+            // eslint-disable-next-line no-restricted-syntax -- color comes from tool data
             style={{ color: tool.initialsColor }}
           >
             {tool.mark}
