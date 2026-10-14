@@ -752,7 +752,6 @@ function SearchResultAnnouncement({
   searchTerm,
   appliedFiltersSize,
   filteredItemsLength,
-  currentPage,
   totalItems,
   maxItemsPerPage,
 }: SearchResultAnnouncementProps): JSX.Element {
@@ -767,23 +766,13 @@ function SearchResultAnnouncement({
     const total = totalItems ?? filteredItemsLength;
     const pageSize = maxItemsPerPage ?? DEFAULT_PAGE_SIZE;
 
-    const start = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-    const end = total === 0 ? 0 : Math.min(start + pageSize - 1, total);
-
     // Use simple announcement when pagination doesn't matter (single page)
     if (total <= pageSize) {
       return 'Search Results Announcement Simple';
     }
 
     return 'Search Results Announcement';
-  }, [
-    searchTerm,
-    appliedFiltersSize,
-    filteredItemsLength,
-    currentPage,
-    totalItems,
-    maxItemsPerPage,
-  ]);
+  }, [searchTerm, appliedFiltersSize, filteredItemsLength, totalItems, maxItemsPerPage]);
 
   return (
     <span aria-live="polite" className={styles.visuallyHidden} role="status">

@@ -33,6 +33,8 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 
 ### Changed
 
+- Consumer agent guidance uses the public CoreAI documentation MCP, delegates setup to the docsite guide, and keeps repository-specific exceptions in local proxy skills.
+- CSS Modules guidance uses an opt-in, app-owned layered Griffel renderer instead of patching shared dependencies.
 - `Accordion` removes the default `AccordionHeader` button padding and `AccordionPanel` margin so content aligns with its surroundings, and keeps the expand icon vertically centered without stretching alongside tall header content.
 - Added Inter as the proportional and numeric fallback after Aptos; the hosted apps load normal and italic Inter faces at weights 400, 600, and 700 from Google Fonts.
 - Prepared public npm distribution with no consumer authentication; remove obsolete Azure Artifacts `@coreai-ds` scope routing when migrating to an approved public release. Publication remains disabled until explicit open-source and package/access approval, and requires manual confirmation through a protected GitHub environment.

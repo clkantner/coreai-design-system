@@ -182,7 +182,7 @@ origins must also be added to that allowlist. This app does not proxy, copy,
 or rehost the font binaries.
 
 Styles use CSS Modules and an `app` container for responsive width queries.
-The layer order is `griffel, common`, with page styles unlayered.
+The layer order is `base, griffel, common`, with page styles unlayered.
 
 The prototype uses an app-owned [layered renderer](app/theme/createLayeredRenderer.ts)
 through `RendererProvider`, above `CoreAIFluentProvider`. It wraps inserted rules

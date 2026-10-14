@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, MouseEvent } from 'react';
+import type { ComponentPropsWithoutRef } from 'react';
 import type {
   LinkProps as RouterLinkProps,
   NavLinkProps as RouterNavLinkProps,

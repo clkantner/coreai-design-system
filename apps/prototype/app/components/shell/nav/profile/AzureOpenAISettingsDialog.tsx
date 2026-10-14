@@ -258,7 +258,7 @@ export function AzureOpenAISettingsDialog({
 
               <Field
                 label={{
-                  children: (_Component: any, labelProps: InfoLabelProps) => (
+                  children: (_Component: unknown, labelProps: InfoLabelProps) => (
                     <InfoLabel
                       {...labelProps}
                       info="The Azure OpenAI endpoint URL (e.g., https://your-resource.openai.azure.com). NOT the model inference endpoint "
@@ -277,7 +277,7 @@ export function AzureOpenAISettingsDialog({
 
               <Field
                 label={{
-                  children: (_Component: any, labelProps: InfoLabelProps) => (
+                  children: (_Component: unknown, labelProps: InfoLabelProps) => (
                     <InfoLabel
                       {...labelProps}
                       info="The name of your deployed model (e.g., gpt-4o, gpt-4)"
@@ -296,7 +296,7 @@ export function AzureOpenAISettingsDialog({
 
               <Field
                 label={{
-                  children: (_Component: any, labelProps: InfoLabelProps) => (
+                  children: (_Component: unknown, labelProps: InfoLabelProps) => (
                     <InfoLabel {...labelProps} info="Your Azure OpenAI API key">
                       API Key
                     </InfoLabel>

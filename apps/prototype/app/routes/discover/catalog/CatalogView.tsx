@@ -180,7 +180,6 @@ export function CatalogView({
   isLoading,
   items,
   onFiltersChange,
-  onItemSelect,
   onSearchChange,
   onSortChange,
   renderItem,
@@ -399,16 +398,6 @@ export function CatalogView({
     searchInputRef.current?.focus();
     handleFilterChange({});
   }, [handleFilterChange]);
-
-  // Handle item selection
-  const handleItemSelect = useCallback(
-    (itemId: string): void => {
-      if (onItemSelect) {
-        onItemSelect(itemId);
-      }
-    },
-    [onItemSelect],
-  );
 
   // Get selected filters for display (similar to MiniCatalogView)
   const selectedFilters = useMemo(

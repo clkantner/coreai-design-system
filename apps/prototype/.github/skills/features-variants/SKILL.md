@@ -45,15 +45,15 @@ A **feature** represents a prototyped change from main. A feature may:
 
 ## Architecture — Key Files
 
-| File                                                 | Purpose                                                                |
-| ---------------------------------------------------- | ---------------------------------------------------------------------- |
-| `app/features.json`                                 | App configuration: all features, routes, and variant labels            |
-| `app/features/featureConfig.ts`                     | Feature schema, configuration validation, and route/URL helpers        |
-| `app/features/FeatureContext.ts`                    | Feature context and public context types                               |
-| `app/features/FeatureProvider.tsx`                  | URL state, route matching, defaults, and floating selector composition |
-| `app/features/FeatureContext.ts` (`useFeature`)      | Public hook for reading the active variant                             |
-| `app/features/FeatureFloatingUI.tsx`                | Floating variant selector                                              |
-| `app/features/FeatureMenu.tsx`                      | Prototype feature menu used by the app shell                           |
+| File                                            | Purpose                                                                |
+| ----------------------------------------------- | ---------------------------------------------------------------------- |
+| `app/features.json`                             | App configuration: all features, routes, and variant labels            |
+| `app/features/featureConfig.ts`                 | Feature schema, configuration validation, and route/URL helpers        |
+| `app/features/FeatureContext.ts`                | Feature context and public context types                               |
+| `app/features/FeatureProvider.tsx`              | URL state, route matching, defaults, and floating selector composition |
+| `app/features/FeatureContext.ts` (`useFeature`) | Public hook for reading the active variant                             |
+| `app/features/FeatureFloatingUI.tsx`            | Floating variant selector                                              |
+| `app/features/FeatureMenu.tsx`                  | Prototype feature menu used by the app shell                           |
 
 ---
 
@@ -174,15 +174,15 @@ No `variants` array needed. The feature appears in the Prototype InteractionTag 
 
 **Field reference:**
 
-| Field           | Required | Description                                                                      |
-| --------------- | -------- | -------------------------------------------------------------------------------- |
-| `id`            | Yes      | Kebab-case string identifier (used in URL params)                                |
-| `label`         | Yes      | Human-readable name shown in the floating UI                                     |
-| `notes`         | Yes      | Design context — what question does this feature explore?                        |
-| `defaultRoute`  | Yes      | The primary route to navigate to from the Prototype menu; must be in `routes` |
+| Field           | Required | Description                                                                                                                    |
+| --------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `id`            | Yes      | Kebab-case string identifier (used in URL params)                                                                              |
+| `label`         | Yes      | Human-readable name shown in the floating UI                                                                                   |
+| `notes`         | Yes      | Design context — what question does this feature explore?                                                                      |
+| `defaultRoute`  | Yes      | The primary route to navigate to from the Prototype menu; must be in `routes`                                                  |
 | `defaultParams` | No       | Fallback values for `:param` segments (e.g., `{ "agent": "agent-001" }`); required when `defaultRoute` has required parameters |
-| `routes`        | Yes      | Route patterns this feature applies to. Supports `:param` wildcards              |
-| `variants`      | No       | Array of `{ id: string, label: string }`. Omit for variant-less features         |
+| `routes`        | Yes      | Route patterns this feature applies to. Supports `:param` wildcards                                                            |
+| `variants`      | No       | Array of `{ id: string, label: string }`. Omit for variant-less features                                                       |
 
 **Route pattern matching:** A pattern like `/build/agents/:agent/playground` matches any URL of that shape. The `:param` segments are wildcards matched segment-by-segment.
 
@@ -270,15 +270,15 @@ Keep this guard **in the route component itself**, colocated with the route that
 
 ## Anti-Patterns — Do NOT Do These
 
-| ❌ Don't                                                                          | ✅ Do Instead                                                      |
-| --------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Build a custom toggle/switch for design alternatives                              | Use `useFeature()` + `app/features.json`                    |
-| Store variant state in localStorage or React state                                | URL query params (`?variant=...`) handle everything                |
-| Create separate routes for each design alternative                                | One route, conditional rendering via `useFeature()`                |
-| Import feature implementation internals from `app/features/featureConfig.ts` or `app/features/FeatureProvider.tsx` in app components | Use `useFeature()` from `~/features/FeatureContext`                         |
-| Hard-code variant IDs as numbers                                                  | Feature and variant IDs are **kebab-case strings**                 |
-| Add a new variant switching UI element into the product design                    | The floating tab-link UI is the switcher — it's meta-UI          |
-| Modify app-local feature-system internals for an app feature                       | Only modify `app/features.json` and the consuming component |
+| ❌ Don't                                                                                                                             | ✅ Do Instead                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| Build a custom toggle/switch for design alternatives                                                                                 | Use `useFeature()` + `app/features.json`                    |
+| Store variant state in localStorage or React state                                                                                   | URL query params (`?variant=...`) handle everything         |
+| Create separate routes for each design alternative                                                                                   | One route, conditional rendering via `useFeature()`         |
+| Import feature implementation internals from `app/features/featureConfig.ts` or `app/features/FeatureProvider.tsx` in app components | Use `useFeature()` from `~/features/FeatureContext`         |
+| Hard-code variant IDs as numbers                                                                                                     | Feature and variant IDs are **kebab-case strings**          |
+| Add a new variant switching UI element into the product design                                                                       | The floating tab-link UI is the switcher — it's meta-UI     |
+| Modify app-local feature-system internals for an app feature                                                                         | Only modify `app/features.json` and the consuming component |
 
 ---
 
