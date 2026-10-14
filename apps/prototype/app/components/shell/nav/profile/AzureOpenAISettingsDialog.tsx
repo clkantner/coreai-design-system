@@ -54,26 +54,49 @@ export function AzureOpenAISettingsDialog({
   const [testError, setTestError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Track if this is the initial mount to avoid auto-testing on load
-  const isInitialMount = useRef(true);
+  const isDialogOpenRef = useRef(false);
+  const testGeneration = useRef(0);
+  const testTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const dialogTriggerRef = useRef<HTMLButtonElement>(null);
 
-  const closeDialog = useCallback(() => {
-    setIsDialogOpen(false);
-    dialogTriggerRef.current?.focus();
+  const cancelTest = useCallback(() => {
+    testGeneration.current += 1;
+    clearTimeout(testTimeoutRef.current);
+    testTimeoutRef.current = undefined;
   }, []);
 
-  // Sync local state when settings change (e.g., on mount)
-  useEffect(() => {
+  const resetTest = useCallback(() => {
+    cancelTest();
+    setTestStatus('idle');
+    setTestError(null);
+  }, [cancelTest]);
+
+  const closeDialog = useCallback(() => {
+    isDialogOpenRef.current = false;
+    resetTest();
     setEndpoint(settings.endpoint);
     setDeployment(settings.deployment);
     setApiKey(settings.apiKey);
-  }, [settings]);
+    setIsDialogOpen(false);
+    dialogTriggerRef.current?.focus();
+  }, [resetTest, settings]);
+
+  // Sync local state when settings change (e.g., on mount)
+  useEffect(() => {
+    resetTest();
+    setEndpoint(settings.endpoint);
+    setDeployment(settings.deployment);
+    setApiKey(settings.apiKey);
+  }, [settings, resetTest]);
 
   const canTest = endpoint.trim() !== '' && deployment.trim() !== '' && apiKey.trim() !== '';
 
   const runTest = useCallback(async () => {
-    if (!canTest) return;
+    if (!isDialogOpenRef.current || !canTest) return;
+
+    cancelTest();
+    const generation = testGeneration.current;
+    const isCurrentTest = () => isDialogOpenRef.current && generation === testGeneration.current;
 
     setTestStatus('testing');
     setTestError(null);
@@ -96,6 +119,8 @@ export function AzureOpenAISettingsDialog({
         model,
       });
 
+      if (!isCurrentTest()) return;
+
       const response = completion.choices[0]?.message?.content;
       if (response) {
         setTestStatus('success');
@@ -104,29 +129,24 @@ export function AzureOpenAISettingsDialog({
         setTestError('Received empty response from the API');
       }
     } catch (err) {
+      if (!isCurrentTest()) return;
+
       setTestStatus('error');
       setTestError(err instanceof Error ? err.message : 'Unknown error occurred');
     }
-  }, [canTest, endpoint, deployment, apiKey]);
+  }, [canTest, endpoint, deployment, apiKey, cancelTest]);
 
   // Auto-test when inputs change (debounced)
   useEffect(() => {
-    // Skip auto-test on initial mount
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
-    // Don't auto-test if inputs are incomplete
-    if (!canTest) return;
+    if (!isDialogOpen || !canTest) return cancelTest;
 
     // Debounce the auto-test - only run after user stops typing
-    const timeoutId = setTimeout(() => {
+    testTimeoutRef.current = setTimeout(() => {
       runTest();
     }, 800);
 
-    return () => clearTimeout(timeoutId);
-  }, [endpoint, deployment, apiKey, canTest, runTest]);
+    return cancelTest;
+  }, [isDialogOpen, canTest, runTest, cancelTest]);
 
   const handleTest = useCallback(() => {
     runTest();
@@ -142,6 +162,7 @@ export function AzureOpenAISettingsDialog({
   }, [endpoint, deployment, apiKey, setSettings]);
 
   const handleClear = useCallback(() => {
+    resetTest();
     setEndpoint('');
     setDeployment('');
     setApiKey('');
@@ -151,12 +172,17 @@ export function AzureOpenAISettingsDialog({
       apiKey: '',
       apiVersion: DEFAULT_API_VERSION,
     });
-  }, [setSettings]);
+  }, [setSettings, resetTest]);
 
   return (
     <Dialog
       onOpenChange={(_event, data) => {
         if (data.open) {
+          resetTest();
+          setEndpoint(settings.endpoint);
+          setDeployment(settings.deployment);
+          setApiKey(settings.apiKey);
+          isDialogOpenRef.current = true;
           setIsDialogOpen(true);
         } else {
           closeDialog();
@@ -271,7 +297,10 @@ export function AzureOpenAISettingsDialog({
                 <Input
                   placeholder="https://your-resource.openai.azure.com"
                   value={endpoint}
-                  onChange={(_e, data) => setEndpoint(data.value)}
+                  onChange={(_e, data) => {
+                    resetTest();
+                    setEndpoint(data.value);
+                  }}
                 />
               </Field>
 
@@ -290,7 +319,10 @@ export function AzureOpenAISettingsDialog({
                 <Input
                   placeholder="gpt-4o"
                   value={deployment}
-                  onChange={(_e, data) => setDeployment(data.value)}
+                  onChange={(_e, data) => {
+                    resetTest();
+                    setDeployment(data.value);
+                  }}
                 />
               </Field>
 
@@ -307,7 +339,10 @@ export function AzureOpenAISettingsDialog({
                   type="password"
                   placeholder="Enter your API key"
                   value={apiKey}
-                  onChange={(_e, data) => setApiKey(data.value)}
+                  onChange={(_e, data) => {
+                    resetTest();
+                    setApiKey(data.value);
+                  }}
                 />
               </Field>
             </div>
