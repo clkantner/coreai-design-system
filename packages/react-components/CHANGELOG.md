@@ -28,7 +28,7 @@ to headings in this changelog rather than nonexistent public tags or comparisons
 
 ### Added
 
-- Added `Illicon`, which converts filled Fluent icons into size-aware dotted illustrations while preserving aspect ratio and inheriting `currentColor`.
+- Added `Illicon`, which converts filled Fluent icons or plain SVG elements into illustrations with fixed 2px dots and 3px gaps while preserving aspect ratio and inheriting `currentColor`.
 
 ### Breaking
 

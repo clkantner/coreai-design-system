@@ -3,23 +3,24 @@
  * package root.
  *
  * Samples the original vector paths at the requested output size using a
- * size-aware grid. Coverage is cached per icon and size; generated dots use
+ * fixed 5px grid. Coverage is cached per icon and size; generated dots use
  * CSS-pixel coordinates rather than a scaled source viewBox.
  */
 
 /** Supersampling factor: each grid cell is rasterized at SS×SS pixels before being averaged down. */
 const SUPERSAMPLE = 4;
 /** A grid cell becomes a dot once its averaged alpha coverage reaches this fraction. */
-const COVERAGE_THRESHOLD = 0.5;
-const DOT_DIAMETER_RATIO = 0.4;
+const COVERAGE_THRESHOLD = 0.4;
+const DOT_DIAMETER = 2;
+const DOT_GAP = 3;
+const DOT_PITCH = DOT_DIAMETER + DOT_GAP;
 
-/** Aim for 24 dots across, with whole-CSS-pixel spacing even at small sizes. */
+/** Use fixed-size dots and spacing at every output size. */
 export function getDotSettings(size: number): { pitch: number; diameter: number } {
   if (!Number.isFinite(size) || size <= 0) {
     throw new Error(`Illicon: size ${size} must be a positive, finite number.`);
   }
-  const pitch = Math.max(1, Math.round(size / 24));
-  return { pitch, diameter: pitch * DOT_DIAMETER_RATIO };
+  return { pitch: DOT_PITCH, diameter: DOT_DIAMETER };
 }
 
 export interface RasterizedIcon {
@@ -139,7 +140,7 @@ export function sampleCoverage(key: object, svg: SVGSVGElement, size: number): R
     cellHeight,
     offsetX,
     offsetY,
-    diameter: Math.min(diameter, cellWidth * DOT_DIAMETER_RATIO, cellHeight * DOT_DIAMETER_RATIO),
+    diameter,
     coverage,
   };
   const sizes = coverageCache.get(key) ?? new Map<number, RasterizedIcon>();

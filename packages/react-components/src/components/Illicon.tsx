@@ -1,10 +1,9 @@
 /**
- * `Illicon` — turns a filled Fluent icon into a dotted illustration.
+ * `Illicon` — turns a filled Fluent icon or SVG element into a dotted illustration.
  *
- * Original vector paths are sampled at the requested output size. Dot pitch
- * is max(1, round(size / 24)) CSS pixels; diameter is 40% of that pitch.
- * Coverage is cached per icon and size. Output uses CSS-pixel coordinates
- * and preserves the source aspect ratio.
+ * Original vector paths are sampled at the requested output size. Dots have
+ * a fixed 2px diameter and 3px gap. Coverage is cached per icon and size.
+ * Output uses CSS-pixel coordinates and preserves the source aspect ratio.
  */
 import * as React from 'react';
 import {
@@ -22,14 +21,16 @@ import {
 } from './illiconRasterize.js';
 
 export type IlliconSize = number;
+export type IlliconIcon =
+  | FluentIcon
+  | React.ReactElement<React.SVGProps<SVGSVGElement>>;
 
 export type IlliconProps = Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'> & {
-  /** A filled Fluent icon component. Its native viewBox defines the shape and aspect ratio. */
-  icon: FluentIcon;
+  /** A filled Fluent icon component or SVG element. Its viewBox defines the shape and aspect ratio. */
+  icon: IlliconIcon;
   /**
-   * Rendered width in CSS pixels. Must be positive and finite. Dot size and
-   * spacing adapt to this width, independently of the source viewBox size.
-   * @default 96
+   * Rendered width in CSS pixels. Must be positive and finite.
+   * @default 100
    */
   size?: IlliconSize;
 };
@@ -44,7 +45,7 @@ const useIlliconStyles = makeStyles({
   root: {
     display: 'inline-flex',
     flexShrink: 0,
-    color: tokens.colorNeutralForeground1,
+    color: tokens.colorNeutralForegroundOnBrand,
   },
   svg: {
     display: 'block',
@@ -52,31 +53,31 @@ const useIlliconStyles = makeStyles({
 });
 
 /**
- * Turns a filled Fluent icon into a dotted illustration. Pass an accessible
- * name via `aria-label` for a meaningful image; omit it to treat the icon as
- * decorative.
+ * Turns a filled Fluent icon or SVG element into a dotted illustration. Pass
+ * an accessible name via `aria-label` for a meaningful image; omit it to treat
+ * the icon as decorative.
  */
 export const Illicon: ForwardRefComponent<IlliconProps> = React.forwardRef<
   HTMLSpanElement,
   IlliconProps
 >((props, ref) => {
-  const { icon: Icon, size = 96, className, style, 'aria-label': ariaLabel, ...rest } = props;
+  const { icon, size = 100, className, style, 'aria-label': ariaLabel, ...rest } = props;
   const styles = useIlliconStyles();
   const sourceRef = React.useRef<HTMLSpanElement>(null);
   const [, forceRerender] = React.useReducer((n: number) => n + 1, 0);
 
   getDotSettings(size);
-  const coverage = peekCoverage(Icon, size);
+  const coverage = peekCoverage(icon, size);
 
   // A new icon/size pair samples the original paths before paint.
   useIsomorphicLayoutEffect(() => {
     if (coverage) return;
     const svg = sourceRef.current?.querySelector('svg');
     if (svg) {
-      sampleCoverage(Icon, svg, size);
+      sampleCoverage(icon, svg, size);
       forceRerender();
     }
-  }, [Icon, coverage, size]);
+  }, [icon, coverage, size]);
 
   const renderedHeight = coverage ? coverage.height : size;
   const dottedPath = React.useMemo(() => (coverage ? buildDottedPath(coverage) : ''), [coverage]);
@@ -106,7 +107,7 @@ export const Illicon: ForwardRefComponent<IlliconProps> = React.forwardRef<
       ) : (
         // Rendered only until the icon is sampled; never visible.
         <span ref={sourceRef} hidden>
-          <Icon />
+          {React.isValidElement(icon) ? icon : React.createElement(icon)}
         </span>
       )}
     </span>

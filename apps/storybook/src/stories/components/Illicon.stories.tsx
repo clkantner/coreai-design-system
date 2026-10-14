@@ -6,42 +6,63 @@ import {
   Switch,
   ToggleButton,
   tokens,
+  type IlliconIcon,
   type IlliconSize,
 } from '@coreai-ds/react-components';
 import {
-  Bot24Filled,
-  Camera24Filled,
-  Cloud24Filled,
-  Emoji24Filled,
-  Globe24Filled,
+  Beaker24Filled,
+  Brain24Filled,
+  Briefcase24Filled,
+  BuildingMultiple24Filled,
+  City24Filled,
+  Code24Filled,
+  Cube24Filled,
+  Database24Filled,
+  DocumentText24Filled,
+  Flowchart24Filled,
   Heart24Filled,
-  Lightbulb24Filled,
-  Mail24Filled,
+  Headphones24Filled,
+  Patch24Filled,
   Rocket24Filled,
-  Sparkle24Filled,
+  Scales24Filled,
+  Shield24Filled,
   Star24Filled,
-  Trophy24Filled,
   type FluentIcon,
 } from '@fluentui/react-icons';
 import type { StoryObj } from '@storybook/react-vite';
 
 /**
- * `Illicon` turns a filled Fluent icon into a dotted illustration. It
- * samples the original paths at the requested output size and chooses dot
- * spacing in CSS pixels, inheriting color through `currentColor`.
+ * `Illicon` turns a filled Fluent icon or SVG element into a dotted
+ * illustration. It samples the original paths at the requested output size
+ * and renders fixed 2px dots with 3px gaps, inheriting color through
+ * `currentColor`.
  */
 export const Default: StoryObj = {
-  render: () => <Illicon icon={Sparkle24Filled} aria-label="Sparkle" />,
+  render: () => (
+    <Illicon
+      icon={
+        <svg viewBox="0 0 100 90" fill="currentColor">
+          <path d="M25 0h25v5h-25zM60 0h15v5h-15zM20 5h30v5h-30zM55 5h25v5h-25zM15 10h35v5h-35zM55 10h5v5h-5zM65 10h20v5h-20zM15 15h35v5h-35zM55 15h5v5h-5zM65 15h25v5h-25zM10 20h35v5h-35zM50 20h10v5h-10zM65 20h25v5h-25zM5 25h40v5h-40zM50 25h5v5h-5zM60 25h35v5h-35zM5 30h40v5h-40zM50 30h5v5h-5zM60 30h35v5h-35zM0 35h40v5h-40zM50 35h5v5h-5zM60 35h40v5h-40zM0 40h40v5h-40zM45 40h10v5h-10zM60 40h40v5h-40zM0 45h40v5h-40zM45 45h5v5h-5zM55 45h45v5h-45zM0 50h40v5h-40zM45 50h5v5h-5zM55 50h45v5h-45zM5 55h30v5h-30zM45 55h5v5h-5zM55 55h40v5h-40zM5 60h30v5h-30zM40 60h10v5h-10zM55 60h40v5h-40zM10 65h25v5h-25zM40 65h5v5h-5zM50 65h40v5h-40zM15 70h20v5h-20zM40 70h5v5h-5zM50 70h35v5h-35zM15 75h15v5h-15zM35 75h10v5h-10zM50 75h35v5h-35zM20 80h20v5h-20zM50 80h30v5h-30zM25 85h10v5h-10zM45 85h30v5h-30z" />
+        </svg>
+      }
+      aria-label="Microsoft Foundry"
+    />
+  ),
 };
 
 /**
  * Any positive, finite `size` is supported, including 16, 20, and 40px.
- * Dot pitch is max(1, round(size / 24)) CSS pixels and dot diameter is 40%
- * of the pitch. The original vectors are sampled separately for each size.
+ * Dots have a fixed 2px diameter and 3px gap. The original vectors are
+ * sampled separately for each size.
  */
 export const Sizes: StoryObj = {
   render: () => {
-    const sizes: IlliconSize[] = [16, 20, 40, 48, 96, 100, 144, 192];
+    const foundryIcon = (
+      <svg viewBox="0 0 100 90" fill="currentColor">
+        <path d="M25 0h25v5h-25zM60 0h15v5h-15zM20 5h30v5h-30zM55 5h25v5h-25zM15 10h35v5h-35zM55 10h5v5h-5zM65 10h20v5h-20zM15 15h35v5h-35zM55 15h5v5h-5zM65 15h25v5h-25zM10 20h35v5h-35zM50 20h10v5h-10zM65 20h25v5h-25zM5 25h40v5h-40zM50 25h5v5h-5zM60 25h35v5h-35zM5 30h40v5h-40zM50 30h5v5h-5zM60 30h35v5h-35zM0 35h40v5h-40zM50 35h5v5h-5zM60 35h40v5h-40zM0 40h40v5h-40zM45 40h10v5h-10zM60 40h40v5h-40zM0 45h40v5h-40zM45 45h5v5h-5zM55 45h45v5h-45zM0 50h40v5h-40zM45 50h5v5h-5zM55 50h45v5h-45zM5 55h30v5h-30zM45 55h5v5h-5zM55 55h40v5h-40zM5 60h30v5h-30zM40 60h10v5h-10zM55 60h40v5h-40zM10 65h25v5h-25zM40 65h5v5h-5zM50 65h40v5h-40zM15 70h20v5h-20zM40 70h5v5h-5zM50 70h35v5h-35zM15 75h15v5h-15zM35 75h10v5h-10zM50 75h35v5h-35zM20 80h20v5h-20zM50 80h30v5h-30zM25 85h10v5h-10zM45 85h30v5h-30z" />
+      </svg>
+    );
+    const sizes: IlliconSize[] = [16, 20, 40, 48, 96, 100, 140, 192];
     const styles = /* css */ `
       .illicon-sizes-example {
         display: flex;
@@ -70,7 +91,7 @@ export const Sizes: StoryObj = {
         <div className="illicon-sizes-example">
           {sizes.map((size) => (
             <div key={size} className="illicon-sizes-example__item">
-              <Illicon icon={Sparkle24Filled} size={size} aria-label={`Sparkle at ${size}px`} />
+              <Illicon icon={foundryIcon} size={size} aria-label={`Microsoft Foundry at ${size}px`} />
               <span className="illicon-sizes-example__label">{size}px</span>
             </div>
           ))}
@@ -81,9 +102,9 @@ export const Sizes: StoryObj = {
 };
 
 /**
- * `Illicon` has no fixed color of its own — it renders with `fill="currentColor"`,
- * so it inherits whatever color is set on it or an ancestor, including Fluent
- * design tokens.
+ * `Illicon` is white by default and renders with `fill="currentColor"`.
+ * Set `color` on the component to use another value, including Fluent design
+ * tokens.
  */
 export const Colors: StoryObj = {
   render: () => {
@@ -139,35 +160,40 @@ export const Colors: StoryObj = {
 
 /**
  * Any filled Fluent icon can be converted. Its viewBox defines the shape
- * and aspect ratio, while the requested output width determines dot spacing.
+ * and aspect ratio, while dots retain their fixed size and spacing.
  */
 export const IconGallery: StoryObj = {
   render: () => {
     const icons: { name: string; icon: FluentIcon }[] = [
-      { name: 'Sparkle', icon: Sparkle24Filled },
-      { name: 'Heart', icon: Heart24Filled },
-      { name: 'Star', icon: Star24Filled },
-      { name: 'Globe', icon: Globe24Filled },
-      { name: 'Lightbulb', icon: Lightbulb24Filled },
-      { name: 'Rocket', icon: Rocket24Filled },
-      { name: 'Bot', icon: Bot24Filled },
-      { name: 'Cloud', icon: Cloud24Filled },
-      { name: 'Trophy', icon: Trophy24Filled },
-      { name: 'Camera', icon: Camera24Filled },
-      { name: 'Mail', icon: Mail24Filled },
-      { name: 'Emoji', icon: Emoji24Filled },
+      { name: 'Brain', icon: Brain24Filled },
+      { name: 'Flowchart', icon: Flowchart24Filled },
+      { name: 'Cube', icon: Cube24Filled },
+      { name: 'Patch', icon: Patch24Filled },
+      { name: 'Beaker', icon: Beaker24Filled },
+      { name: 'Database', icon: Database24Filled },
+      { name: 'Document', icon: DocumentText24Filled },
+      { name: 'Scales', icon: Scales24Filled },
+      { name: 'Shield', icon: Shield24Filled },
+      { name: 'Briefcase', icon: Briefcase24Filled },
+      { name: 'City', icon: City24Filled },
+      { name: 'Buildings', icon: BuildingMultiple24Filled },
+      { name: 'Headphones', icon: Headphones24Filled },
+      { name: 'Code', icon: Code24Filled },
     ];
     const styles = /* css */ `
       .illicon-icon-gallery-example {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-        column-gap: var(--spacingHorizontalM);
-        row-gap: var(--spacingVerticalM);
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: var(--spacingVerticalM) var(--spacingHorizontalM);
+        width: 100%;
       }
 
       .illicon-icon-gallery-example__item {
         display: flex;
         flex-direction: column;
+        flex: 0 0 160px;
         align-items: center;
         row-gap: var(--spacingVerticalS);
       }
@@ -184,7 +210,7 @@ export const IconGallery: StoryObj = {
         <div className="illicon-icon-gallery-example">
           {icons.map((item) => (
             <div key={item.name} className="illicon-icon-gallery-example__item">
-              <Illicon icon={item.icon} size={72} aria-label={item.name} />
+              <Illicon icon={item.icon} aria-label={item.name} />
               <span className="illicon-icon-gallery-example__label">{item.name}</span>
             </div>
           ))}
@@ -196,19 +222,32 @@ export const IconGallery: StoryObj = {
 
 /**
  * Pick an icon and a size to preview the result, then copy the matching JSX.
- * The background grid stays at a fixed 4px pitch regardless of icon size;
- * it is a pixel reference, not the adaptive dot-placement grid.
+ * Toggle the screen-pixel hairline grid to inspect each CSS pixel.
  */
 export const Playground: StoryObj = {
   render: () => {
-    const icons: { name: string; icon: FluentIcon }[] = [
-      { name: 'Sparkle', icon: Sparkle24Filled },
-      { name: 'Heart', icon: Heart24Filled },
-      { name: 'Star', icon: Star24Filled },
-      { name: 'Rocket', icon: Rocket24Filled },
+    const foundryIcon = (
+      <svg viewBox="0 0 100 90" fill="currentColor">
+        <path d="M25 0h25v5h-25zM60 0h15v5h-15zM20 5h30v5h-30zM55 5h25v5h-25zM15 10h35v5h-35zM55 10h5v5h-5zM65 10h20v5h-20zM15 15h35v5h-35zM55 15h5v5h-5zM65 15h25v5h-25zM10 20h35v5h-35zM50 20h10v5h-10zM65 20h25v5h-25zM5 25h40v5h-40zM50 25h5v5h-5zM60 25h35v5h-35zM5 30h40v5h-40zM50 30h5v5h-5zM60 30h35v5h-35zM0 35h40v5h-40zM50 35h5v5h-5zM60 35h40v5h-40zM0 40h40v5h-40zM45 40h10v5h-10zM60 40h40v5h-40zM0 45h40v5h-40zM45 45h5v5h-5zM55 45h45v5h-45zM0 50h40v5h-40zM45 50h5v5h-5zM55 50h45v5h-45zM5 55h30v5h-30zM45 55h5v5h-5zM55 55h40v5h-40zM5 60h30v5h-30zM40 60h10v5h-10zM55 60h40v5h-40zM10 65h25v5h-25zM40 65h5v5h-5zM50 65h40v5h-40zM15 70h20v5h-20zM40 70h5v5h-5zM50 70h35v5h-35zM15 75h15v5h-15zM35 75h10v5h-10zM50 75h35v5h-35zM20 80h20v5h-20zM50 80h30v5h-30zM25 85h10v5h-10zM45 85h30v5h-30z" />
+      </svg>
+    );
+    const icons: { name: string; icon: IlliconIcon; iconExpression: string }[] = [
+      {
+        name: 'Microsoft Foundry',
+        icon: foundryIcon,
+        iconExpression: `(
+    <svg viewBox="0 0 100 90" fill="currentColor">
+      <path d="M25 0h25v5h-25zM60 0h15v5h-15zM20 5h30v5h-30zM55 5h25v5h-25zM15 10h35v5h-35zM55 10h5v5h-5zM65 10h20v5h-20zM15 15h35v5h-35zM55 15h5v5h-5zM65 15h25v5h-25zM10 20h35v5h-35zM50 20h10v5h-10zM65 20h25v5h-25zM5 25h40v5h-40zM50 25h5v5h-5zM60 25h35v5h-35zM5 30h40v5h-40zM50 30h5v5h-5zM60 30h35v5h-35zM0 35h40v5h-40zM50 35h5v5h-5zM60 35h40v5h-40zM0 40h40v5h-40zM45 40h10v5h-10zM60 40h40v5h-40zM0 45h40v5h-40zM45 45h5v5h-5zM55 45h45v5h-45zM0 50h40v5h-40zM45 50h5v5h-5zM55 50h45v5h-45zM5 55h30v5h-30zM45 55h5v5h-5zM55 55h40v5h-40zM5 60h30v5h-30zM40 60h10v5h-10zM55 60h40v5h-40zM10 65h25v5h-25zM40 65h5v5h-5zM50 65h40v5h-40zM15 70h20v5h-20zM40 70h5v5h-5zM50 70h35v5h-35zM15 75h15v5h-15zM35 75h10v5h-10zM50 75h35v5h-35zM20 80h20v5h-20zM50 80h30v5h-30zM25 85h10v5h-10zM45 85h30v5h-30z" />
+    </svg>
+  )`,
+      },
+      { name: 'Heart', icon: Heart24Filled, iconExpression: 'Heart24Filled' },
+      { name: 'Star', icon: Star24Filled, iconExpression: 'Star24Filled' },
+      { name: 'Rocket', icon: Rocket24Filled, iconExpression: 'Rocket24Filled' },
     ];
-    const sizes: IlliconSize[] = [16, 20, 40, 48, 96, 100, 144, 192];
-    const GRID_PITCH = 4;
+    const sizes: IlliconSize[] = [16, 20, 40, 48, 96, 100, 140, 192];
+    const DOT_PITCH = 5;
+    const GRID_PITCH = 1;
 
     const styles = /* css */ `
       .illicon-playground-example {
@@ -262,23 +301,41 @@ export const Playground: StoryObj = {
 
     function PlaygroundExample(): React.JSX.Element {
       const [iconIndex, setIconIndex] = React.useState(0);
-      const [size, setSize] = React.useState<IlliconSize>(96);
+      const [size, setSize] = React.useState<IlliconSize>(100);
       const [showGrid, setShowGrid] = React.useState(true);
+      const [gridLineWidth, setGridLineWidth] = React.useState(0.2);
       const current = icons[iconIndex];
-      const code = `<Illicon icon={${current.name}24Filled} size={${size}} aria-label="${current.name}" />`;
+      const code = `<Illicon
+  icon={${current.iconExpression}}
+  size={${size}}
+  aria-label="${current.name}"
+/>`;
 
+      React.useEffect(() => {
+        const updateGridLineWidth = () => {
+          setGridLineWidth(Math.min(0.2, 1 / window.devicePixelRatio));
+        };
+
+        updateGridLineWidth();
+        window.addEventListener('resize', updateGridLineWidth);
+        return () => window.removeEventListener('resize', updateGridLineWidth);
+      }, []);
+
+      const gridLineStart = (GRID_PITCH - gridLineWidth) / 2;
+      const gridLineEnd = gridLineStart + gridLineWidth;
+      const gridOffset = Math.floor(size / DOT_PITCH) % 2 === 0 ? GRID_PITCH / 2 : 0;
       const gridStyle: React.CSSProperties | undefined = showGrid
         ? {
-            backgroundImage: `linear-gradient(to right, ${tokens.colorNeutralStroke2} 1px, transparent 1px), linear-gradient(to bottom, ${tokens.colorNeutralStroke2} 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(to right, transparent ${gridLineStart}px, ${tokens.colorNeutralStroke2} ${gridLineStart}px, ${tokens.colorNeutralStroke2} ${gridLineEnd}px, transparent ${gridLineEnd}px), linear-gradient(to bottom, transparent ${gridLineStart}px, ${tokens.colorNeutralStroke2} ${gridLineStart}px, ${tokens.colorNeutralStroke2} ${gridLineEnd}px, transparent ${gridLineEnd}px)`,
+            backgroundPosition: `calc(50% + ${gridOffset}px) calc(50% + ${gridOffset}px)`,
             backgroundSize: `${GRID_PITCH}px ${GRID_PITCH}px`,
-            outline: `1px solid ${tokens.colorNeutralStroke2}`,
           }
         : undefined;
 
       return (
         <div className="illicon-playground-example">
-          <div className="illicon-playground-example__stage">
-            <Illicon icon={current.icon} size={size} aria-label={current.name} style={gridStyle} />
+          <div className="illicon-playground-example__stage" style={gridStyle}>
+            <Illicon icon={current.icon} size={size} aria-label={current.name} />
           </div>
 
           <div className="illicon-playground-example__controls">
@@ -291,7 +348,11 @@ export const Playground: StoryObj = {
                     size="small"
                     checked={index === iconIndex}
                     appearance={index === iconIndex ? 'primary' : 'subtle'}
-                    icon={<item.icon />}
+                    icon={
+                      React.isValidElement<React.SVGProps<SVGSVGElement>>(item.icon)
+                        ? React.cloneElement(item.icon, { width: 20, height: 20 })
+                        : React.createElement(item.icon)
+                    }
                     onClick={() => setIconIndex(index)}
                   />
                 ))}
@@ -318,7 +379,7 @@ export const Playground: StoryObj = {
             <Switch
               checked={showGrid}
               onChange={(_, data) => setShowGrid(data.checked)}
-              label={`Show pixel reference grid (${GRID_PITCH}px pitch)`}
+              label="Show 1px pixel grid"
             />
           </div>
 
@@ -340,9 +401,9 @@ export const Playground: StoryObj = {
 };
 
 /**
- * Turns a filled Fluent icon into a dotted illustration by rasterizing the
- * original vector paths at the requested output size, with size-aware dot
- * spacing in CSS pixels and preserved aspect ratio.
+ * Turns a filled Fluent icon or SVG element into a dotted illustration by
+ * rasterizing the original vector paths at the requested output size, with
+ * fixed 2px dots, 3px gaps, and preserved aspect ratio.
  *
  * @summary Converts a filled Fluent icon into a dotted illustration.
  */

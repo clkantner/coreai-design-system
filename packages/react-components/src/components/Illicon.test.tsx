@@ -57,7 +57,49 @@ test('produces a dotted svg after sampling a filled Fluent icon', async () => {
   });
 });
 
-test('applies a default size of 96', async () => {
+test('produces a dotted svg from a plain svg element', async () => {
+  const screen = await renderCoreAIComponent(
+    <Illicon
+      icon={
+        <svg viewBox="0 0 40 20">
+          <path d="M0 0h40v20H0z" />
+        </svg>
+      }
+      aria-label="Custom SVG"
+    />,
+  );
+  const root = screen.getByRole('img', { name: 'Custom SVG' });
+
+  await vi.waitFor(() => {
+    const svg = root.element().querySelector('svg');
+    expect(svg?.getAttribute('width')).toBe('140');
+    expect(svg?.getAttribute('height')).toBe('70');
+    expect(getPathD(svg!)).not.toBe('');
+  });
+});
+
+test('preserves narrow connections when dotifying a filled shape at a coarse size', async () => {
+  const FoundryIcon = (
+    <svg viewBox="0 0 100 100">
+      <path d="M30 14h26L39 78c-2 8-12 11-18 5L7 58a16 16 0 0 1 0-16l14-23a11 11 0 0 1 9-5Z" />
+      <path d="M58 17h3L43 83h-3Z" />
+      <path d="M62 14h8a11 11 0 0 1 9 5l14 23a16 16 0 0 1 0 16L79 81a11 11 0 0 1-9 5H47l17-64c1-3 0-6-2-8Z" />
+    </svg>
+  );
+  const screen = await renderCoreAIComponent(
+    <Illicon icon={FoundryIcon} size={40} aria-label="Connected Foundry" />,
+  );
+  const root = screen.getByRole('img', { name: 'Connected Foundry' });
+
+  await vi.waitFor(() => {
+    const path = root.element().querySelector('path');
+    expect(path).not.toBeNull();
+    expect(path!.isPointInFill(new DOMPoint(22.5, 7.5))).toBe(true);
+    expect(path!.isPointInFill(new DOMPoint(22.5, 12.5))).toBe(true);
+  });
+});
+
+test('applies a default size of 100', async () => {
   const screen = await renderCoreAIComponent(
     <Illicon icon={Sparkle24Filled} aria-label="Sparkle" />,
   );
@@ -65,54 +107,51 @@ test('applies a default size of 96', async () => {
 
   await vi.waitFor(() => {
     const svg = root.element().querySelector('svg');
-    expect(svg?.getAttribute('width')).toBe('96');
-    expect(svg?.getAttribute('height')).toBe('96');
+    expect(svg?.getAttribute('width')).toBe('100');
+    expect(svg?.getAttribute('height')).toBe('100');
   });
 });
 
-test.each([
-  [16, 1],
-  [20, 1],
-  [20.5, 1],
-  [40, 2],
-  [48, 2],
-  [96, 4],
-  [100, 4],
-  [144, 6],
-  [192, 8],
-])('uses output-pixel dots at size %s with pitch %s', async (size, pitch) => {
-  const screen = await renderCoreAIComponent(
-    <Illicon icon={WideFilled} size={size} aria-label="Spaced dots" />,
-  );
-  const root = screen.getByRole('img', { name: 'Spaced dots' });
+test.each([16, 20.5, 40, 96, 140, 192])(
+  'uses 2px dots with a 3px gap at size %s',
+  async (size) => {
+    const pitch = 5;
+    const diameter = 2;
+    const screen = await renderCoreAIComponent(
+      <Illicon icon={WideFilled} size={size} aria-label="Spaced dots" />,
+    );
+    const root = screen.getByRole('img', { name: 'Spaced dots' });
 
-  await vi.waitFor(() => {
-    const path = root.element().querySelector('path');
-    expect(path).not.toBeNull();
-    if (!path) throw new Error('Expected the dotted SVG path.');
+    await vi.waitFor(() => {
+      const path = root.element().querySelector('path');
+      expect(path).not.toBeNull();
+      if (!path) throw new Error('Expected the dotted SVG path.');
 
-    const bounds = path.getBBox();
-    const columns = Math.floor(size / pitch);
-    const rows = Math.floor(size / 2 / pitch);
-    const offsetX = (size - columns * pitch) / 2;
-    const offsetY = (size / 2 - rows * pitch) / 2;
-    const centerX = offsetX + pitch / 2;
-    const centerY = offsetY + pitch / 2;
-    expect(bounds.x).toBeCloseTo(offsetX + pitch * 0.3);
-    expect(bounds.y).toBeCloseTo(offsetY + pitch * 0.3);
-    expect(bounds.width).toBeCloseTo((columns - 0.6) * pitch);
-    expect(bounds.height).toBeCloseTo((rows - 0.6) * pitch);
-    expect(path.isPointInFill(new DOMPoint(centerX, centerY))).toBe(true);
-    expect(path.isPointInFill(new DOMPoint(centerX + pitch, centerY))).toBe(true);
-    expect(path.isPointInFill(new DOMPoint(centerX, centerY + pitch))).toBe(true);
-    expect(path.isPointInFill(new DOMPoint(centerX + pitch * 0.25, centerY))).toBe(false);
-    expect(path.isPointInFill(new DOMPoint(centerX + pitch / 2, centerY))).toBe(false);
-    expect(path.isPointInFill(new DOMPoint(centerX, centerY + pitch / 2))).toBe(false);
-    expect(path.getBoundingClientRect().width).toBeCloseTo(bounds.width);
-    expect(getPathD(path.ownerSVGElement!).match(/M/g)).toHaveLength(columns * rows);
-    expect(path.ownerSVGElement?.getAttribute('viewBox')).toBe(`0 0 ${size} ${size / 2}`);
-  });
-});
+      const bounds = path.getBBox();
+      const columns = Math.floor(size / pitch);
+      const rows = Math.floor(size / 2 / pitch);
+      const offsetX = (size - columns * pitch) / 2;
+      const offsetY = (size / 2 - rows * pitch) / 2;
+      const centerX = offsetX + pitch / 2;
+      const centerY = offsetY + pitch / 2;
+      expect(bounds.x).toBeCloseTo(centerX - diameter / 2);
+      expect(bounds.y).toBeCloseTo(centerY - diameter / 2);
+      expect(bounds.width).toBeCloseTo((columns - 1) * pitch + diameter);
+      expect(bounds.height).toBeCloseTo((rows - 1) * pitch + diameter);
+      expect(path.isPointInFill(new DOMPoint(centerX, centerY))).toBe(true);
+      expect(path.isPointInFill(new DOMPoint(centerX + pitch, centerY))).toBe(true);
+      if (rows > 1) {
+        expect(path.isPointInFill(new DOMPoint(centerX, centerY + pitch))).toBe(true);
+      }
+      expect(path.isPointInFill(new DOMPoint(centerX + diameter / 2 + 0.5, centerY))).toBe(false);
+      expect(path.isPointInFill(new DOMPoint(centerX + pitch / 2, centerY))).toBe(false);
+      expect(path.isPointInFill(new DOMPoint(centerX, centerY + pitch / 2))).toBe(false);
+      expect(path.getBoundingClientRect().width).toBeCloseTo(bounds.width);
+      expect(getPathD(path.ownerSVGElement!).match(/M/g)).toHaveLength(columns * rows);
+      expect(path.ownerSVGElement?.getAttribute('viewBox')).toBe(`0 0 ${size} ${size / 2}`);
+    });
+  },
+);
 
 test('accepts a valid custom size', async () => {
   const screen = await renderCoreAIComponent(
@@ -156,6 +195,19 @@ test('inherits color through currentColor', async () => {
     const path = root.element().querySelector('path');
     expect(path).not.toBeNull();
     expect(getComputedStyle(path!).fill).toBe('rgb(10, 20, 30)');
+  });
+});
+
+test('uses white as its default color', async () => {
+  const screen = await renderCoreAIComponent(
+    <Illicon icon={Sparkle24Filled} aria-label="Sparkle" />,
+  );
+  const root = screen.getByRole('img', { name: 'Sparkle' });
+
+  await vi.waitFor(() => {
+    const path = root.element().querySelector('path');
+    expect(path).not.toBeNull();
+    expect(getComputedStyle(path!).fill).toBe('rgb(255, 255, 255)');
   });
 });
 
@@ -293,7 +345,7 @@ test('dotifies equivalent source geometry identically regardless of native viewB
     expect(getPathD(smallSvg)).toBe(getPathD(largeSvg));
     const path = smallSvg.querySelector('path')!;
     expect(path.isPointInFill(new DOMPoint(19, 1))).toBe(false);
-    expect(path.isPointInFill(new DOMPoint(21, 1))).toBe(true);
+    expect(path.isPointInFill(new DOMPoint(22.5, 2.5))).toBe(true);
   });
 });
 
