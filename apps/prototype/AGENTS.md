@@ -1,90 +1,89 @@
-# CoreAI Sandbox — AI Coding Assistant Instructions
+# CoreAI Prototype — AI Coding Assistant Instructions
 
-Microsoft Foundry is a platform for building, deploying, and managing AI-powered applications and agents. **CoreAI Sandbox** is a demo app for agentic-assisted prototyping of design solutions intended for carryover into the real production codebase.
+The CoreAI Prototype is a React Router single-page app for exploring agent and design
+system experiences. It uses local mock data by default and consumes
+`@coreai-ds/react-components` from this monorepo.
 
-## Project Overview
+## Project context
 
-- React Router v7 SPA (SSR disabled in `react-router.config.ts`)
-- Vite + TypeScript + CSS Modules
-- CoreAI Design System components from `@coreai-ds/react-components`, plus Foundry-owned app adapters
-- TanStack Query against mock JSON data in `app/data/` (no real APIs)
+- React 18, React Router v7 framework mode, Vite, and TypeScript
+- Client-side rendering only (`ssr: false`)
+- `~/` resolves to `app/`
+- CSS Modules for component and page styles
+- TanStack Query over mock JSON in `app/data/`
+- URL-driven prototype features and design variants
+- Optional browser-to-Azure OpenAI requests configured by the user
 
-To run it:
+## Run and validate
 
-1. Run `npm run setup` to authenticate the private `@coreai` feed and install dependencies.
-2. If the credential provider reports an authentication error, wait 1–2 hours and retry `npm run setup`; for persistent errors, follow the [CoreAI Sandbox installation guide](../README.md#installation).
-3. `npm run dev` (background, serves `http://localhost:5173/`)
-4. Open via the Playwright MCP — or invoke the **`start-app`** skill.
+From the repository root:
 
-**Never commit directly to `main`.** Only engineer maintainers open reviewed PRs to `main`. `proto/*` branches are (usually) designer-owned prototype forks: they may merge `main` to refresh the template, but do not merge back into it (unless maintainers explicitly select one for PR).
-
-## How to find guidance — invoke skills
-
-Most repo-specific conventions, schemas, and workflows live in skills under `.github/skills/`. Their descriptions appear in your `<available_skills>` list every turn. Invoke the relevant skill **before** doing the matching work.
-
-### Workflow skills (explicit user requests)
-
-| User says / wants to…                                                   | Invoke skill        |
-| ----------------------------------------------------------------------- | ------------------- |
-| "Start the app", run dev server, open in Playwright                     | `start-app`         |
-| "Lint", typecheck, fix lint errors                                      | `lint`              |
-| Try a different design / option B / variant / A/B / layout alternative  | `new-variant`       |
-| Convert pasted HTML into repo components                                | `convert-html`      |
-| Convert a Figma design into repo components                             | `convert-figma`     |
-| Adapt code copied from the production codebase (strip i18n / telemetry) | `convert-prod-code` |
-| "Commit" / save current work to a proto branch                          | `commit-proto`      |
-| "Push" / deploy a proto branch                                          | `push-proto`        |
-| Permanently delete a proto branch                                       | `delete-proto`      |
-| "Merge main" / update / catch up a proto branch from `main`             | `merge-main`        |
-| "Check for hotfixes" / apply missing hotfixes to this branch            | `passive-hotfix`    |
-| Explicitly create or extract a hotfix commit                            | `create-hotfix`     |
-| Explicitly update the changelog or draft release notes                  | `update-changelog`  |
-
-### Reference skills (proactive on matching work)
-
-| About to edit / work with…                       | Invoke skill        |
-| ------------------------------------------------ | ------------------- |
-| Any `*.css` / `*.module.css` file                | `css-styling`       |
-| Any `*.tsx` file or picking a component          | `react-components`  |
-| Icons (`@fluentui/react-icons`, custom SVGs)     | `icons`             |
-| `app/routes.ts` or navigation                    | `routing`           |
-| Data-fetching hooks or `app/data/`               | `state-management`  |
-| `app/features/**` or any design alternative      | `features-variants` |
-| `packages/vellum/**`                             | `vellum`            |
-| Figma MCP output                                 | `figma-usage`       |
-| Rendered/pasted HTML (Playwright DOM, debugging) | `interpreting-html` |
-
-Skills are the canonical source for task-specific workflows and reference guidance; do not recreate duplicate prompt or instruction wrappers.
-
-## MCP tools
-
-Config in `.vscode/mcp.json`. You may prompt the user to copy these tools to the global location if needed.
-
-- **Playwright MCP** — DOM access for rendered pages. Before interpreting class names, invoke the `interpreting-html` skill. Playwright opens in a secondary Edge browser instance (not the default browser).
-- **Fluent MCP** — Fluent React UI docs. Requires auth — prompt the user if unauthenticated. Pair with the `react-components` skill (advice does not apply exactly to wrapped FLUENT OVERRIDE components).
-- **Figma MCP** — Designs from Figma desktop. If unavailable, prompt the user to enable "Figma Desktop MCP Server". Pair with the `figma-usage` skill.
-
-## Quick conventions
-
-- **Imports**: CoreAI components from `@coreai-ds/react-components`; Foundry-owned adapters from `~/components/common`; never from `@fluentui/react-components` directly.
-- **Path alias**: `~/` resolves to `app/`.
-- **Styles**: `.module.css` only. No inline `style={}` except for JS-driven values. Use `clsx` for conditional classes.
-- **Theme**: `useTheme()` from `~/components/common`.
-- **No SSR**: avoid SSR-specific patterns.
-
-## Common npm scripts
-
-```bash
-npm run dev          # dev server on :5173
-npm run build        # production build
-npm run typecheck    # tsc + route typegen
-npm run lint         # full lint (use the `lint` skill for the recommended workflow)
-npm run start        # serve production build
+```sh
+npm install
+npm run prototype
 ```
 
-## Component / route scaffolding
+The app runs at <http://127.0.0.1:5174>.
 
-- **New component**: `app/components/common/ComponentName/` with `ComponentName.tsx` + `ComponentName.module.css`. Export only Foundry-owned behavior from `app/components/common/index.ts`; import CoreAI components directly.
-- **New route**: file in `app/routes/`, registered in `app/routes.ts`, use `import type { Route } from "./+types/routeName"`.
+```sh
+npm --workspace apps/prototype run type-check
+npm --workspace apps/prototype run lint
+npm run build:prototype
+npm --workspace apps/prototype run preview
+```
 
-See the `react-components`, `css-styling`, and `routing` skills for full details.
+The package has no automated tests. Run the relevant checks and verify changed behavior
+in a browser.
+
+## Skill index
+
+Detailed working conventions live in `.github/skills/`. Load the matching skill before
+making a change. Treat the skill as the source of truth instead of duplicating its
+instructions here.
+
+| Task or area                                           | Skill                      |
+| ------------------------------------------------------ | -------------------------- |
+| Start or open the app                                  | `start-app`                |
+| Format, lint, or type-check                            | `lint`                     |
+| Choose CoreAI components, APIs, templates, or patterns | `coreai-ds-fluentui-react` |
+| Edit TSX or component imports                          | `react-components`         |
+| Edit CSS Modules or debug style precedence             | `css-styling`              |
+| Add or change icons                                    | `icons`                    |
+| Add routes or change navigation                        | `routing`                  |
+| Change query hooks, mock data, or data state           | `state-management`         |
+| Configure or consume features and variants             | `features-variants`        |
+| Create a new design alternative                        | `new-variant`              |
+| Interpret rendered HTML or generated class names       | `interpreting-html`        |
+
+When more than one row applies, load each relevant skill. In particular, component work
+often requires both `coreai-ds-fluentui-react` and `react-components`, plus a styling,
+icon, routing, state, or variant skill when applicable.
+
+## Baseline boundaries
+
+- Import product-facing components from `@coreai-ds/react-components`.
+- Import app-owned adapters from `~/components/common`.
+- Import Fluent icons from `@fluentui/react-icons`.
+- Do not import components directly from `@fluentui/react-components`.
+- Keep component styles in colocated `*.module.css` files.
+- Register routes in `app/routes.ts`.
+- Put mock records in `app/data/`.
+- Register prototype options in `app/features.json`; do not build a second feature
+  system.
+- Keep prototype-specific code inside `apps/prototype`.
+- Keep copyright and MIT license headers on source files.
+- Do not commit generated `build/` or `.react-router/` output.
+
+The lint configuration enforces many of these boundaries. Follow the applicable skill
+instead of working around a rule.
+
+## Data and credentials
+
+The prototype must work without Azure OpenAI. Do not commit credentials, endpoints, real
+customer data, prompts, or responses.
+
+## Portability
+
+This package currently relies on monorepo TypeScript, Vite, ESLint, and workspace
+dependency configuration. Keep those dependencies explicit and contained so the package
+can be moved by replacing the local links. See `README.md` for the portability steps.

@@ -1,7 +1,8 @@
 # CoreAI Prototype
 
-A private npm workspace for a generic CoreAI prototype, using the local
-`@coreai-ds/react-components` package.
+A React Router single-page app for prototyping experiences with
+`@coreai-ds/react-components`. It uses local mock data by default and does not require
+authentication or private package access.
 
 ## Run locally
 
@@ -12,9 +13,11 @@ npm install
 npm run prototype
 ```
 
-Open <http://127.0.0.1:5174>. This port is reserved for the prototype so it does
-not conflict with the docsite or Storybook. Startup requires no sign-in,
-credentials, private package feed, or sibling repository.
+Open <http://127.0.0.1:5174>.
+
+## Validate changes
+
+From the repository root:
 
 ```sh
 npm --workspace apps/prototype run type-check
@@ -23,120 +26,20 @@ npm run build:prototype
 npm --workspace apps/prototype run preview
 ```
 
-The build outputs a static SPA in `build/client`. Production hosting must
-serve `index.html` for app routes while serving assets normally.
+The production build is written to `build/client`. A production host must serve
+`index.html` as the fallback for application routes.
 
-This workspace intentionally contains no automated tests. Validate changes with
-type-check, build, and manual browser checks.
+This package does not have automated tests. Validate changes with the commands above
+and manual browser checks.
 
-## Lint configuration
+## Features and variants
 
-The app's `eslint.config.js` loads the repository configuration, which applies
-the prototype-only rules in `eslint.rules.js`. Root and workspace lint commands
-therefore enforce the same TypeScript, React Hooks, and prototype conventions.
-The prototype rules use ESLint 10's built-in import and AST-selector restrictions;
-they do not require `eslint-plugin-react`.
+Use [app/features.json](app/features.json) to register prototype features and design
+variants. The file starts with an empty feature list.
 
-Use app-owned Card, Image, and Link adapters; their implementations may import
-their corresponding underlying CoreAI component. Product components must use
-CoreAI components instead of native controls and text elements, and CSS Modules
-instead of inline styles. JavaScript-driven style values may use a targeted
-`eslint-disable-next-line no-restricted-syntax` comment with a reason. Common
-components, core infrastructure, and feature infrastructure retain their
-exemptions from the native-element and inline-style restrictions.
-
-## React Grab
-
-React Grab loads only in the development browser and is excluded from production
-builds. Hover over an element and press **Ctrl+C** (Windows) or **Cmd+C** (macOS)
-to copy its element and component-source context, then paste it into your coding
-agent. No external script or agent integration is configured.
-
-The development-only [context plugin](app/dev/reactGrab.ts) adapts CoreAI Sandbox's
-Vellum reference mapping using Bippy and source maps. Copied context identifies
-the selected element, the nearest project component, an intermediate Fluent
-component when applicable, and project ancestor source locations. It removes
-dependency and framework frames, consecutive same-name wrappers, noisy props,
-and Fluent/Griffel classes, and decodes CSS Module class names.
-Multiple selections get separate context blocks. If project context cannot be
-resolved for every selection, the plugin logs a warning and preserves React
-Grab's original text. React Grab prepends any user comment after this transform.
-No Vellum dependency or inspector UI is included.
-
-## Current migration stage
-
-The source application's pages, shell, mock data, theme controls, and optional
-Azure OpenAI functionality have been copied into this React Router
-framework-mode SPA (`ssr: false`). Type-check and production build pass.
-Home, the tool and model catalogs, the agent list and playground, the dashboard,
-and Docs have been smoke-tested in the development browser.
-
-The framework, router, and Node runtime are pinned together to public npm
-version 7.15.0. The source application's 7.18.x framework versions were not
-available on public npm when this workspace was created.
-
-A local feature menu and floating variant selector replace the source tool's
-feature controls. They use CoreAI menu and button components, plus the app's
-custom router-backed `TabLinkList` with elevated appearance and small sizing.
-No element inspector, commenting tools, sidebar, or tool-owned UI primitives
-are included.
-
-No source public images, illustration SVGs, font binaries, or favicons are
-included. Some copied illustration components still request excluded SVGs and
-return 404s; replacing them with large Fluent icons remains migration work.
-Remaining product branding and hosted authentication references also need cleanup.
-
-## Prototype features and variants
-
-Edit [app/features.json](app/features.json) to register design alternatives.
-The list is intentionally empty; the feature controls remain implemented and
-ready for real design alternatives. Sample layout, density, and playground
-definitions were cleared in a separate commit. Revert that cleanup commit to
-restore the samples for visual review without changing the implementation.
-The top-navigation **Prototype** button opens the feature menu; the floating
-selector appears only on routes with variants.
-The trigger is a compact CoreAI InteractionTag button, with hover, focus, and
-keyboard interaction rather than a passive badge or a menu-button chevron.
-
-```json
-{
-  "features": [
-    {
-      "id": "agent-layout",
-      "label": "Agent layout",
-      "notes": "Compare two playground layouts.",
-      "defaultRoute": "/build/agents/:agent/playground",
-      "defaultParams": { "agent": "agent-001" },
-      "routes": ["/build/agents/:agent/playground"],
-      "variants": [
-        { "id": "current", "label": "Current" },
-        { "id": "alternative", "label": "Alternative" }
-      ]
-    }
-  ]
-}
-```
-
-- Feature and variant IDs must be unique within their scope and use kebab case.
-- `defaultRoute` must appear in `routes`. Supply `defaultParams` for required
-  parameters so the menu can navigate from another page.
-- Route matching uses React Router patterns. An existing matching pathname keeps
-  its current parameter values instead of returning to the defaults.
-- The first variant is the default. Multiple features on a route have independent
-  selections, encoded as repeated `variant=feature-id--variant-id` parameters.
-- Floating variant options use the existing tab navigation backed by React Router
-  links, not form controls. Tab selection and active-link matching include the
-  destination's query parameters, since pathname-only matching cannot distinguish
-  same-page variants. Existing tab roles and keyboard behavior are retained.
-  Links support copying their address and opening variants in another tab.
-- Unrelated query parameters are preserved. Same-page selection also preserves
-  the URL fragment. Selection changes participate in browser Back/Forward;
-  default and invalid-parameter normalization replace the current history entry.
-- Variants are remembered during client-side navigation. Reloads use the URL.
-  Invalid, duplicate, and off-route selections are normalized with a console warning.
-- Omit `variants` for a feature that is only a menu link.
-
-Route components read their selection with the app-local hook:
+Each feature has a unique `id`, a `label`, and one or more matching `routes`. A feature
+can also define `variants`, a `defaultRoute`, and route parameters. Components read the
+active selection with `useFeature`:
 
 ```tsx
 import { useFeature } from '~/features/FeatureContext';
@@ -144,60 +47,45 @@ import { useFeature } from '~/features/FeatureContext';
 const variant = useFeature('agent-layout');
 ```
 
-Call the hook inside a component or custom hook under `FeatureProvider`.
-It returns a variant ID, `true` for an applicable feature without variants, or
-`null` when the feature does not apply. The component must render the design
-associated with the returned ID; adding JSON alone does not create alternate UI.
+Selections are stored in the URL as `variant` query parameters so a specific design can
+be shared and revisited. See the prototype feature skills in
+[.github/skills](.github/skills) for the full schema and workflow.
 
-Visibility is controlled only by the menu's **Show feature selector** checkbox.
-There is no X or hide button on the floating selector. If an earlier session
-saved it as hidden, use that checkbox to show registered features.
-Drag its handle to move it, or focus the handle and use arrow keys.
-Shift+arrow moves farther; Home resets to the bottom-center position.
-Position and visibility are saved in namespaced local storage. The selector
-stays inside the viewport when resized. Storage failures are logged and shown
-in the menu or selector without preventing in-session changes.
+## Optional Azure OpenAI connection
 
-## Migration compatibility
+The prototype works without Azure OpenAI. A user can optionally enter an Azure OpenAI
+endpoint, deployment name, and API key to enable chat-related interactions.
 
-- The workspace uses React 18. Context providers must use
-  `<Context.Provider value={value}>`, not the React 19 `<Context value={value}>` syntax.
-- The prototype targets ES2022 and includes its standard-library types, matching
-  copied code that uses `String.replaceAll` and related APIs.
-- Vite deduplicates React and React DOM so linked workspaces and optimized
-  dependencies use the same React instance. If stale optimized dependencies
-  produce an invalid-hook-call error after a dependency change, stop the dev
-  server and run `npm --workspace apps/prototype run dev -- --force`.
+These values are stored unencrypted in the browser's local storage. When the user tests
+the connection or uses an enabled interaction, the browser sends the request directly
+to the Azure OpenAI endpoint that the user configured. The app does not send these
+values or requests to a repository-owned intermediary service.
 
-## Fonts and styling
+Use only development credentials with the minimum required access. Clear the saved
+settings from the Azure OpenAI settings dialog when they are no longer needed. **Do not enable this browser-based credential flow for a production deployment without replacing it with an approved authentication and server-side request design.**
 
-The app loads the same hosted Aptos and Inter stylesheets as the docsite and
-Storybook. Fonts require network access; the theme's system fallback remains
-usable when the font hosts are unavailable. Font binaries are not bundled.
+## Development tools
 
-The shared font host allows `http://127.0.0.1:5174` and `http://localhost:5174`
-through CORS, alongside the existing docsite and Storybook origins. Its
-application-level allowlist was updated on October 7, 2026. New deployment
-origins must also be added to that allowlist. This app does not proxy, copy,
-or rehost the font binaries.
+React Grab is available only in development builds. Hover over an element and press
+**Ctrl+C** on Windows or **Cmd+C** on macOS to copy component and source context for a
+coding assistant. It does not load in production builds or connect to an external
+service.
 
-Styles use CSS Modules and an `app` container for responsive width queries.
-The layer order is `base, griffel, common`, with page styles unlayered.
+The app uses CSS Modules and an app-owned Griffel renderer. Follow the scoped guidance
+in [AGENTS.md](AGENTS.md) and [.github/skills](.github/skills) when changing components,
+styles, routing, state, icons, or variants.
 
-The prototype uses an app-owned [layered renderer](app/theme/createLayeredRenderer.ts)
-through `RendererProvider`, above `CoreAIFluentProvider`. It wraps inserted rules
-in `@layer griffel` and retains Griffel's rule buckets and media/container metadata.
-CSS Modules therefore override normal Fluent rules without specificity hacks.
-The renderer is created once per theme-provider instance and works during SPA
-prerendering and in the browser.
+## Portability
 
-This implements the behavior described in the
-[CSS Modules guidance](../storybook/src/stories/docs/StylingWithCssModules.mdx)
-without patching shared dependencies. Docsite, Storybook, tests outside this
-workspace, and published package consumers keep their normal renderers.
-No `patch-package` hook or global Griffel override is installed.
+The package is isolated under `apps/prototype`, but it currently consumes the design
+system from this monorepo. To move it to another repository:
 
-For manual validation, check that the top-navigation brand link computes to
-`display: flex` with the neutral foreground color, and that its logo and text
-align horizontally at desktop width. Check navigation, dialogs, and mobile
-layout in both development and production preview.
+1. Copy this directory.
+2. Replace the `@coreai-ds/react-components` workspace dependency with a published or
+   otherwise approved package version.
+3. Remove the local `@coreai-ds/react-components` alias from `vite.config.ts`.
+4. Provide an equivalent ESLint configuration or replace the root configuration import.
+5. Install dependencies and run the validation commands in the new repository.
+
+Hosted fonts are optional. The app falls back to system fonts when they are unavailable,
+and no font binaries are included in this package.
