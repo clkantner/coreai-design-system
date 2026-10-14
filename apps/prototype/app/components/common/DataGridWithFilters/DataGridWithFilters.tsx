@@ -715,25 +715,18 @@ export function DataGridWithFilters<T = never>({
       <div aria-live="polite" role="status">
         {gridState === 'filtered-empty' ? (
           <div key={searchTerm} className={styles.emptyStateContainer}>
-            <ResourceNotFound
-              description={
-                "We couldn't find any matches for your search. Try using different keywords or check your spelling."
-              }
-              headingLevel={emptyStateFinal.headingLevel}
-              title={`No results for ${searchTerm}`}
-            />
+            <ResourceNotFound {...emptyStateFinal} />
           </div>
         ) : null}
       </div>
       <SearchResultAnnouncement
         appliedFiltersSize={appliedFilters.size}
         currentPage={displayCurrentPage}
-        filteredItemsLength={filteredItems.length}
+        filteredItemsLength={gridState === 'normal' ? filteredItems.length : 0}
         maxItemsPerPage={paginationOptions?.maxItemsPerPage}
-        searchTerm={searchTerm}
-        totalItems={
-          isControlledPagination(paginationOptions) ? paginationOptions.totalItems : undefined
-        }
+        searchTerm={isControlled ? (searchValue ?? searchTerm) : searchTerm}
+        totalItems={isControlled ? paginationOptions.totalItems : filteredItems.length}
+        visibleItemsLength={paginatedItems.length}
       />
     </div>
   );
@@ -746,33 +739,57 @@ interface SearchResultAnnouncementProps {
   currentPage: number;
   totalItems?: number;
   maxItemsPerPage?: number;
+  visibleItemsLength: number;
 }
 
 function SearchResultAnnouncement({
   searchTerm,
   appliedFiltersSize,
   filteredItemsLength,
+  currentPage,
   totalItems,
   maxItemsPerPage,
+  visibleItemsLength,
 }: SearchResultAnnouncementProps): JSX.Element {
   const announcement = useMemo(() => {
     // Only announce when there's an active search term or filter
-    const hasActiveFilter = searchTerm !== '' || appliedFiltersSize > 0;
-    if (!hasActiveFilter || filteredItemsLength === 0) {
+    const trimmedSearchTerm = searchTerm.trim();
+    const hasActiveFilter = trimmedSearchTerm !== '' || appliedFiltersSize > 0;
+    if (!hasActiveFilter || filteredItemsLength === 0 || visibleItemsLength === 0) {
       // No announcement needed - empty state is handled separately with its own aria-live
       return '';
     }
 
-    const total = totalItems ?? filteredItemsLength;
     const pageSize = maxItemsPerPage ?? DEFAULT_PAGE_SIZE;
+    const searchContext = trimmedSearchTerm ? ` for "${trimmedSearchTerm}"` : '';
+    const filterContext =
+      appliedFiltersSize > 0
+        ? trimmedSearchTerm
+          ? ' with the selected filters'
+          : ' matching the selected filters'
+        : '';
+    const context = `${searchContext}${filterContext}`;
 
     // Use simple announcement when pagination doesn't matter (single page)
-    if (total <= pageSize) {
-      return 'Search Results Announcement Simple';
+    if (totalItems !== undefined && totalItems <= pageSize) {
+      return `${totalItems} ${totalItems === 1 ? 'result' : 'results'} found${context}.`;
     }
 
-    return 'Search Results Announcement';
-  }, [searchTerm, appliedFiltersSize, filteredItemsLength, totalItems, maxItemsPerPage]);
+    const start = (currentPage - 1) * pageSize + 1;
+    const end = start + visibleItemsLength - 1;
+    const range = visibleItemsLength === 1 ? `${start}` : `${start}-${end}`;
+    const total = totalItems === undefined ? '' : ` of ${totalItems}`;
+
+    return `Showing ${visibleItemsLength === 1 ? 'result' : 'results'} ${range}${total}${context}.`;
+  }, [
+    searchTerm,
+    appliedFiltersSize,
+    filteredItemsLength,
+    currentPage,
+    totalItems,
+    maxItemsPerPage,
+    visibleItemsLength,
+  ]);
 
   return (
     <span aria-live="polite" className={styles.visuallyHidden} role="status">
