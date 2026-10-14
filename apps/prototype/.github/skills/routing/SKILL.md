@@ -5,14 +5,16 @@ description: 'React Router v7 routing conventions for this SPA. USE WHEN: editin
 
 # Routing
 
-- This app does not use SSR, only client-side rendering.
+Paths below are relative to `apps/prototype/`.
+
+- This app disables runtime SSR (`ssr: false`) and renders routes client-side. React Router still generates the SPA HTML shell during the build.
 - Routes are defined in `app/routes.ts` using React Router v7 config (the "framework" style).
 
 ## General Structure
 
 - Main navigation structure:
   - Home: `index("routes/home.tsx")` at `/`
-  - Discover section: `/discover/agents`, `/discover/tools`
+  - Discover section: `/discover/models`, `/discover/tools`
   - Build section: `/build/agents`, `/build/tools`
   - Operate section: `/operate/dashboard`, `/operate/agents`
   - Docs: `/docs`
@@ -25,4 +27,4 @@ description: 'React Router v7 routing conventions for this SPA. USE WHEN: editin
 1. Create the file in `app/routes/`
 2. Add it to `app/routes.ts` config array
 3. Use type-safe route imports: `import type { Route } from "./+types/routeName"`
-4. Run `react-router typegen` (via `npm run typecheck`) to regenerate types
+4. Run `react-router typegen` via `npm --workspace apps/prototype run type-check` from the repository root (or `npm run type-check` from the app directory) to regenerate types and check TypeScript

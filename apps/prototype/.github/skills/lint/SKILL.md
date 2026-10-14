@@ -9,8 +9,7 @@ Run each step below in order from the repository root, fixing errors caused by o
 
 1. `npx prettier apps/prototype --write` — Auto-format prototype code with Prettier. For focused changes, pass explicit changed-file paths instead of the entire app directory. Run this first so formatting noise doesn't obscure real errors in later steps. Run periodically after editing TypeScript files. Do not use root `npm run format` for prototype-only work; it formats the entire repository.
 2. `npm --workspace apps/prototype run type-check` — Generate React Router types and fix relevant TypeScript / JavaScript type errors.
-3. **CSS review — automated CSS lint is not configured.** This repository has no `lint:css` script or Stylelint setup. If editing CSS, invoke the `prototype-app-css-styling` skill and manually review the changes against its rules and checklist. Fix relevant CSS issues and report that automated CSS lint was unavailable; do not report an automated CSS lint pass.
-4. `npm --workspace apps/prototype run lint` — Fix relevant ESLint issues in `.ts` and `.tsx` files. If editing components, invoke the `prototype-app-react-components` skill for guidance.
+3. `npm --workspace apps/prototype run lint` — Fix relevant ESLint issues in `.ts` and `.tsx` files. If editing components, invoke the `prototype-app-react-components` skill for guidance.
 
 **Verification rule**: After fixing errors in a command-based step, re-run that step's command **standalone** (not chained with other commands or piped through `tail`). Read the **full output** and confirm the exact error/warning count before moving to the next step. Never trust truncated or chained output as proof of zero errors. For the manual CSS review step, recheck the affected CSS against the skill's checklist and retain the explicit automated-lint limitation.
 

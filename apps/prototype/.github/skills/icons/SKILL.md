@@ -9,7 +9,7 @@ When looking for icon names,
 
 - **Prefer searching the installed `@fluentui/react-icons` exports** so the names match the version the app actually uses. Run this from `apps/prototype/` or the repository root, replacing the search expression with the concept you need:
 
-```powershell
+```sh
 node -e "const icons = require('@fluentui/react-icons'); console.log(Object.keys(icons).filter(name => /document.*add/i.test(name) && !/\d/.test(name) && /(?:Regular|Filled)$/.test(name)).join('\n'));"
 ```
 

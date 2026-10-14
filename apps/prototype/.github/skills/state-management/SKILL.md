@@ -5,6 +5,8 @@ description: "CoreAI Sandbox's simplified TanStack Query + mock-JSON data layer.
 
 # State Management Instructions — CoreAI Sandbox Demo
 
+Paths below are relative to `apps/prototype/`.
+
 ## Overview
 
 This document describes the data fetching and state management implementation in the CoreAI Sandbox demo application. This is a **simplified, mock-based implementation** designed for prototyping and design exploration, not production use.
@@ -59,8 +61,10 @@ export default function App() {
 
 **Files**:
 
-- `agents.json` - 50 agents with varied lifecycle statuses
-- `tools.json` - 35 tools with categories and publish status
+- `agents.json` - agents with varied lifecycle statuses
+- `tools.json` - tools with categories and publish status
+- `models.json` - models with provider and category metadata
+- `home.json` - Home page endpoints, model actions, carousel models, and recent work
 - `index.ts` - TypeScript interfaces and utility functions
 
 **Data Types**:
@@ -79,6 +83,8 @@ export interface Agent {
 }
 
 export interface Tool {
+  mark: string;
+  initialsColor: string;
   id: string;
   name: string;
   description: string;
@@ -109,8 +115,13 @@ Custom hooks wrap TanStack Query's `useQuery` and import JSON data directly.
 **Example — `useAgents.ts`**:
 
 ```typescript
+import type { Agent, AgentStatus } from '~/data';
 import { useQuery } from '@tanstack/react-query';
 import { agents, filterAgentsByStatus } from '~/data';
+
+async function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export interface UseAgentsOptions {
   status?: AgentStatus;
@@ -137,12 +148,14 @@ export function useAgents(options?: UseAgentsOptions) {
 
 - `useAgents(options?)` - Fetch agents, optionally filtered by status
 - `useTools(options?)` - Fetch tools, optionally filtered by category/publish status
+- `useHomeData()` - Fetch mock home page content
 
 **Query Keys**:
 
 ```typescript
 ['agents', status?]           // e.g., ['agents', 'draft']
 ['tools', category?, isPublished?]  // e.g., ['tools', 'Data', true]
+['home']                     // Home page mock content
 ```
 
 ### 4. Component Usage Pattern
@@ -152,9 +165,19 @@ Components use custom hooks directly in route components:
 ```tsx
 import { useAgents } from '~/hooks/useAgents';
 import { CollectionPage } from '~/components/common';
+import type { TableColumnDefinition } from '~/components/common';
+import type { Agent } from '~/data';
 
 export default function BuildAgents() {
   const { data: agents, isLoading } = useAgents({ status: 'draft' });
+  const columns: TableColumnDefinition<Agent>[] = [
+    {
+      columnId: 'name',
+      renderHeaderCell: () => 'Name',
+      renderCell: (agent) => agent.name,
+      compare: (first, second) => first.name.localeCompare(second.name),
+    },
+  ];
 
   return (
     <CollectionPage
@@ -174,23 +197,26 @@ export default function BuildAgents() {
 
 Different routes show different subsets of the same data:
 
-| Route              | Hook Usage                           | Filter                |
-| ------------------ | ------------------------------------ | --------------------- |
-| `/build/agents`    | `useAgents({ status: 'draft' })`     | Draft agents (10)     |
-| `/discover/agents` | `useAgents({ status: 'published' })` | Published agents (16) |
-| `/operate/agents`  | `useAgents({ status: 'deployed' })`  | Deployed agents (24)  |
-| `/build/tools`     | `useTools()`                         | All tools (35)        |
-| `/discover/tools`  | `useTools({ isPublished: true })`    | Published tools (28)  |
+| Route                     | Hook Usage                                                 | Filter                       |
+| ------------------------- | ---------------------------------------------------------- | ---------------------------- |
+| `/build/agents`           | `useAgents()` via `AgentList`                              | All agents (50)              |
+| `/build/agents/drafts`    | `useAgents()` via `AgentList`, then local status filtering | Draft agents (14)            |
+| `/build/agents/published` | `useAgents()` via `AgentList`, then local status filtering | Published agents (19)        |
+| `/operate/agents`         | `useAgents({ status: 'deployed' })`                        | Deployed agents (17)         |
+| `/build/tools`            | `useTools()`                                               | All tools (35)               |
+| `/discover/tools`         | Direct `tools` import mapped into catalog items            | All tools (35; 29 published) |
 
 ### 6. Loading States
 
 TanStack Query provides automatic loading state management:
 
 ```tsx
+import { DataGridWithFilters } from '~/components/common';
+
 const { data, isLoading, error } = useAgents();
 
-// DataGrid handles loading state
-<DataGrid isLoading={isLoading} items={data ?? []} />;
+// The app-owned grid handles loading state; columns are defined by the consuming component.
+<DataGridWithFilters columns={columns} isLoading={isLoading} items={data ?? []} />;
 ```
 
 **States Available**:
@@ -207,7 +233,7 @@ const { data, isLoading, error } = useAgents();
 
 - ✅ Use TanStack Query for ALL data fetching
 - ✅ Use custom hooks (`useAgents`, `useTools`) in components
-- ✅ Pass query results to DataGrid with `isLoading` prop
+- ✅ Pass query results to the app-owned `DataGridWithFilters` (or a page composition's `dataGridProps`) with `isLoading`; the underlying CoreAI `DataGrid` does not supply this app-owned loading API
 - ✅ Provide sensible empty states
 - ✅ Use consistent query keys for caching
 - ✅ Filter data via hook options when possible
@@ -223,7 +249,7 @@ const { data, isLoading, error } = useAgents();
 
 ## Simulated Delays
 
-All queries include a 400ms simulated delay:
+The mock query hooks `useAgents`, `useTools`, and `useHomeData` include a 400ms simulated delay:
 
 ```typescript
 async function delay(ms: number): Promise<void> {
@@ -263,6 +289,10 @@ export const newEntities: NewEntity[] = newEntityData as NewEntity[];
 // app/hooks/useNewEntity.ts
 import { useQuery } from '@tanstack/react-query';
 import { newEntities } from '~/data';
+
+async function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export function useNewEntity() {
   return useQuery({
@@ -310,5 +340,8 @@ When moving components to production:
 - `app/data/index.ts` - Type definitions and exports
 - `app/data/agents.json` - Mock agent data
 - `app/data/tools.json` - Mock tool data
+- `app/data/models.json` - Mock model data
+- `app/data/home.json` - Mock home content
 - `app/hooks/useAgents.ts` - Agents data hook
 - `app/hooks/useTools.ts` - Tools data hook
+- `app/hooks/useHomeData.ts` - Home content data hook
