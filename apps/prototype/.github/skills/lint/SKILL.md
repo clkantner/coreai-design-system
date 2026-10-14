@@ -5,18 +5,18 @@ description: 'Run the full lint workflow: format, typecheck, CSS lint, JS lint. 
 
 # Lint the Codebase
 
-Run each step below in order, fixing all errors before moving to the next step.
+Run each step below in order from the repository root, fixing errors caused by or directly related to the current task before moving to the next step. Report unrelated pre-existing errors rather than changing unrelated code; do not claim a step passed while errors remain.
 
-1. `npm run format` — Auto-format code with Prettier. Run this first so formatting noise doesn't obscure real errors in later steps. Run periodically after editing TypeScript files.
-2. `npm run typecheck` — Fix any TypeScript / JavaScript type errors.
-3. `npm run lint:css` — Fix any CSS issues. If editing CSS, invoke the `css-styling` skill for guidance.
-4. `npm run lint:js` — Fix any ESLint issues in `.ts` and `.tsx` files. If editing components, invoke the `react-components` skill for guidance.
+1. `npx prettier apps/prototype --write` — Auto-format prototype code with Prettier. For focused changes, pass explicit changed-file paths instead of the entire app directory. Run this first so formatting noise doesn't obscure real errors in later steps. Run periodically after editing TypeScript files. Do not use root `npm run format` for prototype-only work; it formats the entire repository.
+2. `npm --workspace apps/prototype run type-check` — Generate React Router types and fix relevant TypeScript / JavaScript type errors.
+3. **CSS review — automated CSS lint is not configured.** This repository has no `lint:css` script or Stylelint setup. If editing CSS, invoke the `prototype-app-css-styling` skill and manually review the changes against its rules and checklist. Fix relevant CSS issues and report that automated CSS lint was unavailable; do not report an automated CSS lint pass.
+4. `npm --workspace apps/prototype run lint` — Fix relevant ESLint issues in `.ts` and `.tsx` files. If editing components, invoke the `prototype-app-react-components` skill for guidance.
 
-**Verification rule**: After fixing errors in a step, re-run the `npm run` command **standalone** (not chained with other commands or piped through `tail`). Read the **full output** and confirm the exact error/warning count before moving to the next step. Never trust truncated or chained output as proof of zero errors.
+**Verification rule**: After fixing errors in a command-based step, re-run that step's command **standalone** (not chained with other commands or piped through `tail`). Read the **full output** and confirm the exact error/warning count before moving to the next step. Never trust truncated or chained output as proof of zero errors. For the manual CSS review step, recheck the affected CSS against the skill's checklist and retain the explicit automated-lint limitation.
 
-Run `npm run format` again when finished.
+Run `npx prettier apps/prototype --write` again when finished, or use the same explicit changed-file paths selected in step 1.
 
 ## Related skills
 
-- `css-styling` — required reading when fixing CSS warnings.
-- `react-components` — required reading when fixing TSX warnings.
+- `prototype-app-css-styling` — required reading when fixing CSS warnings.
+- `prototype-app-react-components` — required reading when fixing TSX warnings.
