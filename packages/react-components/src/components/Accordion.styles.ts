@@ -16,11 +16,12 @@ import {
   makeStyles,
   mergeClasses,
   getSlotClassNameProp_unstable,
+  shorthands,
 } from '@fluentui/react-components';
-import type { AccordionHeaderState } from '@fluentui/react-components';
+import type { AccordionHeaderState, AccordionPanelState } from '@fluentui/react-components';
 import { useComponentDefaults } from '../contexts/ComponentDefaultsContext.js';
 
-const useStyles = makeStyles({
+const useAccordionHeaderClassNames = makeStyles({
   headerButtonLayoutDefault: {
     gridTemplateColumns: 'auto 1fr',
   },
@@ -41,9 +42,16 @@ const useStyles = makeStyles({
     // gridTemplateColumns: "auto 1fr", // headerButtonLayoutDefault
 
     gap: 'var(--spacingHorizontalS)',
+    '&.fui-AccordionHeader__button': {
+      ...shorthands.padding(0),
+    },
     '& .fui-AccordionHeader__expandIcon, & .fui-AccordionHeader__icon ': {
       padding: 'unset',
       borderRadius: 'var(--borderRadiusMedium)',
+    },
+    '& .fui-AccordionHeader__expandIcon': {
+      height: 'auto',
+      alignSelf: 'center',
     },
   },
 
@@ -62,9 +70,17 @@ const useStyles = makeStyles({
   },
 });
 
+const useAccordionPanelClassNames = makeStyles({
+  root: {
+    '&.fui-AccordionPanel': {
+      ...shorthands.margin(0),
+    },
+  },
+});
+
 export const useAccordionHeaderStyles = (stateUnknown: unknown): void => {
   const enabled = useComponentDefaults();
-  const styles = useStyles();
+  const styles = useAccordionHeaderClassNames();
   if (!enabled) {
     return;
   }
@@ -91,5 +107,20 @@ export const useAccordionHeaderStyles = (stateUnknown: unknown): void => {
     layoutClass,
     !state.disabled && styles.headerButtonInteractive,
     getSlotClassNameProp_unstable(state.button),
+  );
+};
+
+export const useAccordionPanelStyles = (stateUnknown: unknown): void => {
+  const enabled = useComponentDefaults();
+  const styles = useAccordionPanelClassNames();
+  if (!enabled) {
+    return;
+  }
+
+  const state = stateUnknown as AccordionPanelState;
+  state.root.className = mergeClasses(
+    state.root.className,
+    styles.root,
+    getSlotClassNameProp_unstable(state.root),
   );
 };
