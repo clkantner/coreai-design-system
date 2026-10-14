@@ -124,6 +124,10 @@ Use of the hosted MCP endpoint is subject to the
 For Microsoft's privacy practices, see the
 [Microsoft Privacy Statement](https://privacy.microsoft.com/privacystatement).
 
+The application code does not collect or transmit product-usage telemetry. Optional services that
+users configure, such as Azure OpenAI, may process data that users choose to send and are subject to
+the terms and privacy policies of those services.
+
 ### Third-party materials
 
 This project builds on Fluent UI and other open-source packages declared in its package manifests
