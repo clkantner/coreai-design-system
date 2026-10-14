@@ -8,8 +8,10 @@ does not mean the destination is already available.
 ## Source changes
 
 - GitHub Actions replaces the old pipeline definitions. Deployment continues to
-  the existing Azure App Services; the docs site, Storybook, and MCP retain their
-  existing authentication and hosting settings.
+  the existing Azure App Services. Storybook and MCP target public anonymous
+  access. The docsite deployment contract still requires authentication and needs
+  a separate operator-approved update for public hosting. Deployments do not
+  change Azure access settings.
 - The docsite and MCP do not collect or transmit product usage data. Storybook's
   upstream usage reporting is explicitly disabled.
 - Aptos remains preferred, but no font binaries are redistributed. Use the

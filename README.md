@@ -4,31 +4,29 @@
 
 This is the monorepo for **CoreAI**, a Fluent UI v9 design system.
 
-The destination for code, issues, pull requests, and GitHub Actions is
+Code, issues, pull requests, and GitHub Actions are available at
 [microsoft/coreai-design-system](https://github.com/microsoft/coreai-design-system).
 
-**Open-source preparation:** this repository is private while review is pending.
-Public access and npm publication are pending approval. Links below describe the intended
-destinations, not a claim that the repository or package is already public.
-The existing Azure-hosted services keep their current access controls.
+The source code is available under the [MIT license](LICENSE.txt).
+Use the links below to explore the documentation, Storybook, and read-only MCP endpoint.
 
 ## Live links
 
-| Resource                              | URL                                                                                        |
-| ------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 🏠 Docsite (landing)                  | https://coreai-ds.azurewebsites.net                                                        |
-| 📚 Storybook (Entra-authenticated)    | https://coreai-ds-storybook.azurewebsites.net                                              |
-| 🤖 MCP endpoint (Entra-authed)        | https://coreai-ds-storybook.azurewebsites.net/mcp                                          |
-| 📦 Package (npm; publication pending) | [`@coreai-ds/react-components`](https://www.npmjs.com/package/@coreai-ds/react-components) |
+| Resource             | URL                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| 🏠 Docsite (landing) | https://coreai-ds.azurewebsites.net                                                        |
+| 📚 Storybook         | https://coreai-ds-storybook.azurewebsites.net                                              |
+| 🤖 MCP endpoint      | https://coreai-ds-storybook.azurewebsites.net/mcp                                          |
+| 📦 Package (npm)     | [`@coreai-ds/react-components`](https://www.npmjs.com/package/@coreai-ds/react-components) |
 
 ## Workspaces
 
-| Path                                                   | Package                          | Purpose                                                                                         |
-| ------------------------------------------------------ | -------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [apps/docsite](apps/docsite)                           | `@coreai-ds/docsite` (private)   | Infrastructure scaffold for static docsite build/serve and Azure App Service deployment wiring. |
-| [packages/react-components](packages/react-components) | `@coreai-ds/react-components`    | The publishable theme package. Drop-in `<CoreAIFluentProvider>` + CoreAI-wrapped components.    |
-| [apps/storybook](apps/storybook)                       | `@coreai-ds/storybook` (private) | Storybook playground that previews the theme against Fluent UI's canonical stories.             |
-| [apps/prototype](apps/prototype)                       | `@coreai-ds/prototype` (private) | CoreAI prototype app. See its README for the current migration scope and local setup.           |
+| Path                                                   | Package                                       | Purpose                                                                                         |
+| ------------------------------------------------------ | --------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [apps/docsite](apps/docsite)                           | `@coreai-ds/docsite` (not published to npm)   | Infrastructure scaffold for static docsite build/serve and Azure App Service deployment wiring. |
+| [packages/react-components](packages/react-components) | `@coreai-ds/react-components`                 | The publishable theme package. Drop-in `<CoreAIFluentProvider>` + CoreAI-wrapped components.    |
+| [apps/storybook](apps/storybook)                       | `@coreai-ds/storybook` (not published to npm) | Storybook playground that previews the theme against Fluent UI's canonical stories.             |
+| [apps/prototype](apps/prototype)                       | `@coreai-ds/prototype` (private)              | CoreAI prototype app. See its README for the current migration scope and local setup.           |
 
 - Consumer + extension guide: [packages/react-components/README.md](packages/react-components/README.md)
 - Storybook, `fluent-stories/`, and the MCP for AI agents (authoring): [apps/storybook/README.md](apps/storybook/README.md)
@@ -98,8 +96,7 @@ To run a script in just one workspace, use `npm -w <workspace> run <script>` —
 
 ## Consuming the react package
 
-After publication is approved, consumers will install from the public npm registry
-without Azure Artifacts credentials. See the
+Install from npm. See the
 [package README](packages/react-components/README.md#install) for installation,
 optional Aptos setup, and provider configuration.
 
@@ -107,13 +104,24 @@ optional Aptos setup, and provider configuration.
 
 ## Publishing
 
-Public npm publishing is **disabled until open-source approval and release
-configuration are complete**. See the
+Maintainer publication uses a separate approval-gated workflow. See the
 [release guide](packages/react-components/RELEASING.md) for the gated workflow
 and the [CI/CD guide](docs/CI-CD-SETUP.md) for repository configuration. Do not run a
 manual publish to bypass approval.
 
-## Third-party materials
+## Legal
+
+### License and hosted-service terms
+
+The source code is licensed under the [MIT license](LICENSE.txt).
+
+Use of the hosted MCP endpoint is subject to the
+[Microsoft APIs Terms of Use](https://learn.microsoft.com/en-us/legal/microsoft-apis/terms-of-use).
+
+For Microsoft's privacy practices, see the
+[Microsoft Privacy Statement](https://privacy.microsoft.com/privacystatement).
+
+### Third-party materials
 
 This project builds on Fluent UI and other open-source packages declared in its package manifests
 and lockfile. The docsite uses Paper Shaders under the Apache License 2.0; its license and upstream
@@ -122,7 +130,7 @@ summarized in [NOTICE](NOTICE). Storybook development can provision a pinned, sp
 upstream Fluent UI stories; that checkout is not tracked in this repository. See the
 [Storybook authoring guide](apps/storybook/README.md) for details.
 
-## Trademarks
+### Trademarks
 
 This project may contain trademarks or logos for projects, products, or services. Authorized use
 of Microsoft trademarks or logos is subject to and must follow

@@ -11,7 +11,7 @@ Source, pull requests, and automation live in
 | Publish package         | [publish-package.yml](../.github/workflows/publish-package.yml)           | See the [release guide](../packages/react-components/RELEASING.md) |
 
 Site deployment and npm publication are independent. Merging to main can deploy
-the authenticated sites; it does not publish a package.
+the sites; it does not publish a package.
 
 ## Running and troubleshooting workflows
 
@@ -37,13 +37,13 @@ it is not a login-only check.
 
 ## Validation
 
-CI uses Node.js 22 and public npm dependencies; it needs **no secrets, Azure
+CI uses Node.js 22 and npm dependencies; it needs **no secrets, Azure
 connection, private feed, or write token**. In-repository apps resolve
 `@coreai-ds/react-components` through npm workspaces.
 
 Validation preserves formatting, zero-warning lint, workspace type checks,
 guidance-generation tests, Storybook build/content verification, docsite tests
-against the same built Storybook index, host OAuth tests, Chromium installation,
+against the same built Storybook index, anonymous MCP host tests, Chromium installation,
 and browser component tests.
 Fork contributions use `pull_request`, not privileged `pull_request_target`.
 
@@ -68,7 +68,7 @@ The deployment workflow requires all of:
 1. Repository is exactly `microsoft/coreai-design-system`.
 2. Ref is exactly `refs/heads/main`, including for manual runs.
 3. Repository Actions variable `ENABLE_AZURE_DEPLOY` is exactly `true`.
-   Authenticated site deployment is independent of `OSS_RELEASE_APPROVED` and
+   Site deployment is independent of `OSS_RELEASE_APPROVED` and
    npm publishing; keep package publishing disabled until separately approved.
 4. The reusable CI validation succeeds for the same source revision.
 5. The `azure-production` environment permits only the `main` branch.
@@ -82,13 +82,15 @@ credentials are available to ordinary PR CI.
 Only ZIP application content is deployed. The workflow **does not run Bicep,
 create resources, reset app settings, alter Easy Auth, or change Entra
 registrations**. Existing infrastructure must be prepared separately by its
-owners. The authenticated preflight reads the current auth configuration and
-fails closed if either UI or MCP authentication is missing/disabled. The check
+owners. The preflight reads the current access configuration and
+requires public Storybook/MCP and authenticated docsite access. Reader-facing
+documentation assumes a public docsite; changing the docsite deployment contract
+and Azure access policy remains a separate operator task. The check
 reads the explicit V2 auth endpoint and runs again after deployment. Responses,
 app settings, and credentials are not printed or uploaded as artifacts.
 
 The docsite ZIP retains `dist/`, `package.json`, and `server.js` at its root.
-The Storybook ZIP retains `storybook-static/`, `server.mjs`, `oauth.mjs`,
+The Storybook ZIP retains `storybook-static/`, `server.mjs`,
 the host `package.json`, and production dependencies installed in the staging
 directory. Both preserve `npm start` behavior. Storybook deploy retains
 `--track-status false` for its existing App Service behavior.

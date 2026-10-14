@@ -60,27 +60,30 @@ the user's MCP configuration.
 
 ### Required MCP workflow
 
-Before selecting, adding, changing, or reviewing a CoreAI component, prop, template, or pattern,
-successfully query the CoreAI documentation server. Package source, types, prior knowledge,
-and stock Fluent docs are not substitutes.
+1. Confirm the CoreAI documentation server is connected.
+2. Call `docs-list` before assuming a component ID.
+3. Call `docs-show` before using a component or prop.
+4. Call `docs-show-story` when a specific state or pattern is needed.
+5. Implement only documented props, combinations, and patterns.
+6. If a component or prop is missing, report the gap. Do not invent it.
 
-1. Discover the connected server's tool names and argument schemas. The tool names below refer
-   to `docs-list` (catalog index), `docs-show` (documentation), and `docs-show-story` (story
-   examples); use the connected server's equivalents if its names differ. Confirm the CoreAI
-   documentation server is connected by successfully calling its catalog index tool.
-2. Use that index to determine whether CoreAI documents the component, extension, or template.
-   Do not infer from the component name whether it is modified or passed through unchanged.
-3. When the catalog has an entry, call `docs-show` before using the component. Call
-   `docs-show-story` when a specific state or pattern is needed. Record the
-   documented differences, defaults, constraints, and extensions.
-4. Use the component's story index to find included Fluent examples for additional states or
-   inherited APIs. Retrieve the relevant stories from the same CoreAI documentation server.
-5. When the index has no component entry or a response lacks the needed API detail, report the
-   documentation gap and ask the user how to proceed. Absence does not prove an unchanged API.
-6. If CoreAI and included Fluent guidance conflict, follow CoreAI. Do not use Fluent examples to
-   erase or override a CoreAI difference.
-7. Implement only documented props, combinations, and patterns. If the catalog does not document the
-   needed behavior, report the gap and ask the user instead of inventing it.
+**Never hallucinate a prop.** Even a common-sounding one (`shadow`, `variant`, `color`) — verify
+it's real via `docs-show` or an example story before using it. If it isn't documented or
+shown in an example, ask the user instead of assuming.
+
+### Report documentation and component gaps
+
+When CoreAI documentation is missing, incorrect, or does not cover a needed component or prop:
+
+1. Tell the user exactly what is missing and what fallback, if any, you used.
+2. Ask whether they want you to file an issue in the
+   [CoreAI GitHub issue tracker](https://github.com/microsoft/coreai-design-system/issues/new).
+3. Only after the user confirms, use
+   `gh issue create --repo microsoft/coreai-design-system` to file an issue that
+   includes the component or documentation page, the expected behavior or
+   information, the observed gap, and a minimal example when available. Source,
+   pull requests, and issues share this GitHub repository.
+4. If you cannot create the issue, give the user a ready-to-submit title and body instead.
 
 ## Component IDs have no predictable scheme
 
@@ -144,8 +147,10 @@ A link a human pastes in, e.g.
 `https://coreai-ds-storybook.azurewebsites.net/?path=/docs/components-button-button--docs` or
 `.../?path=/story/components-button-button--subtle-content-alignment`:
 
-- The segment before `--` (`components-button-button`) identifies the component entry for
-  `docs-show`; confirm it in the catalog.
+- The segment before `--` (`components-button-button`) is the `id` for `docs-show`.
+- The segment after `--` (kebab-case) maps to a story export name for `docs-show-story`
+  (e.g. `subtle-content-alignment` → `SubtleContentAlignment`). If the guess doesn't hit, confirm
+  the exact name via `docs-show`, which includes the component's story index.
 - For a story URL, use the full story ID to locate its exact entry in the component's story
   index or `docs-list` with story IDs. Pass the identifier or name required by the discovered
   `docs-show-story` schema rather than guessing an export name from kebab-case.

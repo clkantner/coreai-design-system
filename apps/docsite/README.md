@@ -38,8 +38,8 @@ To exercise the exact production runtime (Node static server + SPA fallback) ins
 
 ## What ships
 
-- Landing page with Storybook, Figma, and public npm destination links (npm publication
-  remains pending approval). Audience cards are reserved for future content.
+- Landing page with Storybook, Figma, and npm links.
+  Audience cards are reserved for future content.
   Resource icons and labels use the link color
   at rest. The left-aligned content is centered horizontally and vertically
   within the main area's left half.
@@ -338,8 +338,7 @@ Ordinary startup logs and actionable console errors remain on the host; the
 application contains no code that forwards them to a remote analytics service.
 
 The unauthenticated `/healthz` endpoint returns `{"status":"ok"}` for health
-checks. The hosting template preserves the existing apps and their Entra
-authentication without provisioning monitoring resources. Removing those
+checks. The hosting template does not provision monitoring resources. Removing those
 resources from the template does not delete existing Azure resources or
 previously collected data; any cloud cleanup requires a separate, deliberate
 administrator action.
@@ -355,7 +354,7 @@ Linux, with the docsite served by `npm start` / `node server.js`.
 Deployment requires all of the following:
 
 - The exact repository `microsoft/coreai-design-system` and branch `main`
-- Repository variable `ENABLE_AZURE_DEPLOY=true`; authenticated site deployment
+- Repository variable `ENABLE_AZURE_DEPLOY=true`; site deployment
   does not require OSS release approval or enable npm publishing
 - Passing CI and main-only access to the `azure-production` environment;
   the protected PR merge is approval, with no second human deployment gate
@@ -366,13 +365,15 @@ The workflow responds to every main-branch push,
 and supports manual dispatch subject to the same gates. It verifies existing
 hosting authentication before deploying. No monitoring workflow is included.
 
-## Easy Auth setup
+## Hosting access policy
 
-Existing hosted apps remain restricted to their configured Entra tenant.
-Unauthenticated docsite requests redirect to Microsoft Entra sign-in, except
-the health endpoint. Publishing source does not make these hosts public.
+Reader-facing documentation describes the docsite, Storybook, and MCP as public.
+Storybook and MCP are configured for anonymous access. The checked-in deployment
+contract still requires docsite Easy Auth; an operator must update that contract
+and Azure configuration separately to make the docsite public. Documentation
+changes alone do not change access settings.
 
-Easy Auth is declared in [`infra/main.bicep`](../../infra/main.bicep) using the
+The current docsite Easy Auth is declared in [`infra/main.bicep`](../../infra/main.bicep) using the
 **secretless implicit `id_token` flow**. Tenant lockdown comes from a
 single-tenant app registration plus the tenant-specific issuer. This browser
 sign-in configuration is separate from the workflow's Azure OIDC identity.
@@ -380,5 +381,5 @@ sign-in configuration is separate from the workflow's Azure OIDC identity.
 Bicep remains available for separately approved operator-managed infrastructure
 changes, not routine app deployment. Preserve both apps' existing Easy Auth and
 MCP settings when making such changes. See the
-[hosting contract and prerequisites](../../docs/CI-CD-SETUP.md#app--mcp-hosting-azure-app-service--entra)
+[hosting contract and prerequisites](../../docs/CI-CD-SETUP.md#app--mcp-hosting-public-storybook-authenticated-docsite)
 before changing infrastructure.

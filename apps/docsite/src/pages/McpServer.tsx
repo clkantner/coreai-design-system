@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CodeBlock, CopyButton } from '@coreai-ds/react-components';
+import { CodeBlock, CopyButton, Link } from '@coreai-ds/react-components';
 import {
   MessageBar,
   MessageBarActions,
@@ -13,14 +13,7 @@ import { siteLinks } from '../data/content';
 
 const vscodeConfig = `{
   "servers": {
-    // Official Fluent Docs MCP - requires Microsoft Entra OAuth signin
-    // Documentation: https://chat.fluentui.dev/mcp.html & Demo: https://chat.fluentui.dev/
-    "fluent-agent": {
-      "type": "http",
-      "url": "https://chat.fluentui.dev/mcp/server/"
-    },
-
-    // CoreAI Design System MCP - requires Microsoft Entra OAuth signin
+    // CoreAI Design System MCP
     "coreai-ds-docs": {
       "type": "http",
       "url": "${siteLinks.mcp}"
@@ -29,24 +22,14 @@ const vscodeConfig = `{
   "inputs": []
 }`;
 
-const serverDetails = `Name: fluent-agent
-Type: http
-URL: https://chat.fluentui.dev/mcp/server/
-Authentication: Microsoft Entra sign-in, in your browser
-
-Name: coreai-ds-docs
+const serverDetails = `Name: coreai-ds-docs
 Type: http
 URL: ${siteLinks.mcp}
-Authentication: Microsoft Entra sign-in, in your browser
+Authentication: none
 
-Headers: none for either server`;
+Headers: none`;
 
-const copilotAppServerDetails = `Add Server 1
-Name: fluent-agent
-Type: HTTP
-URL: https://chat.fluentui.dev/mcp/server/
-
-Add Server 2
+const copilotAppServerDetails = `Add Server
 Name: coreai-ds-docs
 Type: HTTP
 URL: ${siteLinks.mcp}`;
@@ -61,18 +44,17 @@ const clients = {
     config: vscodeConfig,
     language: 'json',
     verify:
-      'Start an agent session. VS Code starts the configured MCP servers and opens a Microsoft sign-in in your browser.',
+      'Start the configured server in VS Code, then open an agent session and confirm that docs-list, docs-show, and docs-show-story are available.',
   },
   copilot: {
     label: 'Copilot CLI',
     location: 'Copilot CLI /mcp add flow',
     stepTitle: 'Run /mcp add',
     setup:
-      'Enter /mcp add inside Copilot CLI for each server, choose the HTTP server type, then provide the connection details below.',
+      'Enter /mcp add inside Copilot CLI, choose the HTTP server type, then provide the connection details below.',
     config: serverDetails,
     language: 'text',
-    verify:
-      'Start an agent session, then run /mcp show. Each server opens a Microsoft sign-in in your browser.',
+    verify: 'Run /mcp show to confirm the server is connected, then start an agent session.',
   },
   copilotApp: {
     label: 'Copilot App',
@@ -83,7 +65,7 @@ const clients = {
     config: copilotAppServerDetails,
     language: 'text',
     verify:
-      'Select Add Server after entering each server. When an agent session starts, each server opens a Microsoft sign-in in your browser.',
+      'Select Add Server, then start an agent session and confirm that the documentation tools are available.',
   },
 } as const;
 
@@ -92,11 +74,16 @@ type ClientId = keyof typeof clients;
 export function McpServer() {
   const [clientId, setClientId] = React.useState<ClientId>('vscode');
   const client = clients[clientId];
-  const setupPrompt = `Set up the CoreAI and Fluent MCP servers in ${client.label}.
+  const setupPrompt = `Set up the CoreAI documentation MCP server in ${client.label}.
+
+This server returns read-only documentation, including selected Fluent stories and CoreAI overrides. It does not access project files or execute code. Review its scope, safety, and data-handling notice before connecting:
+${siteLinks.storybookDocs.mcpSetup}
 
 Use this location or setup surface: ${client.location}
 
 ${client.setup}
+
+Show the proposed configuration and its destination, then ask for confirmation before changing it.
 
 Configuration:
 ${client.config}
@@ -111,6 +98,19 @@ Do not add headers, API keys, or bearer tokens. ${client.verify}`;
     <PageLayout id="mcp-server">
       <div className="mcp-guide">
         <section className="mcp-section">
+          <Text as="p" size={300} foreground={2}>
+            The CoreAI MCP returns read-only component documentation, examples, and templates. It
+            combines selected Fluent stories with CoreAI stories and overrides.
+          </Text>
+          <Text as="p" size={300} foreground={2}>
+            The server does not read your project or execute returned code. Do not send secrets or
+            confidential content in tool arguments. Review and test examples before using them. Read
+            the{' '}
+            <Link href={siteLinks.storybookDocs.mcpSetup} target="_blank" rel="noopener" external>
+              MCP scope, safety, and data-handling notice
+            </Link>{' '}
+            before connecting.
+          </Text>
           <TabList
             className="mcp-client-tabs"
             appearance="elevated"
@@ -156,11 +156,10 @@ Do not add headers, API keys, or bearer tokens. ${client.verify}`;
               <span className="package-step__number">2</span>
               <div className="package-step__content">
                 <Text as="h3" weight="semibold">
-                  Add both MCP servers
+                  Add the CoreAI MCP server
                 </Text>
                 <Text as="p" size={300} foreground={2}>
-                  Add both the CoreAI server and the upstream Fluent fallback using the
-                  configuration format expected by {client.label}.
+                  Add the CoreAI server using the configuration format expected by {client.label}.
                 </Text>
                 <CodeBlock
                   code={client.config}
@@ -184,8 +183,7 @@ Do not add headers, API keys, or bearer tokens. ${client.verify}`;
                   Start an agent session
                 </Text>
                 <Text as="p" size={300} foreground={2}>
-                  {client.verify} Neither server needs an API key, bearer token, custom header, or
-                  Azure CLI login.
+                  {client.verify}
                 </Text>
               </div>
             </div>

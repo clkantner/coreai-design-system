@@ -12,12 +12,16 @@ import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import { assertFluentStoryVersion } from './fluent-story-version.mjs';
 
 const config = {
   repo: 'https://github.com/microsoft/fluentui.git',
   // Pinned upstream commit — keeps Storybook builds reproducible. Bump
   // deliberately, then run `npm run stories:update`.
-  ref: '078dec11b67b7bad6d3e4b541246039602d54983',
+  // Verified release tag: @fluentui/react-components_v9.74.9.
+  version: '9.74.9',
+  ref: 'ee856ea115d3a1c7b7a81cfd5b42613ff4bf9a06',
   // No coreai equivalent is offered for these compat packages (superseded by
   // the native `DateTimePicker`) — excluded so they're not fetched at all.
   sparsePaths: [
@@ -35,6 +39,22 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dir = path.join(root, 'fluent-stories');
 const temporaryDir = `${dir}.tmp-${process.pid}`;
 const backupDir = `${dir}.backup-${process.pid}`;
+const require = createRequire(import.meta.url);
+const installedVersion = JSON.parse(
+  fs.readFileSync(require.resolve('@fluentui/react-components/package.json'), 'utf8'),
+).version;
+assertFluentStoryVersion(config.version, installedVersion);
+
+function verifySourceVersion(checkoutDir) {
+  const source = JSON.parse(
+    git(
+      ['show', 'HEAD:packages/react-components/react-components/package.json'],
+      checkoutDir,
+      true,
+    ),
+  );
+  assertFluentStoryVersion(config.version, installedVersion, source.version);
+}
 
 function git(args, cwd, capture = false) {
   const result = spawnSync('git', args, {
@@ -139,6 +159,7 @@ function isExpectedCheckout(checkoutDir) {
 }
 
 if (process.argv.includes('--if-missing') && isExpectedCheckout(dir)) {
+  verifySourceVersion(dir);
   process.exit(0);
 }
 
@@ -157,8 +178,12 @@ try {
   if (!isExpectedCheckout(temporaryDir)) {
     throw new Error(`Fluent stories checkout did not contain canonical stories at ${config.ref}`);
   }
+  verifySourceVersion(temporaryDir);
 
   activateCheckout();
+  console.log(
+    `Fluent stories match installed @fluentui/react-components ${installedVersion} at ${config.ref}`,
+  );
 } catch (error) {
   fs.rmSync(temporaryDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   throw error;

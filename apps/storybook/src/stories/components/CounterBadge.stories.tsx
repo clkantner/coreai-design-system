@@ -14,6 +14,6 @@ Default.args = {
  * @summary Badge that displays a numerical count.
  */
 export default {
-  title: 'Components/Badge/CounterBadge',
+  title: 'Components/Badge/Counter Badge',
   component: CounterBadge,
 };

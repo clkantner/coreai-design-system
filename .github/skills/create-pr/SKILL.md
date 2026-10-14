@@ -6,16 +6,28 @@ argument-hint: 'e.g. "open a PR for my changes"'
 
 # Creating a pull request
 
+## PR scope and component verification
+
+Before opening the PR, resolve its target and inspect all proposed changes, including staged,
+unstaged, and relevant untracked files.
+
+For consumer-visible CoreAI component changes, follow
+[component-test](../component-test/SKILL.md) in `changed components` mode. Include its status in the
+PR summary, and do not open the PR if verification is `Blocked` or `Unverified`.
+
+## Documentation
+
 Before opening a PR, make sure the docs are up to date where relevant:
 
 - **Changelog** — if the change affects `@coreai-ds/react-components`, add an entry under `[Unreleased]` in [CHANGELOG.md](../../../packages/react-components/CHANGELOG.md).
 - **Variations from Fluent** — if the change adds, removes, or alters how a component differs from stock Fluent, update [VariationsFromFluent.mdx](../../../apps/storybook/src/stories/docs/VariationsFromFluent.mdx).
 
 Skip whichever doc doesn't apply (e.g. Storybook-only or docsite-only changes usually need neither).
+Component-test may inspect these files as supporting evidence but does not edit them. If its handoff reports a documentation mismatch, resolve it through this create-pr documentation workflow.
 
 ## Quality checks
 
-Before opening the PR, run the repository formatter and linter from the workspace root:
+Before opening the PR, run this repository's formatter and linter from the workspace root:
 
 ```sh
 npm run format

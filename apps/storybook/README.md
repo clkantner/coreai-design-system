@@ -39,7 +39,23 @@ You normally never need to run these by hand: `dev` and `build` explicitly invok
 
 `apps/storybook/fluent-stories/` is a separately-provisioned, sparse, shallow checkout of [`microsoft/fluentui`](https://github.com/microsoft/fluentui) that contains only the canonical story sources. It is gitignored from this repo, and the Storybook app's webpack config rewrites Fluent imports inside those stories to route through the CoreAI barrel — so the canonical Fluent stories render with CoreAI defaults applied, without us editing any of Fluent's code.
 
-It is provisioned by [`scripts/setup-fluent-stories.mjs`](scripts/setup-fluent-stories.mjs), a small cross-platform script driven by a `{ repo, ref, sparsePaths }` config. The upstream `ref` is **pinned to a fixed commit** (the single source of truth for the version), so builds are reproducible and upstream churn can't silently break the playground. To bump it, edit `ref` in that script and run `npm run stories:update`.
+It is provisioned by [`scripts/setup-fluent-stories.mjs`](scripts/setup-fluent-stories.mjs), a cross-platform
+script driven by `{ repo, version, ref, sparsePaths }`. The checkout is pinned to
+`ee856ea115d3a1c7b7a81cfd5b42613ff4bf9a06`, the peeled
+`@fluentui/react-components_v9.74.9` release tag. Its upstream package version matches the installed
+`@fluentui/react-components` **9.74.9** exactly. Preparation checks both the installed package and
+the package metadata at the pinned source commit; a mismatch fails with update instructions.
+
+When upgrading the npm package, resolve its exact upstream release tag, verify the package
+version at that commit, update both `version` and `ref` in the setup script, and run
+`npm --workspace apps/storybook run stories:update`. Version resolution is deliberate, not an
+automatic selection of the newest or nearest commit.
+
+The 9.74.9 refresh adds Popover `NonInteractiveContent` and Tooltip `OverflowHidden`, with no
+selected story removals. The current catalog has **689 selected stories**: 144 local and 545
+Fluent, with 70 local overrides. All 689 consumer examples type-check. CounterBadge uses the
+canonical `Components/Badge/Counter Badge` title so its local Default replaces the upstream
+Default in one catalog instead of publishing a second component.
 
 Setup is automatic because `dev` and `build` run `storybook:prepare` before Storybook starts. GitHub Actions also verifies the built story index before deployment. To force a fresh local re-provision, run `npm run stories:init`.
 
@@ -47,7 +63,10 @@ Setup is automatic because `dev` and `build` run `storybook:prepare` before Stor
 
 Most canonical stories already render with CoreAI defaults via the import rewrite, so you rarely need to fork. When you _do_ want to override a specific story's content (e.g. to add CoreAI-specific copy), add a fork under `src/stories/` that reuses the canonical story's `title` + export name. The canonical re-export would otherwise collide with the fork on story id ("Duplicate stories with id").
 
-This is resolved automatically: [`.storybook/main.ts`](.storybook/main.ts) derives the set of story ids owned by `src/` forks (from each fork's meta `title` + named exports) and an `experimental_indexers` hook drops any colliding canonical entry from `fluent-stories/` during indexing. The fork becomes the single owner of that id with **no list to maintain and no edits to the vendored sources** — just add the fork file.
+Preparation generates one component index from the shared inventory. Local definitions win matching
+story IDs; other Fluent variants and local-only variants remain. Storybook indexes these generated
+owners rather than indexing the input files separately. The old collision indexer is removed.
+The same inventory drives the source-backed MCP provider, so UI and MCP use the same ownership.
 
 ## Figma integrations
 
@@ -66,8 +85,8 @@ design file's existing permissions; users may need to sign in or request access.
 This design system ships a **Model Context Protocol (MCP)** server so AI agents read accurate,
 CoreAI-specific component knowledge (props, example stories, templates) instead of guessing prop
 names or pulling raw upstream Fluent APIs. This section documents how the MCP **content** is
-authored. For how the hosted server is **deployed and authenticated**, see
-[docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-azure-app-service--entra). For
+authored. For how the hosted server is **deployed**, see
+[docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-public-storybook-authenticated-docsite). For
 **connection setup** (`mcp.json`, server URLs), see [Docs/MCP Setup](src/stories/docs/MCPSetup.mdx).
 For the **behavioral rules** an agent should follow (which server to prefer, component-ID quirks,
 offline fallback), see the distributable
@@ -80,11 +99,10 @@ Storybook as [Docs/Agent Skill](src/stories/docs/AgentSkill.mdx) (generated — 
 Declared in [`.vscode/mcp.json`](../../.vscode/mcp.json); MCP-aware clients pick them up
 automatically.
 
-| Server                     | URL                                                 | Use                                                                                                                                                                                                                |
-| -------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `coreai-ds-docs`           | `https://coreai-ds-storybook.azurewebsites.net/mcp` | **Default.** Hosted, always on (deploy/auth in the [CI/CD doc](../../docs/CI-CD-SETUP.md#app--mcp-hosting-azure-app-service--entra)).                                                                              |
-| `coreai-ds-docs-localhost` | `http://localhost:6006/mcp`                         | The local dev server — for authoring/previewing story changes before deploy. Only works while Storybook is running.                                                                                                |
-| `fluent-agent`             | `https://chat.fluentui.dev/mcp/server/`             | Upstream Fluent fallback (Microsoft Entra OAuth): `ask_fluent_agent`, icon + token lookup/validation. Don't use its component tools — they return raw `@fluentui/react-components` imports that ignore our barrel. |
+| Server                     | URL                                                 | Use                                                                                                                 |
+| -------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `coreai-ds-docs`           | `https://coreai-ds-storybook.azurewebsites.net/mcp` | **Default.** Hosted documentation.                                                                                  |
+| `coreai-ds-docs-localhost` | `http://localhost:6006/mcp`                         | The local dev server — for authoring/previewing story changes before deploy. Only works while Storybook is running. |
 
 Both Storybook servers expose the same content and toolset. The hosted one is powered by the
 standalone [`@storybook/mcp`](https://www.npmjs.com/package/@storybook/mcp) library reading the
@@ -92,86 +110,220 @@ built `manifests/`; the local one by [`@storybook/addon-mcp`](https://www.npmjs.
 (**dev-server-only**), registered in [`.storybook/main.ts`](.storybook/main.ts). Edit stories
 against the local server; the hosted one picks up changes on the next deploy.
 
+The Storybook runtime, local addon, and standalone host are pinned to the same `10.6.1` release so
+both MCP surfaces use Storybook's shared docs toolset and manifest schema.
+
+Both servers return read-only design-system content, including selected upstream stories. See
+[MCP scope, safety, and data handling](src/stories/docs/MCPSetup.mdx#scope-safety-and-data-handling)
+for capabilities, limitations, client precautions, privacy, and licensing information.
+
 **Toolsets:**
 
-- `list-all-documentation` — enumerate every component / docs entry (optionally with story IDs).
-- `get-documentation` — full docs for one component: prop types + the first few example stories.
-- `get-documentation-for-story` — docs for a single named story variant.
-- `get-storybook-story-instructions` — repo conventions for authoring stories.
-- `preview-stories` — live preview URLs for given stories.
+- `docs-list` — enumerate every component and standalone docs entry, optionally with story IDs.
+- `docs-show` — full docs for one component: prop types, initial examples, and its story index.
+- `docs-show-story` — complete docs for a single named story variant.
 
 ### How accurate props are produced (React Component Meta)
 
 Prop APIs come from Storybook's **React Component Meta (RCM)**, enabled in
-[`.storybook/main.ts`](.storybook/main.ts) (`features.experimentalReactComponentMeta`,
-`typescript.reactDocgen: false`). RCM resolves a component's real prop types from the TypeScript
-program of the story file — which only works when the story resolves through a **working**
-tsconfig. That's why our component stories live under `src/stories/` and import from the
-`@coreai-ds/react-components` barrel (the vendored `fluent-stories/` sources sit next to broken
-upstream tsconfigs, so RCM can't resolve them — hence the fork pattern above).
+[`.storybook/main.ts`](.storybook/main.ts) (`features.componentsManifest` plus
+`features.experimentalDocgenServer`, with `typescript.reactDocgen: false`). RCM resolves component
+types through TypeScript. Generated owners belong to a dedicated configured TypeScript project.
+The build verifier rejects unexpected extraction errors; the two known exceptions are
+`components-portal-tomountnodeprops` and `templates-shell-and-navigation` (`No component found`).
 
-### How stories reach the agent-facing manifest
+### How the manifest works
 
-The MCP manifest only surfaces stories authored **inline** in a `src/` file with a real code
-snippet — a canonical Fluent story that is merely _re-exported_ renders for humans but is not
-snippettable for agents. So each component story authors an inline `Default` (and any
-CoreAI-specific variants) directly. The id-collision between a fork and its canonical re-export
-is handled by the dedup indexer described in
-[Replacing a canonical story with a CoreAI fork](#replacing-a-canonical-story-with-a-coreai-fork)
-above.
+The manifest is a machine-readable index, not a rendered page. Storybook reads CSF story files,
+component types, and MDX docs. The MCP tools use that data:
 
-Every MCP-facing code example must also be **wholly contained in the story's `render` function**.
-The MCP synthesizes its usage snippet from `render`; it does not include module-level example
-helpers, constants, hooks, or styles that the render references. A story can look correct in the
-Storybook canvas while producing an incomplete snippet that an agent cannot use. Put all code
-needed to understand and reproduce the example inside `render`, apart from imported public APIs.
+- `docs-list` reads the index. With `withStoryIds: true`, it also loads story snapshots.
+- `docs-show` loads a component's prop API and initial examples.
+- `docs-show-story` loads the selected story's static snippet.
 
-```tsx
-// Correct: the MCP snippet contains the complete example.
-export const WithActions: StoryObj = {
-  render: () => {
-    const actions = ['Reply', 'Share'];
+With `experimentalDocgenServer`, the built `manifests/components.json` contains `$ref` links
+instead of embedding every API and snippet. Those links point to JSON snapshots under
+`services/core/docgen/` and `services/core/story-docs/`. Deploy the **whole** Storybook build,
+not just the manifest index files. The existing hosted `manifestProvider` reads these snapshots
+from the same build directory.
 
-    return (
-      <Card>
-        <CardFooter>
-          {actions.map((action) => (
-            <Button key={action}>{action}</Button>
-          ))}
-        </CardFooter>
-      </Card>
-    );
-  },
-};
+In development, the MCP tools read the running docgen service. The raw
+`/manifests/components.json` and `/manifests/docs.json` routes return 404 in this mode.
+Use [`/manifests/components.html`](http://localhost:6006/manifests/components.html) to inspect
+the data and extraction problems. In a production build, the JSON files are available on disk.
 
-// Wrong: the MCP snippet references code that will not be included.
-const ExampleWithActions = () => (
-  <Card>
-    <CardFooter>...</CardFooter>
-  </Card>
-);
-export const WithActions: StoryObj = { render: () => <ExampleWithActions /> };
+Before generated-owner integration, component-only validation found the same coverage before and after enabling the server:
+16 locally owned component entries with 52 snippets, and 60 vendored Fluent component entries
+with 608 stories but no extracted snippets. The UI index contains 142 local component stories;
+90 were absent from locally owned manifest entries. These are historical baseline counts.
+The enabled generated pipeline now publishes all 689 selected component stories through 75 owners.
+Template-specific validation remains deferred.
+
+Upstream references: [Manifests](https://storybook.js.org/docs/ai/manifests),
+[docgen server configuration](https://storybook.js.org/docs/api/main-config/main-config-features#experimentaldocgenserver),
+and [MCP docs tools](https://storybook.js.org/docs/ai/mcp/overview#docs).
+
+### Validating story extraction
+
+Generated component metadata now uses public import names such as `Accordion`, not internal
+`__CoreAI_` aliases. When a story export has the same name as a component import, only the
+story's private binding is renamed; its public export and ID stay unchanged.
+
+Component fields are resolved independently: the latest local definition wins, while omitted
+subcomponents fall back to another local source or upstream Fluent. Explicit empty subcomponents
+are preserved. Descriptions and summaries each use the latest nonempty local text, then upstream
+text, so a minimal `*Dev.stories.tsx` file cannot erase authored documentation. The selected text
+is copied into the generated CSF default export. The source provider preserves local story JSDoc and upstream story
+description parameters, including literal strings, concatenated strings, and imported Markdown
+joined by the index. JSDoc takes precedence over parameter descriptions. These are checked
+through the built `docs-list`, `docs-show`, and `docs-show-story` responses.
+
+Story names use Storybook's display-name rules, preserve explicit labels, and are written into
+both generated CSF and the MCP inventory. Story IDs remain based on canonical exports. For example,
+Button's `WithLongText` export is listed and accepted as `With Long Text` by `docs-show-story`.
+A generated-entry-only indexer applies these names to the UI index, including privately aliased
+exports whose explicit names Storybook's parser otherwise ignores. Other entries are unchanged.
+Imported Fluent Markdown uses the same internal work-item link cleanup in Vite, generated
+descriptions, and consumer snippets; local Markdown is unchanged.
+
+Use the current docs tools to check extraction rather than imposing authoring restrictions from
+older MCP versions. CounterBadge currently returns its configured `count={5}` and CoreAI import.
+Generated component owners use the source-backed provider so examples retain their implementations
+and module-level dependencies. Production regressions compare selected source stories with the UI
+index and MCP output.
+
+To check a running MCP server in PowerShell:
+
+```powershell
+$env:MCP_TEST_URL = 'http://localhost:6006/mcp'
+try {
+  node --test apps\storybook\scripts\ingestion-mcp.test.mjs
+} finally {
+  Remove-Item Env:MCP_TEST_URL
+}
 ```
 
-This self-contained-render rule applies to each public component and template story exposed to
-the MCP. Dev-only stories may use module-level helpers because they are not agent-facing. Shared
-production components and utilities remain normal imports; do not copy library implementation
-code into a story.
+### Fluent ingestion pipeline
 
-> `forkOwnedStoryIds` is computed once at config load, so **adding or renaming a story export
-> requires a dev-server restart** for the dedup to pick it up.
+The source-backed provider is implemented in `scripts/component-story-docs.mjs`, with AST
+dependency extraction in `scripts/story-source.mjs`. It publishes selected implementations,
+required declarations and imports, relative helper source, provenance, and required package
+names. It is now enabled in the main configuration for generated component owners. Non-generated
+entries delegate to Storybook's provider. Templates and MDX discovery are unchanged.
 
-Don't try to recover a canonical package's extra variants by re-exporting them from a fork, e.g.
-`export { A, B } from '../../../fluent-stories/.../index.stories'`. Those renders fine in the
-Storybook UI (and in `index.json`), but they're still not _inline_ in the fork file, so they hit
-the same manifest gap as any other re-export: `get-documentation-for-story` returns empty and
-`get-documentation` won't list them. If a variant is worth keeping, hand-author it inline like
-`Default`; otherwise it's fine to just drop it when excluding the vendored package.
+`npm --workspace apps/storybook run test:source` checks source extraction and provider ownership.
+`npm --workspace apps/storybook run stories:verify-source` checks all consumer examples against
+the CoreAI types and writes `.storybook/.cache/story-source-validation.json`.
+All 689 selected examples now type-check with zero diagnostics.
+
+For upstream examples only, the source extractor adapts `Partial<ComboboxProps>` and
+`Partial<DropdownProps>` imported from the Fluent barrel to
+`Partial<Omit<...Props, 'label' | 'dynamicWidth'>>`. Import aliases are supported. This removes
+inline-label settings from those optional example prop bags without weakening CoreAI's linked
+label/sizing rules. It resolved 36 diagnostics across 24 variants. Local examples, other prop
+types, upstream files, and component APIs remain unchanged. Tests verify that emitted JavaScript
+is identical before and after this type-only adaptation. Generated indexes and the source provider
+are enabled locally. Nothing has been pushed or deployed.
+
+`npm --workspace apps/storybook run stories:generate` produces one CSF index per component
+under `.storybook/.cache/component-stories/`, plus its shared inventory. Generated indexes
+import the selected original stories and preserve each source's args, decorators, loaders,
+globals, tags, and nested parameters through `scripts/story-metadata.mjs`. Component imports
+are explicitly routed through the CoreAI barrel and aliased to avoid conflicts with story names.
+`npm --workspace apps/storybook run test:generated` validates canonical IDs, metadata behavior,
+deterministic regeneration, and stale-index removal. Normal development and build preparation
+now run generation, and Storybook discovers the generated component indexes.
+
+The shared story inventory is implemented in [`scripts/story-inventory.mjs`](scripts/story-inventory.mjs).
+Run `npm --workspace apps/storybook run stories:inventory` to write
+`.storybook/.cache/story-inventory.json` (gitignored). The module also exports
+`createStoryInventory()` for the future generated indexes and provider to share.
+
+The inventory reads the included Fluent CSF indexes and local component CSF files, using
+Storybook's parser for canonical story IDs and export filtering. It records component metadata
+expressions and their source files, story export names, direct implementation paths, imports,
+local declarations/JSDoc, and assignment-style annotations such as args and parameters.
+Metadata is recorded per source, not merged or evaluated in this step. Dependency imports
+are recorded, not bundled or checked for snippet completeness.
+
+Local definitions win matching story IDs; the replaced upstream definition is retained in
+`overridden`. Conflicting same-origin story IDs, component ID/title collisions, missing source
+modules, and missing explicit titles fail with errors. The current inventory selects 75
+components and 689 stories: 144 local, 545 Fluent, and 70 overridden upstream stories.
+Templates are excluded.
+
+The existing package exclusion list is shared with Storybook through
+[`scripts/fluent-story-scope.mjs`](scripts/fluent-story-scope.mjs).
+The generator and provider now consume this inventory for production component IDs.
+Run the focused inventory tests with
+`npm --workspace apps/storybook run test:inventory`; they also run in `verify:build`.
+
+The tested direction is **generated CSF indexes plus a source-backed story-docs provider**,
+not moving upstream code into render functions or hand-authoring manifests.
+
+1. Resolve and pin the Fluent commit matching the exact installed component package version.
+   Record both versions and fail on a mismatch rather than selecting a nearby release.
+2. Inventory expected component titles and story IDs from upstream and local sources before
+   generation. Preserve existing exclusions until their scope is explicitly reviewed; the
+   current included catalog is not the whole upstream Storybook.
+3. Generate one gitignored CSF index per component title inside the app's TypeScript project.
+   Re-export upstream variants and local overrides from their original files. Index the
+   generated owners instead of also indexing their input files. Local definitions win matching
+   story IDs; local-only variants remain. Diagnose conflicting local definitions.
+4. Supply explicit CoreAI `component` and `subcomponents` metadata in those indexes. Preserve
+   local metadata, args, decorators, design links, and story behavior. Test metadata precedence
+   in the pilot rather than assuming object spreads preserve all intended settings.
+5. Generalize the provider to use the same ownership map. Publish full example source with its
+   dependencies and correct CoreAI/icon imports, without restructuring module-level Griffel
+   hooks or example data. Use an AST to select code and rewrite imports, not regex source merging.
+   Keep Storybook-only configuration out of consumer examples and carry descriptions separately.
+6. Handle relative dependencies explicitly. Of the 608 current upstream leaf files, 388 have
+   module-level declarations and 18 import relative files: 17 import Markdown and one imports
+   Tree helper modules. Extract Markdown into descriptions; include or package the helper source.
+   Preserve non-barrel package imports and identify required consumer dependencies. Unsupported
+   sources must produce actionable errors, not partial examples presented as complete.
+7. Expand the working Accordion/Button/DataGrid provider pilot into a generated ownership pilot.
+   Verify local override precedence, additional variants, metadata, rendered behavior, and
+   identical live/built docs-tool content before generating the full catalog.
+8. Gate completion on the expected source inventory: every intended story ID is discoverable,
+   its snippet is present and usable, component APIs resolve, and source-only relative imports
+   do not leak into examples. Test upstream version updates and removals. Templates remain out of scope.
+
+If original upstream stories replaced by local overrides must also be published, give those
+originals a separate namespace; they cannot share the local story's ID. This policy remains
+an implementation decision, not something the pilot has resolved.
+
+> **Adding, removing, or renaming a story or changing component metadata requires restarting
+> through `npm run storybook`**, which regenerates the inventory and owners. Running
+> `storybook dev` directly does not run preparation. A cold live `docs-list` request initializes
+> documentation services; focused live tests allow up to three minutes. Use
+> `withStoryIds: false` when the full story index is unnecessary.
+
+Generated owners have a dedicated `tsconfig.json` beside them, extending the app configuration
+and explicitly including `*.stories.js`. TypeScript's default glob traversal excludes hidden
+directories, so the app's `.storybook/**/*` glob does not include `.storybook/.cache` owners.
+Without this configuration, Storybook uses an inferred project, adds owners one at a time,
+and repeatedly updates its TypeScript program. This caused the docgen-worker queue timeout.
+The dedicated configuration includes all owners up front and preserves CoreAI source mappings.
+No timeout change or custom docgen worker is needed; normal production builds pass.
+A full isolated worker probe fell from about 117 seconds to 11.5 seconds for the same
+86 component/template groups. These measurements depend on the machine and are not a timing SLA.
+
+Local integration validation covers the real Accordion, Button, DataGrid, Combobox, and Dropdown
+IDs through built and live MCP. Browser checks verify local and upstream examples, Accordion
+state changes, five Button appearances, DataGrid rows, preserved Figma metadata, and CounterBadge
+args. The generated `toMountNodeProps` entry remains a utility story without component metadata,
+so it has source examples but no component prop API. Remote deployment remains out of scope.
+
+Build verification rejects unexpected component extraction errors and all production story
+errors or warnings. Only the existing `No component found` errors for
+`components-portal-tomountnodeprops` and `templates-shell-and-navigation` are allowed; a different
+error for either entry still fails.
 
 ### Agent Skill mirror
 
 [`packages/react-components/agent/SKILL.md`](../../packages/react-components/agent/SKILL.md)
-is the single authored source for agent-behavioral guidance (MCP server precedence, component-ID
+is the single authored source for agent-behavioral guidance (MCP workflow, component-ID
 quirks, template-vs-component, offline fallback) — it ships inside the npm package for consumers
 outside this monorepo. [`scripts/generate-skill-doc.mjs`](scripts/generate-skill-doc.mjs) mirrors
 it, byte-for-byte, into a generated `src/stories/docs/AgentSkill.mdx` (gitignored — same pattern
@@ -192,108 +344,26 @@ guidance is grouped with component docs before adding MCP publication.
 
 ### Curating descriptions & summaries (JSDoc → tool output)
 
-Agent-facing component and story descriptions come from **JSDoc comments in the story file**. The
-`parameters.docs.description.component` / `.story` fields feed the Storybook UI only — they
-**never** reach the MCP. Two knobs: the **meta JSDoc** (above `export default`) drives the
-component, and a **story JSDoc** (above each `export const <Story>`) drives that story.
-
-**Component — JSDoc above `export default`:**
-
-| JSDoc part                | Where it appears                                                                                                              |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| body text                 | `get-documentation` description (under `ID:`)                                                                                 |
-| `@summary`                | `list-all-documentation` line — verbatim, not truncated                                                                       |
-| _(no JSDoc)_              | falls back to the component's upstream docgen description                                                                     |
-| `@summary` only (no body) | list line shows the summary; `get-documentation` shows **no** description (an empty body also suppresses the docgen fallback) |
-
-```
-/**
- * <body>
- * @summary <one line>
- */
-export default { title, component, subcomponents, ... }
-```
-
-`list-all-documentation` → `- <Name> (<id>): <@summary · else body truncated ~90 · else upstream>`
-
-`get-documentation` →
-
-```
-# <Name>
-ID: <id>
-<body · else upstream docgen · else nothing if @summary-only>
-## Subcomponents   ← each subcomponent's own upstream docgen (NOT settable from this file)
-## Stories         ← per-story (see below)
-## Props           ← from React Component Meta (NOT from JSDoc)
-```
-
-**Story — JSDoc above `export const <Story>`:**
-
-| JSDoc part | Where it appears                                                                                                             |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| body text  | `get-documentation-for-story`, and the story's block inside `get-documentation`                                              |
-| `@summary` | **only** the compact "Other Stories" list in `get-documentation` (stories past the first 3) — **not** in the full story view |
-
-```
-/**
- * <body>
- */
-export const <Story> = () => ...;
-```
-
-`get-documentation-for-story` →
-
-```
-# <Component> - <Story>
-<body>
-<code snippet>
-```
-
-What you **can't** control from the story file: `## Props` (RCM), `## Subcomponents` blurbs (each
-subcomponent's upstream docgen), and anything in the Storybook Docs tab (`parameters.docs.*`).
-
-**Standalone MDX docs (`docs/*.mdx`)** — no JSDoc equivalent exists here, so a plain body/heading
-text falls back to a truncated, tag-stripped dump of the raw MDX (ugly — e.g. leftover `#`/`**`
-markdown syntax). Set the `summary` attribute directly on the page's `<Meta>` tag instead:
-
-```mdx
-<Meta title="Docs/Theming" summary="One-line blurb shown in list-all-documentation." />
-```
-
-`list-all-documentation` → `- <title> (<id>): <summary · else truncated tag-stripped MDX>`
+Existing stories use JSDoc descriptions and `@summary`, and standalone MDX pages use a
+`summary` on their `<Meta>` tag. Verify the resulting text through `docs-list`, `docs-show`,
+and `docs-show-story`. The precedence and support for `parameters.docs.description` and
+code-source parameters must be revalidated against the current docgen server.
 
 ### Component story layout
 
 Story files under `src/stories/` are grouped into three folders:
 
-- `components/` — one CoreAI story per component (our customized wrappers **and** the
-  formerly-generated Fluent wrappers, now merged and hand-maintained). Each owns its
-  `Components/*` meta, curates an inline `Default`, and (optionally) a `@summary` on its
-  `export default`.
+- `components/` — local CoreAI component stories and overrides, including development variants.
 - `templates/` — copy-paste template patterns (EmptyState, FilterableList, ShellAndNavigation).
   See [Creating a template](#creating-a-template) below for the full convention.
 - `docs/` — standalone MDX docs (Introduction, Theming, Variations from Fluent, Styling with CSS
   Modules, MCP Setup).
 
-### Dev-only stories (visible in the UI, hidden from the MCP)
+### MCP curation
 
-Some stories exist purely to visually QA a utility or prop across every permutation we can think
-of (sizes × appearances × icon-only × …) — useful in the Storybook UI, but too dense and
-noisy to hand an agent through the MCP, which wants one clear, minimal example per API.
-
-**Pattern:** move the dense/exhaustive story out of `{Name}.stories.tsx` into a sibling
-`{Name}Dev.stories.tsx`, and give the API a single, focused, real-world example story back in
-`{Name}.stories.tsx` (see `Button.stories.tsx`'s `SubtleContentAlignment` for a focused example).
-
-- **File:** the dev file must be named `{Name}Dev.stories.tsx` and share the **exact same**
-  `title` as `{Name}.stories.tsx`'s meta (e.g. both `"Components/Button/Button"`). Sharing the
-  title keeps them as one entry in the Storybook sidebar/story index, so the dense variant is
-  still reachable in the UI right next to `Default`.
-- **Exports:** since title + export name is the story id, a dev story only needs a `Dev` suffix
-  (e.g. `SubtleContentAlignmentDev`) when its name would otherwise collide with a same-named
-  public story export in `{Name}.stories.tsx`. Otherwise, name it plainly (e.g. `Appearance`).
-- **No `component`/`parameters` needed** on the dev file's default export beyond `title` — keep it
-  minimal (see `ButtonDev.stories.tsx`).
+Storybook supports `manifest` and `!manifest` tags to control manifest inclusion.
+A `Dev` filename or export suffix does not itself hide a story from MCP. Check the manifest
+debugger and docs tools when changing inclusion or grouping stories under the same title.
 
 ### Creating a template
 
@@ -356,9 +426,9 @@ separate human-facing Docs UI page beyond the generated Source Code entry.
 
 | JSDoc part                              | Where it appears                                        |
 | --------------------------------------- | ------------------------------------------------------- |
-| body text above `export default meta`   | `get-documentation` description                         |
-| `@summary` above `export default meta`  | `list-all-documentation` line                           |
-| body text above `export const <Story>`  | that story's block inside `get-documentation`           |
+| body text above `export default meta`   | `docs-show` description                                 |
+| `@summary` above `export default meta`  | `docs-list` line                                        |
+| body text above `export const <Story>`  | that story's block inside `docs-show`                   |
 | `@summary` above `export const <Story>` | "Other Stories" compact list (stories past the first 3) |
 
 The meta JSDoc body **must lead with** a copy-paste warning and a pointer to the Source Code
@@ -386,13 +456,13 @@ intentionally bare — just a `<Meta name="Source Code" summary="...">` tag and 
 block of the real `{Name}.tsx` file content.
 
 Why a separate generated docs page instead of embedding the source in `{Name}.stories.tsx` (via
-`?raw` + `parameters.docs.source.code`, the old convention)? MCP's `get-documentation` returns
+`?raw` + `parameters.docs.source.code`, the old convention)? MCP's `docs-show` returns
 **standalone MDX docs pages as raw file text**, but reconstructs a story's `render()` into
 synthesized "usage code" rather than the literal file — so an MDX page is the only way to give
 an agent the _exact_, complete, copy-pasteable file contents instead of a fabricated
 approximation. `<Meta name="Source Code">` renames the Docs tab and its id suffix (e.g.
 `templates-empty-state--source-code` instead of `--docs`); `<Meta summary="...">` gives
-`list-all-documentation` a clean one-liner instead of a truncated raw-MDX dump.
+`docs-list` a clean one-liner instead of a truncated raw-MDX dump.
 
 **Never hand-edit a `.mdx` file under `templates/`** — any edits are silently overwritten on the
 next regeneration. If the content is wrong, fix `{Name}.tsx` or the generator script.
@@ -414,6 +484,6 @@ next regeneration. If the content is wrong, fix `{Name}.tsx` or the generator sc
 ## Deployment
 
 This app deploys to Azure App Service (Storybook + the hosted MCP at `/mcp`), publishing to
-https://coreai-ds-storybook.azurewebsites.net. The pipeline, hosting, and MCP authentication are
+https://coreai-ds-storybook.azurewebsites.net. The pipeline and public hosting are
 documented in
-[docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-azure-app-service--entra).
+[docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-public-storybook-authenticated-docsite).

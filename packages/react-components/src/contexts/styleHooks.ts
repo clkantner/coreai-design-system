@@ -14,7 +14,10 @@
  * See: docs/Advanced-styling-techniques.md
  */
 import type { FluentProviderCustomStyleHooks } from '@fluentui/react-provider';
-import { useAccordionHeaderStyles } from '../components/Accordion.styles.js';
+import {
+  useAccordionHeaderStyles,
+  useAccordionPanelStyles,
+} from '../components/Accordion.styles.js';
 import { useButtonStyles } from '../components/Button.styles.js';
 import { useCardStyles } from '../components/Card.styles.js';
 import { useComboboxStyleHook } from '../components/Combobox.js';
@@ -48,6 +51,7 @@ export const styleHooks: FluentProviderCustomStyleHooks = {
 
   // Accordion — only the header button is restyled.
   useAccordionHeaderStyles_unstable: useAccordionHeaderStyles,
+  useAccordionPanelStyles_unstable: useAccordionPanelStyles,
 
   // Button family — smaller default min-width (40px instead of Fluent's 96px).
   useButtonStyles_unstable: useButtonStyles,

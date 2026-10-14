@@ -2,7 +2,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
 
 <Meta
   title="Docs/MCP Setup"
-  summary="Client setup for the hosted CoreAI component-docs MCP server, plus fallthrough to Fluent's MCP."
+  summary="Client setup for the hosted CoreAI component-docs MCP server."
 />
 
 # MCP setup for AI agents
@@ -16,30 +16,22 @@ example stories, templates — instead of guessing prop names or reaching for th
 
 - **`coreai-ds-docs`** — `https://coreai-ds-storybook.azurewebsites.net/mcp` — **Primary.**
   Hosted, always-on CoreAI component docs (props, stories, templates).
-- **`fluent-agent`** — `https://chat.fluentui.dev/mcp/server/` — **Fallthrough.** Upstream Fluent
-  knowledge base — icon/token lookup and validation, and general Fluent Q&A.
 
-Both are `http`-type MCP servers behind a Microsoft sign-in. No VPN, no headers, no secrets.
+Connect using an `http`-type MCP client. Authentication: none.
+The catalog combines selected Fluent stories with CoreAI stories and overrides.
 
 > Connection setup only — for agent behavior see [Agent Skill](?path=/docs/docs-agent-skill--docs)
 > (`agent/SKILL.md` in the package).
 
 ## `mcp.json`
 
-Add both servers to your MCP client config (VS Code: `.vscode/mcp.json`; Copilot CLI:
+Add the server to your MCP client config (VS Code: `.vscode/mcp.json`; Copilot CLI:
 `~/.copilot/mcp-config.json`):
 
 ```json
 {
   "servers": {
-    // Official Fluent Docs MCP - requires Microsoft Entra OAuth signin
-    // Documentation: https://chat.fluentui.dev/mcp.html & Demo: https://chat.fluentui.dev/
-    "fluent-agent": {
-      "type": "http",
-      "url": "https://chat.fluentui.dev/mcp/server/"
-    },
-
-    // CoreAI Design System MCP - requires Microsoft Entra OAuth signin
+    // CoreAI Design System MCP
     "coreai-ds-docs": {
       "type": "http",
       "url": "https://coreai-ds-storybook.azurewebsites.net/mcp"
@@ -49,21 +41,55 @@ Add both servers to your MCP client config (VS Code: `.vscode/mcp.json`; Copilot
 }
 ```
 
-Just the `url` — no headers, no secrets. Your client opens a Microsoft sign-in in your browser
-when it first connects.
-
-> **"Need admin approval" on first sign-in?** This is a one-time tenant consent issue, not
-> something you can self-serve from the client config — see the VS Code section of
-> [`docs/CI-CD-SETUP.md`](https://github.com/microsoft/coreai-design-system/blob/main/docs/CI-CD-SETUP.md)
-> if it persists.
+Just the `url` — no headers, secrets, or token setup.
 
 ## Toolsets
 
 `coreai-ds-docs` exposes:
 
-- `list-all-documentation` — enumerate every component / docs entry (optionally with story IDs).
-- `get-documentation` — full docs for one component: prop types + the first few example stories.
-- `get-documentation-for-story` — docs for a single named story variant.
+- `docs-list` — enumerate every component and standalone docs entry, optionally with story IDs.
+- `docs-show` — full docs for one component: prop types, initial examples, and its story index.
+- `docs-show-story` — complete docs for a single named story variant.
 
-`fluent-agent` exposes `ask_fluent_agent`, plus icon/token search and validation
-(`search_fluent_icons`, `validate_fluent_icon`, `search_fluent_tokens`, `validate_fluent_token`).
+## Scope, safety, and data handling
+
+### Read-only documentation
+
+All three tools return design-system documentation and examples. The server does not
+read your project files, access customer resources, execute examples, or change data. It does
+not host an AI model. Your MCP client, agent, or model decides how to use the responses and
+may have capabilities beyond this server.
+
+The catalog covers selected Fluent stories, CoreAI overrides, and local examples, not every
+upstream story or API. Documentation and generated examples can be incomplete or incorrect.
+Review and test returned code for correctness, accessibility, security, and applicable licenses
+before using it. Report missing or incorrect documentation through
+[GitHub issues](https://github.com/microsoft/coreai-design-system/issues).
+
+### Connection and data handling
+
+The hosted endpoint uses HTTPS and accepts MCP requests without credentials. Requests contain
+tool names and arguments, such as component or story IDs. Do not include secrets, access tokens,
+personal information, or confidential project content in those arguments; the tools do not need it.
+
+The application does not collect product-usage telemetry or intentionally log request bodies.
+The host logs server failures. Azure hosting and your chosen MCP client or model may process
+connection metadata or use their own logging and data-handling policies. No application telemetry
+does not mean that no data reaches the hosting platform. See the
+[Microsoft Privacy Statement](https://privacy.microsoft.com/privacystatement) and your client's
+privacy documentation. Do not assume processing stays in your region.
+
+### Client safety and licensing
+
+Review the security and permissions of your MCP client, agent, and model before connecting.
+Use only the capabilities your workflow needs, review proposed code changes, and follow your
+organization's security and data-handling requirements. See
+[MCP security best practices](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices).
+
+See [Legal](https://github.com/microsoft/coreai-design-system#legal) for the source-code license,
+hosted MCP terms of use, privacy statement, and third-party notices. You are responsible for
+ensuring your client integration meets your organization's compliance requirements.
+
+Report security vulnerabilities privately using
+[SECURITY.md](https://github.com/microsoft/coreai-design-system/blob/main/SECURITY.md), not through
+public issues.
