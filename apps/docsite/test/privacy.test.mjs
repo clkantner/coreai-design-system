@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -43,7 +46,7 @@ test('MCP host does not record request or authentication diagnostics', async () 
   );
 });
 
-test('hosting retains Entra and MCP settings without monitoring resources or configuration', async () => {
+test('hosting preserves docsite Entra auth and public Storybook without monitoring resources', async () => {
   const source = await read('infra/main.bicep');
   const parameters = await read('infra/main.bicepparam');
   assert.doesNotMatch(
@@ -54,40 +57,24 @@ test('hosting retains Entra and MCP settings without monitoring resources or con
     [...source.matchAll(/^resource (\w+) /gm)].map((match) => match[1]),
     ['appServicePlan', 'docsiteApp', 'docsiteAuth', 'storybookApp', 'storybookAuth'],
   );
-  for (const setting of [
-    'SCM_DO_BUILD_DURING_DEPLOYMENT',
-    'WEBSITE_AUTH_AAD_ALLOWED_TENANTS',
-    'MCP_ENTRA_TENANT_ID',
-    'MCP_ENTRA_AUDIENCE',
-    'MCP_ENTRA_SCOPE',
-    'MCP_OAUTH_CLIENT_ID',
-  ]) {
+  for (const setting of ['SCM_DO_BUILD_DURING_DEPLOYMENT', 'WEBSITE_AUTH_AAD_ALLOWED_TENANTS']) {
     assert.ok(source.includes(`name: '${setting}'`), setting);
   }
   assert.equal((source.match(/name: 'authsettingsV2'/g) ?? []).length, 2);
-  assert.equal((source.match(/requireAuthentication: true/g) ?? []).length, 2);
+  assert.equal((source.match(/requireAuthentication: true/g) ?? []).length, 1);
+  assert.equal((source.match(/requireAuthentication: false/g) ?? []).length, 1);
   assert.equal(
     (source.match(/unauthenticatedClientAction: 'RedirectToLoginPage'/g) ?? []).length,
-    2,
+    1,
   );
-  assert.equal((source.match(/'response_type=id_token'/g) ?? []).length, 2);
+  assert.equal((source.match(/'response_type=id_token'/g) ?? []).length, 1);
   assert.match(source, /clientId: docsiteEntraClientId/);
-  assert.match(source, /clientId: storybookEntraClientId/);
-  assert.match(source, /storybookAuth .* = if \(enableStorybookAuth\)/);
-  for (const route of [
-    '/healthz',
-    '/mcp',
-    '/mcp/',
-    '/.well-known/oauth-protected-resource',
-    '/.well-known/oauth-protected-resource/',
-    '/.well-known/oauth-protected-resource/mcp',
-    '/.well-known/oauth-protected-resource/mcp/',
-    '/.well-known/oauth-authorization-server',
-    '/.well-known/oauth-authorization-server/',
-    '/oauth/register',
-    '/oauth/authorize',
-    '/oauth/token',
-  ]) {
-    assert.ok(source.includes(`'${route}'`), route);
-  }
+  assert.doesNotMatch(
+    source + parameters,
+    /storybookEntraClientId|mcpEntra|MCP_(?:ENTRA|OAUTH)|oauth\//,
+  );
+  const storybookAuth = source.slice(source.indexOf('resource storybookAuth'));
+  assert.match(storybookAuth, /platform:\s*\{\s*enabled: false/);
+  assert.match(storybookAuth, /unauthenticatedClientAction: 'AllowAnonymous'/);
+  assert.ok(source.includes("'/healthz'"));
 });

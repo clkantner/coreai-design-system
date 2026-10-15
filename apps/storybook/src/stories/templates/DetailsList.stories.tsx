@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /**
  * Storybook story file for the Details List template.
  * The template and all its code live in DetailsList.tsx.
@@ -10,7 +13,7 @@
  */
 
 import * as React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DetailsList } from './DetailsList';
 import { Button, Card, Divider, Link, Text } from '@coreai-ds/react-components';
 

@@ -1,7 +1,10 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // Generates a lean, auto-generated `{Name}.mdx` doc page next to every
 // copy-paste template component (src/stories/templates/{Name}.tsx), so its
 // real source shows up verbatim in both the Storybook UI and MCP's
-// `get-documentation` output (which returns MDX docs pages as raw file text,
+// `docs-show` output (which returns MDX docs pages as raw file text,
 // unlike CSF stories, whose `render()` gets reconstructed into synthesized
 // "usage code" — see /memories/repo/storybook-vite-migration.md).
 //

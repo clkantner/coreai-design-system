@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import {
   Chat24Regular,
   DocumentText24Regular,
@@ -53,8 +56,8 @@ export const resourceGroups = [
       {
         id: 'npm-package',
         title: 'npm package',
-        description: 'Public publication is pending open-source approval.',
-        destination: 'npm (pending)',
+        description: 'Install the React components from npm.',
+        destination: 'npm',
         href: siteLinks.npmPackage,
         icon: NpmLogo,
       },

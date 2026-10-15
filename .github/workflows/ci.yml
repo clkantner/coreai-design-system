@@ -25,9 +25,11 @@ jobs:
           node-version: 22
           cache: npm
       - name: Test public-source safeguards
-        run: node --test scripts/check-public-source.test.mjs
+        run: node --test scripts/check-public-source.test.mjs scripts/license-headers.test.mjs .github/workflows/scripts/check-hosting-auth.test.mjs
       - name: Check public source
         run: npm run check:public-source
+      - name: Check license headers
+        run: npm run license:check
       - run: npm ci --prefer-offline
       - run: npm run format:check
       - run: npm run lint -- --max-warnings=0
@@ -38,11 +40,13 @@ jobs:
         run: npm run build:storybook && npm --workspace apps/storybook run verify:build
         env:
           NODE_OPTIONS: --max-old-space-size=4096
+      - name: Type-check every selected consumer example
+        run: npm --workspace apps/storybook run stories:verify-source
       - name: Test docsite against built Storybook
         run: npm --workspace apps/docsite test
         env:
           STORYBOOK_INDEX_PATH: ${{ github.workspace }}/apps/storybook/storybook-static/index.json
-      - name: Test Storybook host OAuth behavior
+      - name: Test public Storybook host
         run: npm --workspace apps/storybook run test:host
       - name: Install Chromium
         run: npm --workspace packages/react-components run test:install-browser -- --with-deps

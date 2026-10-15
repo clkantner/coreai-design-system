@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { CounterBadge, type CounterBadgeProps, type JSXElement } from '@coreai-ds/react-components';
 
 import * as React from 'react';
@@ -14,6 +17,6 @@ Default.args = {
  * @summary Badge that displays a numerical count.
  */
 export default {
-  title: 'Components/Badge/CounterBadge',
+  title: 'Components/Badge/Counter Badge',
   component: CounterBadge,
 };

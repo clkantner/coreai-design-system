@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // Consolidated infrastructure for the CoreAI Design System hosted apps.
 //
 // Provisions ONE Linux App Service Plan shared by two web apps:
@@ -33,20 +36,7 @@ param storybookAppName string = 'coreai-ds-storybook'
 @description('Entra ID (Microsoft tenant) app registration client ID used for the docsite Easy Auth. Required.')
 param docsiteEntraClientId string
 
-@description('Entra ID app registration client ID for Storybook Easy Auth. This may be the same registration that exposes the MCP API scope. Leave empty only for local or transitional deployments where the UI may be public.')
-param storybookEntraClientId string = ''
-
-@description('Entra tenant ID used to validate MCP access tokens. Defaults to the deployment tenant.')
-param mcpEntraTenantId string = tenant().tenantId
-
-@description('Accepted audience(s) for MCP access tokens, comma-separated. The app registration requests v2 access tokens, whose `aud` is the MCP API app registration CLIENT ID (a GUID) — not the api:// App ID URI. Empty disables MCP auth (the /mcp endpoint is then open).')
-param mcpEntraAudience string = ''
-
-@description('Delegated scope MCP clients must request, e.g. api://<clientId>/access_as_user. Required whenever mcpEntraAudience is set; the host fails to start without it.')
-param mcpEntraScope string = ''
-
 var entraIssuerUrl = '${environment().authentication.loginEndpoint}${tenant().tenantId}/v2.0'
-var enableStorybookAuth = !empty(storybookEntraClientId)
 
 // ---------------------------------------------------------------------------
 // Shared plan
@@ -158,92 +148,21 @@ resource storybookApp 'Microsoft.Web/sites@2023-12-01' = {
           name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
           value: 'false'
         }
-        {
-          name: 'WEBSITE_AUTH_AAD_ALLOWED_TENANTS'
-          value: tenant().tenantId
-        }
-        {
-          name: 'MCP_ENTRA_TENANT_ID'
-          value: mcpEntraTenantId
-        }
-        {
-          name: 'MCP_ENTRA_AUDIENCE'
-          value: mcpEntraAudience
-        }
-        {
-          name: 'MCP_ENTRA_SCOPE'
-          value: mcpEntraScope
-        }
-        {
-          name: 'MCP_OAUTH_CLIENT_ID'
-          value: storybookEntraClientId
-        }
       ]
     }
   }
 }
 
-// Easy Auth for Storybook is only provisioned when a client ID is supplied.
-// `/mcp` and its public OAuth discovery document are excluded so MCP clients
-// receive protocol-compatible JSON instead of a browser login redirect. Raw
-// manifests remain behind Easy Auth as defense in depth and are also checked
-// by the Node host if a bearer request reaches it.
-resource storybookAuth 'Microsoft.Web/sites/config@2023-12-01' = if (enableStorybookAuth) {
+resource storybookAuth 'Microsoft.Web/sites/config@2023-12-01' = {
   parent: storybookApp
   name: 'authsettingsV2'
   properties: {
     platform: {
-      enabled: true
+      enabled: false
     }
     globalValidation: {
-      requireAuthentication: true
-      unauthenticatedClientAction: 'RedirectToLoginPage'
-      redirectToProvider: 'azureactivedirectory'
-      // Easy Auth matches these exactly and supports no wildcards, so every
-      // trailing-slash variant the Node host answers must be listed here too.
-      excludedPaths: [
-        '/mcp'
-        '/mcp/'
-        '/.well-known/oauth-protected-resource'
-        '/.well-known/oauth-protected-resource/'
-        '/.well-known/oauth-protected-resource/mcp'
-        '/.well-known/oauth-protected-resource/mcp/'
-        '/.well-known/oauth-authorization-server'
-        '/.well-known/oauth-authorization-server/'
-        '/oauth/register'
-        '/oauth/authorize'
-        '/oauth/token'
-      ]
-    }
-    identityProviders: {
-      azureActiveDirectory: {
-        enabled: true
-        registration: {
-          clientId: storybookEntraClientId
-          openIdIssuer: entraIssuerUrl
-        }
-        login: {
-          loginParameters: [
-            'response_type=id_token'
-          ]
-        }
-        validation: {
-          allowedAudiences: [
-            'api://${storybookEntraClientId}'
-            storybookEntraClientId
-          ]
-          defaultAuthorizationPolicy: {
-            allowedApplications: [
-              storybookEntraClientId
-            ]
-          }
-        }
-      }
-    }
-    login: {
-      tokenStore: {
-        enabled: false
-      }
+      requireAuthentication: false
+      unauthenticatedClientAction: 'AllowAnonymous'
     }
   }
 }
@@ -251,5 +170,5 @@ resource storybookAuth 'Microsoft.Web/sites/config@2023-12-01' = if (enableStory
 output docsiteUrl string = 'https://${docsiteApp.properties.defaultHostName}'
 output storybookUrl string = 'https://${storybookApp.properties.defaultHostName}'
 output mcpUrl string = 'https://${storybookApp.properties.defaultHostName}/mcp'
-output storybookAuthEnabled bool = enableStorybookAuth
-output mcpAuthEnabled bool = !empty(mcpEntraAudience)
+output storybookAuthEnabled bool = false
+output mcpAuthEnabled bool = false

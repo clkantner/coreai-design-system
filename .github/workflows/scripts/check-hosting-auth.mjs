@@ -1,13 +1,13 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { execFileSync } from 'node:child_process';
 import console from 'node:console';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export function validateHostingAuth(docsite, storybook, settings) {
-  for (const [name, config] of [
-    ['docsite', docsite],
-    ['Storybook', storybook],
-  ]) {
+  for (const [name, config] of [['docsite', docsite]]) {
     const auth = config?.properties ?? config;
     if (
       auth?.platform?.enabled !== true ||
@@ -18,25 +18,15 @@ export function validateHostingAuth(docsite, storybook, settings) {
       throw new Error(`${name} must already have Microsoft Entra Easy Auth enabled.`);
     }
   }
-  const values = Object.fromEntries(settings.map(({ name, value }) => [name, value]));
-  for (const name of [
-    'MCP_ENTRA_TENANT_ID',
-    'MCP_ENTRA_AUDIENCE',
-    'MCP_ENTRA_SCOPE',
-    'MCP_OAUTH_CLIENT_ID',
-  ]) {
-    if (!values[name]?.trim()) {
-      throw new Error(`Existing Storybook app setting ${name} must be configured.`);
-    }
-  }
-  if (values.MCP_AUTH_ENABLED?.toLowerCase() === 'false') {
-    throw new Error('Existing Storybook MCP authentication must not be disabled.');
-  }
   const auth = storybook?.properties ?? storybook;
   if (
-    values.MCP_OAUTH_CLIENT_ID !== auth.identityProviders.azureActiveDirectory.registration.clientId
+    auth?.platform?.enabled !== false ||
+    auth?.globalValidation?.requireAuthentication !== false
   ) {
-    throw new Error('Storybook Easy Auth and MCP must use the same client registration.');
+    throw new Error('Storybook must have Easy Auth disabled and permit anonymous access.');
+  }
+  if (settings.some(({ name }) => /^MCP_(?:ENTRA_|OAUTH_|AUTH_ENABLED$)/.test(name))) {
+    throw new Error('Remove retired Storybook MCP authentication app settings before deployment.');
   }
 }
 

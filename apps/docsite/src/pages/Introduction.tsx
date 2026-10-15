@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import * as React from 'react';
 import { Link, Text } from '@coreai-ds/react-components';
 import { PageLayout } from '../components/PageLayout';
@@ -56,7 +59,7 @@ export function Introduction() {
             >
               <NpmLogo className="app-sidenav__quick-link-brand" />
               <span className="app-sidenav__quick-link-title">
-                <span>npm (pending)</span>
+                <span>npm</span>
                 <ExternalIcon className="app-sidenav__quick-link-open" />
               </span>
             </Link>

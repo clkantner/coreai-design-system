@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import test from 'node:test';
@@ -572,7 +575,7 @@ test('FAQ answers retain research in the data and show optional useful links', a
   ]);
   const questions = [...faqs.matchAll(/question: '([^']+)'/g)];
   const sourceLists = [...faqs.matchAll(/sources: \[/g)];
-  assert.equal(questions.length, 12);
+  assert.equal(questions.length, 11);
   assert.equal(sourceLists.length, questions.length);
   assert.doesNotMatch(faqs, /sources: \[\s*\]/);
   const ids = [...faqs.matchAll(/id: '([^']+)'/g)].map((match) => match[1]);

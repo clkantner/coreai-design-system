@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import * as React from 'react';
 import { makeStyles, mergeClasses, tokens } from '@coreai-ds/react-components';
 import { ArrowUpRight16Regular } from '@fluentui/react-icons';
@@ -173,7 +176,7 @@ const developerResources: Resource[] = [
   },
   {
     title: 'npm package',
-    description: 'Available after the first approved public npm release',
+    description: 'Install the React components from npm',
     href: siteLinks.npmPackage,
   },
   {

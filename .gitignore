@@ -2,6 +2,7 @@ node_modules/
 dist/
 storybook-static/
 .storybook/.cache/
+apps/storybook/.storybook/.cache/
 
 # Sparse-cloned Fluent stories live in their own git repo — don't track them here
 apps/storybook/fluent-stories/

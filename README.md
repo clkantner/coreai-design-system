@@ -4,42 +4,42 @@
 
 This is the monorepo for **CoreAI**, a Fluent UI v9 design system.
 
-The destination for code, issues, pull requests, and GitHub Actions is
+Code, issues, pull requests, and GitHub Actions are available at
 [microsoft/coreai-design-system](https://github.com/microsoft/coreai-design-system).
 
-**Open-source preparation:** this repository is private while review is pending.
-Public access and npm publication are pending approval. Links below describe the intended
-destinations, not a claim that the repository or package is already public.
-The existing Azure-hosted services keep their current access controls.
+Documentation is available under the
+[Creative Commons Attribution 4.0 International license](LICENSE), and source code is available
+under the [MIT license](LICENSE-CODE).
+Use the links below to explore the documentation, Storybook, and read-only MCP endpoint.
 
 ## Live links
 
-| Resource                              | URL                                                                                        |
-| ------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 🏠 Docsite (landing)                  | https://coreai-ds.azurewebsites.net                                                        |
-| 📚 Storybook (Entra-authenticated)    | https://coreai-ds-storybook.azurewebsites.net                                              |
-| 🤖 MCP endpoint (Entra-authed)        | https://coreai-ds-storybook.azurewebsites.net/mcp                                          |
-| 📦 Package (npm; publication pending) | [`@coreai-ds/react-components`](https://www.npmjs.com/package/@coreai-ds/react-components) |
+| Resource             | URL                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| 🏠 Docsite (landing) | https://coreai-ds.azurewebsites.net                                                        |
+| 📚 Storybook         | https://coreai-ds-storybook.azurewebsites.net                                              |
+| 🤖 MCP endpoint      | https://coreai-ds-storybook.azurewebsites.net/mcp                                          |
+| 📦 Package (npm)     | [`@coreai-ds/react-components`](https://www.npmjs.com/package/@coreai-ds/react-components) |
 
 ## Workspaces
 
-| Path                                                   | Package                          | Purpose                                                                                         |
-| ------------------------------------------------------ | -------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [apps/docsite](apps/docsite)                           | `@coreai-ds/docsite` (private)   | Infrastructure scaffold for static docsite build/serve and Azure App Service deployment wiring. |
-| [packages/react-components](packages/react-components) | `@coreai-ds/react-components`    | The publishable theme package. Drop-in `<CoreAIFluentProvider>` + CoreAI-wrapped components.    |
-| [apps/storybook](apps/storybook)                       | `@coreai-ds/storybook` (private) | Storybook playground that previews the theme against Fluent UI's canonical stories.             |
+| Path                                                   | Package                                       | Purpose                                                                                         |
+| ------------------------------------------------------ | --------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [apps/docsite](apps/docsite)                           | `@coreai-ds/docsite` (not published to npm)   | Infrastructure scaffold for static docsite build/serve and Azure App Service deployment wiring. |
+| [packages/react-components](packages/react-components) | `@coreai-ds/react-components`                 | The publishable theme package. Drop-in `<CoreAIFluentProvider>` + CoreAI-wrapped components.    |
+| [apps/storybook](apps/storybook)                       | `@coreai-ds/storybook` (not published to npm) | Storybook playground that previews the theme against Fluent UI's canonical stories.             |
+| [apps/prototype](apps/prototype)                       | `@coreai-ds/prototype` (private)              | CoreAI prototype app. See its README for the current migration scope and local setup.           |
 
 - Consumer + extension guide: [packages/react-components/README.md](packages/react-components/README.md)
 - Storybook, `fluent-stories/`, and the MCP for AI agents (authoring): [apps/storybook/README.md](apps/storybook/README.md)
 - GitHub Actions workflows and operations: [docs/GITHUB-ACTIONS.md](docs/GITHUB-ACTIONS.md)
 - Azure app + MCP hosting/auth: [docs/CI-CD-SETUP.md](docs/CI-CD-SETUP.md)
-- Approval and clean-source handoff checklist: [docs/OPEN-SOURCE-PREPARATION.md](docs/OPEN-SOURCE-PREPARATION.md)
 
 ## Contributing and support
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to set up the repository and submit changes. By
 participating in this project, you agree to follow the
-[Microsoft Open Source Code of Conduct](CODE_OF_CONDUCT.md).
+[Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct).
 
 Use [GitHub Issues](https://github.com/microsoft/coreai-design-system/issues) for bugs, feature
 requests, and usage questions. See [SUPPORT.md](SUPPORT.md) for the support policy and
@@ -97,8 +97,7 @@ To run a script in just one workspace, use `npm -w <workspace> run <script>` —
 
 ## Consuming the react package
 
-After publication is approved, consumers will install from the public npm registry
-without Azure Artifacts credentials. See the
+Install from npm. See the
 [package README](packages/react-components/README.md#install) for installation,
 optional Aptos setup, and provider configuration.
 
@@ -106,13 +105,29 @@ optional Aptos setup, and provider configuration.
 
 ## Publishing
 
-Public npm publishing is **disabled until open-source approval and release
-configuration are complete**. See the
-[release guide](packages/react-components/RELEASING.md) for the gated workflow
-and the [CI/CD guide](docs/CI-CD-SETUP.md) for repository configuration. Do not run a
-manual publish to bypass approval.
+Maintainers publish through a separate manual workflow. See the
+[release guide](packages/react-components/RELEASING.md) for the publishing controls
+and the [CI/CD guide](docs/CI-CD-SETUP.md) for repository configuration.
 
-## Third-party materials
+## Legal
+
+### License and hosted-service terms
+
+Documentation is licensed under the
+[Creative Commons Attribution 4.0 International license](LICENSE). Source code is licensed under
+the [MIT license](LICENSE-CODE).
+
+Use of the hosted MCP endpoint is subject to the
+[Microsoft APIs Terms of Use](https://learn.microsoft.com/en-us/legal/microsoft-apis/terms-of-use).
+
+For Microsoft's privacy practices, see the
+[Microsoft Privacy Statement](https://privacy.microsoft.com/privacystatement).
+
+The application code does not collect or transmit product-usage telemetry. Optional services that
+users configure, such as Azure OpenAI, may process data that users choose to send and are subject to
+the terms and privacy policies of those services.
+
+### Third-party materials
 
 This project builds on Fluent UI and other open-source packages declared in its package manifests
 and lockfile. The docsite uses Paper Shaders under the Apache License 2.0; its license and upstream
@@ -121,7 +136,7 @@ summarized in [NOTICE](NOTICE). Storybook development can provision a pinned, sp
 upstream Fluent UI stories; that checkout is not tracked in this repository. See the
 [Storybook authoring guide](apps/storybook/README.md) for details.
 
-## Trademarks
+### Trademarks
 
 This project may contain trademarks or logos for projects, products, or services. Authorized use
 of Microsoft trademarks or logos is subject to and must follow

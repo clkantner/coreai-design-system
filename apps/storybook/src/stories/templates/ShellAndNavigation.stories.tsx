@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /**
  * Storybook story file for the Shell and Navigation template.
  * The component and all its code live in ShellAndNavigation.tsx.
@@ -10,7 +13,7 @@
  */
 
 import * as React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ShellAndNavigation } from './ShellAndNavigation';
 
 // ─── Stories ──────────────────────────────────────────────────────────────────

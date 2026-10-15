@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import test from 'node:test';
@@ -35,9 +38,11 @@ test('docsite destinations follow the repository README', async () => {
   ]);
   const skillName = agentSkill.match(/^name: ([^\r\n]+)$/m)?.[1];
   assert.ok(skillName, 'The package skill must declare a frontmatter name.');
+  const installedSkillDirectory = 'coreai-ds-fluentui-react';
 
   assert.match(readme, /https:\/\/github\.com\/microsoft\/coreai-design-system/);
-  assert.match(readme, /Public access and npm publication are pending approval/);
+  assert.match(readme, /source code is available\s+under/);
+  assert.doesNotMatch(readme, /Entra-authenticated|Entra-authed/);
   assert.match(readme, /https:\/\/coreai-ds-storybook\.azurewebsites\.net\s+\|/);
 
   assert.match(links, /const repo = 'https:\/\/github\.com\/microsoft\/coreai-design-system'/);
@@ -53,9 +58,17 @@ test('docsite destinations follow the repository README', async () => {
   );
 
   assert.match(resources, /href: siteLinks\.repo/);
-  assert.match(resources, /Public publication is pending open-source approval/);
+  assert.match(resources, /Install the React components from npm/);
   assert.match(resources, /title: 'Issues and support'/);
-  assert.match(faqs, /Public npm publication is pending open-source approval/);
+  assert.match(faqs, /Install @coreai-ds\/react-components from npm/);
+  assert.match(
+    faqs,
+    /the package, its installed agent skill, and the CoreAI documentation MCP server/,
+  );
+  assert.doesNotMatch(
+    faqs,
+    /complete the Microsoft sign-in|requires tenant consent|both documentation servers/,
+  );
   assert.match(faqs, /href: siteLinks\.storybookDocs\.mcpSetup/);
   assert.match(faqs, /href: `\$\{siteLinks\.repo\}\/blob\/main\/README\.md`/);
   assert.match(faqs, /href: `\$\{siteLinks\.repo\}\/blob\/main\/CONTRIBUTING\.md`/);
@@ -75,10 +88,21 @@ test('docsite destinations follow the repository README', async () => {
   assert.match(packagePage, />\s*View package README\s*</);
   assert.match(mcpPage, /"url": "\$\{siteLinks\.mcp\}"/);
   assert.doesNotMatch(mcpPage, /coreai-ds-storybook\.azurewebsites\.net/);
-  assert.match(skillPage, new RegExp(`\\.github/skills/${skillName}/SKILL\\.md`));
-  assert.match(packageReadme, new RegExp(`\\.github/skills/${skillName}/SKILL\\.md`));
-  assert.match(packageReadme, new RegExp(`\\.claude/skills/${skillName}/SKILL\\.md`));
-  assert.match(homePage, /<span>npm \(pending\)<\/span>/);
+  assert.doesNotMatch(mcpPage, /fluent-agent|chat\.fluentui\.dev|Microsoft Entra|Add both/);
+  assert.match(mcpPage, /Authentication: none/);
+  assert.match(mcpPage, /ask for confirmation before changing it/);
+  assert.match(mcpPage, /href=\{siteLinks\.storybookDocs\.mcpSetup\}/);
+  assert.match(mcpPage, /does not read your project or execute returned code/);
+  for (const content of [readme, packageReadme, resources, faqs, packagePage, homePage]) {
+    assert.doesNotMatch(
+      content,
+      /Azure Artifacts|obsolete.*registry|separate Fluent MCP connection/,
+    );
+  }
+  assert.match(skillPage, new RegExp(`\\.github/skills/${installedSkillDirectory}/SKILL\\.md`));
+  assert.match(packageReadme, new RegExp(`\\.github/skills/${installedSkillDirectory}/SKILL\\.md`));
+  assert.match(packageReadme, new RegExp(`\\.claude/skills/${installedSkillDirectory}/SKILL\\.md`));
+  assert.match(homePage, /<span>npm<\/span>/);
   assert.match(
     packageReadme,
     /\.\.\/\.\.\/apps\/storybook\/src\/stories\/docs\/StylingWithCssModules\.mdx/,
@@ -87,4 +111,44 @@ test('docsite destinations follow the repository README', async () => {
     packageReadme,
     /\.\.\/\.\.\/apps\/storybook\/src\/stories\/StylingWithCssModules\.mdx/,
   );
+});
+
+test('MCP documentation explains capabilities, safety, data handling, and reporting', async () => {
+  const setup = await read('apps/storybook/src/stories/docs/MCPSetup.mdx');
+  assert.match(setup, /Authentication: none/);
+  for (const name of ['docs-list', 'docs-show', 'docs-show-story']) {
+    assert.ok(setup.includes(`\`${name}\``));
+  }
+  assert.match(setup, /All three tools return design-system documentation/);
+  assert.match(
+    setup,
+    /does not\s+read your project files, access customer resources, execute examples, or change data/,
+  );
+  assert.match(setup, /not every\s+upstream story or API/);
+  assert.match(setup, /Do not include secrets, access tokens/);
+  assert.match(
+    setup,
+    /does not collect product-usage telemetry or intentionally log request bodies/,
+  );
+  assert.match(setup, /Do not assume processing stays in your region/);
+  assert.match(setup, /https:\/\/privacy\.microsoft\.com\/privacystatement/);
+  assert.match(setup, /security_best_practices/);
+  assert.match(setup, /https:\/\/github\.com\/microsoft\/coreai-design-system#legal/);
+  assert.match(setup, /Report security vulnerabilities privately/);
+  assert.match(setup, /blob\/main\/SECURITY\.md/);
+});
+
+test('repository legal section identifies source and hosted MCP terms separately', async () => {
+  const readme = await read('README.md');
+  const legal = readme.slice(readme.indexOf('## Legal'));
+  assert.match(legal, /### License and hosted-service terms/);
+  assert.match(legal, /\[MIT license\]\(LICENSE-CODE\)/);
+  assert.match(legal, /Use of the hosted MCP endpoint is subject to the/);
+  assert.match(
+    legal,
+    /https:\/\/learn\.microsoft\.com\/en-us\/legal\/microsoft-apis\/terms-of-use/,
+  );
+  assert.match(legal, /https:\/\/privacy\.microsoft\.com\/privacystatement/);
+  assert.match(legal, /### Third-party materials/);
+  assert.match(legal, /### Trademarks/);
 });
