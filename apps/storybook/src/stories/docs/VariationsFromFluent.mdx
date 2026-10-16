@@ -205,6 +205,17 @@ For more details, see the storybook for each component
 - `DataGrid` defaults `selectionAppearance` to `"neutral"` instead of Fluent's `"brand"`; pass `selectionAppearance="brand"` to opt into the Fluent default.
 - `DataGrid` is a non-stock wrapper adding an opt-in `columnFlexOptions` feature: CSS-only per-column flexbox/truncation overrides, keyed by `columnId`, applied automatically by the accompanying `DataGridHeaderCell`/`DataGridCell` wrappers.
 
+## `Illicon`
+
+**Files:** `src/components/Illicon.tsx`, `src/components/illiconRasterize.ts`, `src/index.ts`
+
+- New component, no stock Fluent equivalent: converts filled Fluent icons or static SVG filled paths into a single-color dotted illustration.
+- Defaults to a 100px width, preserves the source aspect ratio and internal whitespace, and renders fixed 2px dots with 3px gaps. Positive whole-number sizes are supported; smaller sizes may lose detail.
+- Defaults to `colorNeutralForegroundOnBrand` and renders dots with `currentColor`; consumer styles can override the color.
+- Custom SVGs require flattened, opaque filled paths without strokes, transforms, effects, or external CSS. Unsupported input and unavailable 2D canvas contexts produce explicit errors.
+- Decorative by default; `aria-label` or `aria-labelledby` exposes a named image while the inner SVG remains hidden from assistive technology. Native span props and refs are forwarded.
+- Rasterized geometry is cached by icon identity and size. Reuse custom SVG elements for caching and provide a new element when geometry changes.
+
 ## Non-stock components: `CopyButton`, `CodeBlock`, `Markdown`
 
 **Files:** `src/components/CopyButton.tsx`, `src/components/CodeBlock.tsx`, `src/components/Markdown.tsx`
