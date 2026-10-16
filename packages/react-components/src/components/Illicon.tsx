@@ -1,8 +1,11 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /**
  * `Illicon` — turns a filled Fluent icon or SVG element into a dotted illustration.
  *
  * Original vector paths are sampled at the requested output size. Dots have
- * a fixed 2px diameter and 3px gap. Coverage is cached per icon and size.
+ * a fixed 2px diameter and 3px gap. Rasterized occupancy is cached per icon and size.
  * Output uses CSS-pixel coordinates and preserves the source aspect ratio.
  */
 import * as React from 'react';
@@ -16,20 +19,30 @@ import type { FluentIcon } from '@fluentui/react-icons';
 import {
   buildDottedPath,
   getDotSettings,
-  peekCoverage,
-  sampleCoverage,
+  peekRasterizedIcon,
+  rasterizeIcon,
 } from './illiconRasterize.js';
 
 export type IlliconSize = number;
-export type IlliconIcon =
-  | FluentIcon
-  | React.ReactElement<React.SVGProps<SVGSVGElement>>;
+export type IlliconIcon = FluentIcon | React.ReactElement<React.SVGProps<SVGSVGElement>>;
 
 export type IlliconProps = Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'> & {
-  /** A filled Fluent icon component or SVG element. Its viewBox defines the shape and aspect ratio. */
+  /**
+   * Fluent icon component or SVG element; Fluent Filled icons are recommended.
+   * Custom SVGs require static, flattened filled paths without strokes, transforms,
+   * effects, or external CSS. Use omitted fill, currentColor, or opaque named/3-/6-digit
+   * hex colors via SVG attributes. Paths merge into one color; viewBox sets the aspect ratio.
+   * Results are cached by icon identity and size. Reuse SVG elements for caching;
+   * provide a new element when geometry changes.
+   */
   icon: IlliconIcon;
   /**
-   * Rendered width in CSS pixels. Must be positive and finite.
+   * Output SVG viewport width in CSS pixels. Must be a positive, finite whole number.
+   * The height follows the source viewBox aspect ratio, preserving its internal whitespace
+   * and path positioning. A minimum of 100px is recommended for visual clarity but not
+   * enforced; smaller sizes remain supported but may lose recognizable details depending
+   * on icon complexity. Dots retain their fixed 2px diameter and 3px gap at every size.
+   *
    * @default 100
    */
   size?: IlliconSize;
@@ -54,53 +67,66 @@ const useIlliconStyles = makeStyles({
 
 /**
  * Turns a filled Fluent icon or SVG element into a dotted illustration. Pass
- * an accessible name via `aria-label` for a meaningful image; omit it to treat
- * the icon as decorative.
+ * an accessible name via `aria-label` or `aria-labelledby` for a meaningful
+ * image; omit both to treat the icon as decorative.
  */
 export const Illicon: ForwardRefComponent<IlliconProps> = React.forwardRef<
   HTMLSpanElement,
   IlliconProps
 >((props, ref) => {
-  const { icon, size = 100, className, style, 'aria-label': ariaLabel, ...rest } = props;
+  const {
+    icon,
+    size = 100,
+    className,
+    style,
+    'aria-label': ariaLabel,
+    'aria-labelledby': ariaLabelledBy,
+    ...rest
+  } = props;
   const styles = useIlliconStyles();
   const sourceRef = React.useRef<HTMLSpanElement>(null);
   const [, forceRerender] = React.useReducer((n: number) => n + 1, 0);
 
   getDotSettings(size);
-  const coverage = peekCoverage(icon, size);
+  const rasterizedIcon = peekRasterizedIcon(icon, size);
 
   // A new icon/size pair samples the original paths before paint.
   useIsomorphicLayoutEffect(() => {
-    if (coverage) return;
+    if (rasterizedIcon) return;
     const svg = sourceRef.current?.querySelector('svg');
     if (svg) {
-      sampleCoverage(icon, svg, size);
+      rasterizeIcon(icon, svg, size);
       forceRerender();
     }
-  }, [icon, coverage, size]);
+  }, [icon, rasterizedIcon, size]);
 
-  const renderedHeight = coverage ? coverage.height : size;
-  const dottedPath = React.useMemo(() => (coverage ? buildDottedPath(coverage) : ''), [coverage]);
+  const renderedHeight = rasterizedIcon ? rasterizedIcon.height : size;
+  const dottedPath = React.useMemo(
+    () => (rasterizedIcon ? buildDottedPath(rasterizedIcon) : ''),
+    [rasterizedIcon],
+  );
 
-  const labelled = Boolean(ariaLabel);
+  const labelled = Boolean(ariaLabel || ariaLabelledBy);
 
   return (
     <span
       ref={ref}
       role={labelled ? 'img' : undefined}
       aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
       aria-hidden={labelled ? undefined : true}
       className={mergeClasses('fui-Illicon', styles.root, className)}
       style={{ width: size, height: renderedHeight, ...style }}
       {...rest}
     >
-      {coverage ? (
+      {rasterizedIcon ? (
         <svg
           className={styles.svg}
           width={size}
           height={renderedHeight}
           viewBox={`0 0 ${size} ${renderedHeight}`}
           focusable="false"
+          aria-hidden="true"
         >
           <path d={dottedPath} fill="currentColor" />
         </svg>
