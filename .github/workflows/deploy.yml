@@ -78,7 +78,7 @@ jobs:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      - name: Verify public Storybook and protected docsite access (read only)
+      - name: Verify public docsite, Storybook and MCP access policy (read only)
         run: node .github/workflows/scripts/check-hosting-auth.mjs
       - name: Deploy docsite
         shell: bash

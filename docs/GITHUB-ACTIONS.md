@@ -86,9 +86,9 @@ Only ZIP application content is deployed. The workflow **does not run Bicep,
 create resources, reset app settings, alter Easy Auth, or change Entra
 registrations**. Existing infrastructure must be prepared separately by its
 owners. The preflight reads the current access configuration and
-requires public Storybook/MCP and authenticated docsite access. Reader-facing
-documentation assumes a public docsite; changing the docsite deployment contract
-and Azure access policy remains a separate operator task. The check
+requires public, anonymous docsite, Storybook, and MCP access with Easy Auth
+disabled on both App Services. Changing Azure access policy remains a separate
+operator task; application deployments preserve it. The check
 reads the explicit V2 auth endpoint and runs again after deployment. Responses,
 app settings, and credentials are not printed or uploaded as artifacts.
 

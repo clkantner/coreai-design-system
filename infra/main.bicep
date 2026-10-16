@@ -8,11 +8,9 @@
 //   - coreai-ds-storybook  → the static Storybook + the
 //                            self-hosted Storybook MCP at  /mcp
 //
-// Both apps run the Node 22 runtime and are gated behind Microsoft Entra
-// Easy Auth (single tenant, secretless implicit id_token flow). The Storybook
-// app additionally excludes `/mcp` and the OAuth discovery/facade routes from
-// Easy Auth so MCP clients reach the Node host's own OAuth flow (which serves
-// only read-only component/docs knowledge).
+// Both apps run the Node 22 runtime with Easy Auth disabled. The docsite,
+// Storybook, and read-only MCP endpoint are public and require no visitor tokens.
+// Deployment authorization remains separate and uses Azure OIDC.
 //
 // This template supersedes apps/docsite/infra/main.bicep — it is the single
 // source of truth for all CoreAI DS Azure hosting and is meant to grow to
@@ -32,11 +30,6 @@ param docsiteAppName string = 'coreai-ds'
 
 @description('Name of the Storybook + MCP App Service')
 param storybookAppName string = 'coreai-ds-storybook'
-
-@description('Entra ID (Microsoft tenant) app registration client ID used for the docsite Easy Auth. Required.')
-param docsiteEntraClientId string
-
-var entraIssuerUrl = '${environment().authentication.loginEndpoint}${tenant().tenantId}/v2.0'
 
 // ---------------------------------------------------------------------------
 // Shared plan
@@ -71,10 +64,6 @@ resource docsiteApp 'Microsoft.Web/sites@2023-12-01' = {
           name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
           value: 'false'
         }
-        {
-          name: 'WEBSITE_AUTH_AAD_ALLOWED_TENANTS'
-          value: tenant().tenantId
-        }
       ]
     }
   }
@@ -85,45 +74,11 @@ resource docsiteAuth 'Microsoft.Web/sites/config@2023-12-01' = {
   name: 'authsettingsV2'
   properties: {
     platform: {
-      enabled: true
+      enabled: false
     }
     globalValidation: {
-      requireAuthentication: true
-      unauthenticatedClientAction: 'RedirectToLoginPage'
-      redirectToProvider: 'azureactivedirectory'
-      excludedPaths: [
-        '/healthz'
-      ]
-    }
-    identityProviders: {
-      azureActiveDirectory: {
-        enabled: true
-        registration: {
-          clientId: docsiteEntraClientId
-          openIdIssuer: entraIssuerUrl
-        }
-        login: {
-          loginParameters: [
-            'response_type=id_token'
-          ]
-        }
-        validation: {
-          allowedAudiences: [
-            'api://${docsiteEntraClientId}'
-            docsiteEntraClientId
-          ]
-          defaultAuthorizationPolicy: {
-            allowedApplications: [
-              docsiteEntraClientId
-            ]
-          }
-        }
-      }
-    }
-    login: {
-      tokenStore: {
-        enabled: false
-      }
+      requireAuthentication: false
+      unauthenticatedClientAction: 'AllowAnonymous'
     }
   }
 }
@@ -170,5 +125,6 @@ resource storybookAuth 'Microsoft.Web/sites/config@2023-12-01' = {
 output docsiteUrl string = 'https://${docsiteApp.properties.defaultHostName}'
 output storybookUrl string = 'https://${storybookApp.properties.defaultHostName}'
 output mcpUrl string = 'https://${storybookApp.properties.defaultHostName}/mcp'
+output docsiteAuthEnabled bool = false
 output storybookAuthEnabled bool = false
 output mcpAuthEnabled bool = false
