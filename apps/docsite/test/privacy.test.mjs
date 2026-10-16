@@ -46,7 +46,7 @@ test('MCP host does not record request or authentication diagnostics', async () 
   );
 });
 
-test('hosting preserves docsite Entra auth and public Storybook without monitoring resources', async () => {
+test('hosting keeps docsite and Storybook public without monitoring resources', async () => {
   const source = await read('infra/main.bicep');
   const parameters = await read('infra/main.bicepparam');
   assert.doesNotMatch(
@@ -57,24 +57,19 @@ test('hosting preserves docsite Entra auth and public Storybook without monitori
     [...source.matchAll(/^resource (\w+) /gm)].map((match) => match[1]),
     ['appServicePlan', 'docsiteApp', 'docsiteAuth', 'storybookApp', 'storybookAuth'],
   );
-  for (const setting of ['SCM_DO_BUILD_DURING_DEPLOYMENT', 'WEBSITE_AUTH_AAD_ALLOWED_TENANTS']) {
-    assert.ok(source.includes(`name: '${setting}'`), setting);
-  }
+  assert.ok(source.includes("name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'"));
   assert.equal((source.match(/name: 'authsettingsV2'/g) ?? []).length, 2);
-  assert.equal((source.match(/requireAuthentication: true/g) ?? []).length, 1);
-  assert.equal((source.match(/requireAuthentication: false/g) ?? []).length, 1);
-  assert.equal(
-    (source.match(/unauthenticatedClientAction: 'RedirectToLoginPage'/g) ?? []).length,
-    1,
-  );
-  assert.equal((source.match(/'response_type=id_token'/g) ?? []).length, 1);
-  assert.match(source, /clientId: docsiteEntraClientId/);
+  assert.equal((source.match(/requireAuthentication: true/g) ?? []).length, 0);
+  assert.equal((source.match(/requireAuthentication: false/g) ?? []).length, 2);
+  assert.equal((source.match(/unauthenticatedClientAction: 'AllowAnonymous'/g) ?? []).length, 2);
   assert.doesNotMatch(
     source + parameters,
-    /storybookEntraClientId|mcpEntra|MCP_(?:ENTRA|OAUTH)|oauth\//,
+    /docsiteEntraClientId|storybookEntraClientId|mcpEntra|MCP_(?:ENTRA|OAUTH)|oauth\/|WEBSITE_AUTH_AAD/,
   );
-  const storybookAuth = source.slice(source.indexOf('resource storybookAuth'));
-  assert.match(storybookAuth, /platform:\s*\{\s*enabled: false/);
-  assert.match(storybookAuth, /unauthenticatedClientAction: 'AllowAnonymous'/);
-  assert.ok(source.includes("'/healthz'"));
+  for (const name of ['docsiteAuth', 'storybookAuth']) {
+    const auth = source.slice(source.indexOf(`resource ${name}`)).split('\nresource ')[0];
+    assert.match(auth, /platform:\s*\{\s*enabled: false/);
+    assert.match(auth, /requireAuthentication: false/);
+    assert.match(auth, /unauthenticatedClientAction: 'AllowAnonymous'/);
+  }
 });
