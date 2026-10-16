@@ -4,10 +4,10 @@ Maintainers publish `@coreai-ds/react-components` through
 <https://registry.npmjs.org/> from <https://github.com/microsoft/coreai-design-system>.
 Release preparation does **not** publish the package, bump its version, or create tags.
 
-## Package release controls and initial access review
+## Package release controls and access review
 
-Publishing is disabled by default. Leave `NPM_PUBLISH_ENABLED` unset (or `false`)
-until the package access and publishing setup below is complete.
+Publishing requires `NPM_PUBLISH_ENABLED=true` and the package access and publishing
+controls below. Keep the variable unset (or `false`) whenever those requirements are not met.
 The repository documentation is licensed under CC-BY-4.0, and its code is licensed under MIT.
 
 Before enabling the variable, the owners must:
@@ -42,14 +42,14 @@ the job. No merge, tag, PR, or fork automatically publishes.
 The checked-in workflow uses a **GitHub environment secret**, `NPM_TOKEN`, because
 an npm trusted-publisher relationship cannot be assumed or created from this repo.
 Use a short-lived, granular npm automation token with write permission limited to
-this package (or the narrowly approved scope for the first publication). Review npm
+this package (or a narrowly approved scope when creating the package). Review npm
 2FA/bypass requirements with the organization administrator; do not relax account
 security globally. Store the token **only** in the protected `npm-production`
 environment, rotate/revoke it after use, and never commit it to `.npmrc` or expose it
 to PR/build steps. The workflow supplies it only to the final publish step.
 
-**Preferred follow-up: npm trusted publishing.** After the package exists and the
-npm owner has verified eligibility, configure npm's trusted publisher for owner
+**Preferred authentication: npm trusted publishing.** Once the npm owner has
+verified the package's eligibility, configure npm's trusted publisher for owner
 `microsoft`, repository `coreai-design-system`, workflow `publish-package.yml`, and
 environment `npm-production`. Follow [npm's trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
 In a separately reviewed change, use a supported Node/npm combination (Node >=22.14

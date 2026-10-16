@@ -131,8 +131,8 @@ The existing shared Linux App Service plan hosts:
   with the MCP endpoint at `/mcp`.
 
 These are URL patterns, not deployment targets. Use the existing host names
-provided by the hosting owners. Storybook and MCP are public after an approved hosting
-migration; docsite authentication is unchanged. Local edits do not change remote settings.
+provided by the hosting owners. The hosting contract requires public, unauthenticated
+Storybook and MCP access and authenticated docsite access. Local edits do not change remote settings.
 The Bicep source remains at [infra/main.bicep](../infra/main.bicep) for
 separately approved infrastructure management. GitHub Actions does **not** apply it.
 Infrastructure-only merges still trigger an application redeployment, but do not
@@ -162,15 +162,15 @@ runtime startup. An operator must confirm docsite `/healthz` and sign-in, anonym
 Storybook access, and an anonymous MCP request after deployment. The two ZIP deploys are sequential,
 not transactional; rerun an approved main revision if one host fails.
 
-### Public Storybook migration
+### Public Storybook hosting requirements
 
 Storybook UI, manifests, and `/mcp` require no user authentication or access tokens.
 The host has no OAuth facade, JWT validation, or Entra dependency. MCP clients need only
 the endpoint URL. The public endpoint limits request bodies to 64 KiB.
 
-Before an approved deployment, the hosting owner must disable Storybook Easy Auth
-(`platform.enabled=false`, `globalValidation.requireAuthentication=false`) and remove
-retired `MCP_ENTRA_*`, `MCP_OAUTH_*`, and `MCP_AUTH_ENABLED` app settings. Retire
+For approved deployments, the hosting owner must keep Storybook Easy Auth disabled
+(`platform.enabled=false`, `globalValidation.requireAuthentication=false`) and ensure
+retired `MCP_ENTRA_*`, `MCP_OAUTH_*`, and `MCP_AUTH_ENABLED` app settings are absent. Retire
 Storybook-only registrations only after verifying they are not shared with the docsite
 or another service. Do not remove shared deployment identities.
 
@@ -178,10 +178,11 @@ The workflow checks this public configuration before and after deployment. It st
 requires enabled single-tenant Easy Auth on the separate docsite. It reads settings into
 memory without printing values and does not modify Azure configuration.
 [infra/main.bicep](../infra/main.bicep) describes public Storybook hosting, but application
-deployment does not apply Bicep. A separately approved infrastructure migration is required.
+deployment does not apply Bicep. Infrastructure changes require separate approval.
 
 GitHub Actions still uses OIDC to authorize deployment uploads. That identity is not
-visitor authentication and must remain. No remote changes were made as part of this migration.
+visitor authentication and must remain. Application deployments do not change
+visitor-authentication settings.
 
 ### Troubleshooting
 

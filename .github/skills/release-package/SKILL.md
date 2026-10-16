@@ -10,8 +10,8 @@ Before any release work, read
 truth for versioning, packaging checks, and manual publishing.
 
 - Preparation alone never publishes, pushes, bumps versions, or creates tags.
-  Keep package publishing disabled until the package access and publishing setup
-  is complete.
+  Keep package publishing disabled whenever the required package access and publishing
+  controls are not in place.
 - Target only `microsoft/coreai-design-system`, npm, and `main`.
   The manual workflow requires the repository variable `NPM_PUBLISH_ENABLED=true`,
   a protected `npm-production` environment, and
@@ -23,8 +23,8 @@ truth for versioning, packaging checks, and manual publishing.
   packages/react-components`. Main/types/exports must already target compiled
   `dist`; never rely on npm rewriting them through `publishConfig`. Do not ship
   locally installed Aptos assets or any other font binaries.
-- Review package selection, npm scope ownership, and access before the first npm
-  publication. Consumer installs require no authentication. Publisher credentials
+- Review package selection, npm scope ownership, and access before publishing.
+  Consumer installs require no authentication. Publisher credentials
   belong only in the protected environment; prefer trusted publishing once explicitly
   configured and reviewed.
 - Versions are immutable. The workflow publishes the checked/packed version, never
