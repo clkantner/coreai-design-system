@@ -1,0 +1,40 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+import { Button, Illicon, Link } from '@coreai-ds/react-components';
+import { CodeRegular } from '@fluentui/react-icons';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { EmptyState } from '../templates/EmptyState';
+
+const agentIcon = (
+  <svg viewBox="0 0 100 90" fill="currentColor">
+    <path d="M25 0h25v5h-25zM60 0h15v5h-15zM20 5h30v5h-30zM55 5h25v5h-25zM15 10h35v5h-35zM55 10h5v5h-5zM65 10h20v5h-20zM15 15h35v5h-35zM55 15h5v5h-5zM65 15h25v5h-25zM10 20h35v5h-35zM50 20h10v5h-10zM65 20h25v5h-25zM5 25h40v5h-40zM50 25h5v5h-5zM60 25h35v5h-35zM5 30h40v5h-40zM50 30h5v5h-5zM60 30h35v5h-35zM0 35h40v5h-40zM50 35h5v5h-5zM60 35h40v5h-40zM0 40h40v5h-40zM45 40h10v5h-10zM60 40h40v5h-40zM0 45h40v5h-40zM45 45h5v5h-5zM55 45h45v5h-45zM0 50h40v5h-40zM45 50h5v5h-5zM55 50h45v5h-45zM5 55h30v5h-30zM45 55h5v5h-5zM55 55h40v5h-40zM5 60h30v5h-30zM40 60h10v5h-10zM55 60h40v5h-40zM10 65h25v5h-25zM40 65h5v5h-5zM50 65h40v5h-40zM15 70h20v5h-20zM40 70h5v5h-5zM50 70h35v5h-35zM15 75h15v5h-15zM35 75h10v5h-10zM50 75h35v5h-35zM20 80h20v5h-20zM50 80h30v5h-30zM25 85h10v5h-10zM45 85h30v5h-30z" />
+  </svg>
+);
+
+/**
+ * Uses an Illicon as the dotted illustration in an empty state.
+ *
+ * @summary Illicon used as an empty-state illustration.
+ */
+export const EmptyStateDev: StoryObj = {
+  render: () => (
+    <EmptyState
+      illustration={<Illicon icon={agentIcon} size={100} />}
+      header="Benefit from Action Artifact"
+      description="Disambiguate with text or exclude entirely."
+      actions={
+        <>
+          <Button appearance="primary">Create agent</Button>
+          <Button icon={<CodeRegular />}>Code</Button>
+        </>
+      }
+      links={<Link href="#">How to make the coolest artifact ever</Link>}
+    />
+  ),
+};
+
+export default {
+  title: 'Components/Illicon',
+  component: Illicon,
+} satisfies Meta<typeof Illicon>;
