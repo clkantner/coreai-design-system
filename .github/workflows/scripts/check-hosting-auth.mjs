@@ -7,23 +7,18 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export function validateHostingAuth(docsite, storybook, settings) {
-  for (const [name, config] of [['docsite', docsite]]) {
+  for (const [name, config] of [
+    ['docsite', docsite],
+    ['Storybook', storybook],
+  ]) {
     const auth = config?.properties ?? config;
     if (
-      auth?.platform?.enabled !== true ||
-      auth?.globalValidation?.requireAuthentication !== true ||
-      auth?.identityProviders?.azureActiveDirectory?.enabled !== true ||
-      !auth?.identityProviders?.azureActiveDirectory?.registration?.clientId
+      auth?.platform?.enabled !== false ||
+      auth?.globalValidation?.requireAuthentication !== false ||
+      auth?.globalValidation?.unauthenticatedClientAction !== 'AllowAnonymous'
     ) {
-      throw new Error(`${name} must already have Microsoft Entra Easy Auth enabled.`);
+      throw new Error(`${name} must have Easy Auth disabled and permit anonymous access.`);
     }
-  }
-  const auth = storybook?.properties ?? storybook;
-  if (
-    auth?.platform?.enabled !== false ||
-    auth?.globalValidation?.requireAuthentication !== false
-  ) {
-    throw new Error('Storybook must have Easy Auth disabled and permit anonymous access.');
   }
   if (settings.some(({ name }) => /^MCP_(?:ENTRA_|OAUTH_|AUTH_ENABLED$)/.test(name))) {
     throw new Error('Remove retired Storybook MCP authentication app settings before deployment.');
