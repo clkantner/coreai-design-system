@@ -9,5 +9,3 @@ param planName = 'plan-coreai-ds'
 param sku = 'B1'
 param docsiteAppName = 'coreai-ds'
 param storybookAppName = 'coreai-ds-storybook'
-// Provided at deploy time by the active CI/CD deployment pipeline.
-param docsiteEntraClientId = ''

@@ -367,19 +367,19 @@ hosting authentication before deploying. No monitoring workflow is included.
 
 ## Hosting access policy
 
-Reader-facing documentation describes the docsite, Storybook, and MCP as public.
-Storybook and MCP are configured for anonymous access. The checked-in deployment
-contract still requires docsite Easy Auth; an operator must update that contract
-and Azure configuration separately to make the docsite public. Documentation
-changes alone do not change access settings.
+The docsite, Storybook, and read-only MCP are public and require no visitor
+authentication or access tokens. Both App Services have Easy Auth disabled
+(`platform.enabled=false`, `globalValidation.requireAuthentication=false`,
+`unauthenticatedClientAction=AllowAnonymous`), as declared in
+[`infra/main.bicep`](../../infra/main.bicep). The deployment workflow checks this
+policy before and after uploading application files; it does not change Azure
+authentication settings.
 
-The current docsite Easy Auth is declared in [`infra/main.bicep`](../../infra/main.bicep) using the
-**secretless implicit `id_token` flow**. Tenant lockdown comes from a
-single-tenant app registration plus the tenant-specific issuer. This browser
-sign-in configuration is separate from the workflow's Azure OIDC identity.
+The workflow's Azure OIDC identity still authorizes deployments. It is separate
+from visitor access and must remain.
 
 Bicep remains available for separately approved operator-managed infrastructure
-changes, not routine app deployment. Preserve both apps' existing Easy Auth and
-MCP settings when making such changes. See the
-[hosting contract and prerequisites](../../docs/CI-CD-SETUP.md#app--mcp-hosting-public-storybook-authenticated-docsite)
+changes, not routine app deployment. Preserve anonymous access for both apps
+and the MCP endpoint when making such changes. See the
+[hosting contract and prerequisites](../../docs/CI-CD-SETUP.md#app--mcp-hosting-public-docsite-storybook-and-mcp)
 before changing infrastructure.
