@@ -76,7 +76,7 @@ export const OriginalVsIlliconDev: StoryObj<ComparisonProps> = {
   parameters: {
     controls: { disable: false, include: ['icon', 'size'] },
   },
-  render: function Comparison({ icon, size }) {
+  render: function Comparison({ icon, size }: ComparisonProps) {
     const styles = useComparisonStyles();
     const Icon = iconOptions[icon];
 
