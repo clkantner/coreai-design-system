@@ -88,7 +88,7 @@ test('renders a custom SVG while preserving its aspect ratio', async () => {
   expect(getPathD(svg)).not.toBe('');
 });
 
-test.each([20, 97])('keeps 2px dots on a pixel-aligned 5px grid at size %s', async (size) => {
+test.each([20, 97, 140])('keeps 2px dots on a centered 5px grid at size %s', async (size) => {
   const screen = await renderCoreAIComponent(
     <Illicon icon={WideFilled} size={size} aria-label="Spaced dots" />,
   );
@@ -101,8 +101,9 @@ test.each([20, 97])('keeps 2px dots on a pixel-aligned 5px grid at size %s', asy
   expect(svg.getAttribute('viewBox')).toBe(`0 0 ${size} ${size / 2}`);
   expect(xs).toHaveLength(Math.floor(size / 5));
   expect(ys).toHaveLength(Math.floor(size / 2 / 5));
+  expect((xs[0] + xs[xs.length - 1]) / 2).toBe(size / 2);
+  expect((ys[0] + ys[ys.length - 1]) / 2).toBe(size / 4);
   for (const axis of [xs, ys]) {
-    expect(axis.every(Number.isInteger)).toBe(true);
     expect(axis.slice(1).map((center, index) => center - axis[index])).toEqual(
       Array(axis.length - 1).fill(5),
     );
@@ -159,7 +160,7 @@ test.each([0, -16, NaN, Infinity, 20.5])('reports an explicit error for size %s'
 });
 
 test.each([
-  { shape: 'M2.25 2.25h1.5v1.5h-1.5z', centers: [[3, 3]] },
+  { shape: 'M2.25 2.25h1.5v1.5h-1.5z', centers: [[2.5, 2.5]] },
   { shape: 'M0.5 0.5h1v1h-1z', centers: [] },
 ])(
   'samples dot centers rather than any overlapping geometry: $shape',
@@ -208,8 +209,8 @@ test('combines filled paths and accepts plain groups, inherited paint, and metad
   expect(
     getDotCenters(screen.getByRole('img', { name: 'Two squares' }).element().querySelector('svg')!),
   ).toEqual([
-    [3, 3],
-    [8, 8],
+    [2.5, 2.5],
+    [7.5, 7.5],
   ]);
 });
 
@@ -223,8 +224,8 @@ test.each([
       <Illicon
         icon={
           <svg viewBox="0 0 10 10" fillRule={rootRule}>
-            <path d="M0 0h5v10H0z M2 2h2v2H2z" />
-            <path d="M5 0h5v10H5z M7 2h2v2H7z" fillRule={pathRule} />
+            <path d="M0 0h5v10H0z M1.5 1.5h2v2H1.5z" />
+            <path d="M5 0h5v10H5z M6.5 1.5h2v2H6.5z" fillRule={pathRule} />
           </svg>
         }
         size={10}
@@ -238,14 +239,14 @@ test.each([
     expect(centers).toEqual(
       opening
         ? [
-            [3, 3],
-            [3, 8],
-            [8, 8],
+            [2.5, 2.5],
+            [2.5, 7.5],
+            [7.5, 7.5],
           ]
         : [
-            [8, 3],
-            [3, 8],
-            [8, 8],
+            [7.5, 2.5],
+            [2.5, 7.5],
+            [7.5, 7.5],
           ],
     );
   },

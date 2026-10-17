@@ -219,9 +219,8 @@ export function rasterizeIcon(key: object, svg: SVGSVGElement, size: number): Ra
   const cellHeight = Math.min(pitch, height);
   const columns = Math.max(1, Math.floor(width / cellWidth));
   const rows = Math.max(1, Math.floor(height / cellHeight));
-  // Centre complete cells while keeping their dot centres on whole CSS pixels.
-  const offsetX = Math.round((width - (columns - 1) * cellWidth) / 2) - cellWidth / 2;
-  const offsetY = Math.round((height - (rows - 1) * cellHeight) / 2) - cellHeight / 2;
+  const offsetX = (width - columns * cellWidth) / 2;
+  const offsetY = (height - rows * cellHeight) / 2;
   const rasterWidth = columns * CENTER_SAMPLE_SCALE;
   const rasterHeight = rows * CENTER_SAMPLE_SCALE;
   const ctx = create2dContext(rasterWidth, rasterHeight);
