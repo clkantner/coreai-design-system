@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/link/usage'
 storybookTitles:
   - Components/Link
+reference:
+  component: components-link
 ---
 
 ## Best practices

@@ -18,6 +18,8 @@ resources:
       https://www.figma.com/design/eXfSQrRg3poHRgmr0ivN5V/CoreAI-Figma-Library?node-id=323059-758
   - label: Fluent guidance
     url: 'https://fluent2.microsoft.design/components/web/react/core/infolabel/usage'
+reference:
+  component: components-infolabel
 ---
 
 ## Best practices

@@ -18,6 +18,11 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/slider/usage'
 storybookTitles:
   - Components/Slider
+reference:
+  component: components-slider
+  omitDecorators: >-
+    Storybook-only layout decorators are omitted. Examples use the documentation
+    preview spacing instead.
 ---
 
 ## Best practices

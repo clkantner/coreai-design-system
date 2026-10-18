@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/searchbox/usage'
 storybookTitles:
   - Components/SearchBox
+reference:
+  component: components-searchbox
 ---
 
 ## Behavior and states

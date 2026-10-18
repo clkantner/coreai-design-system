@@ -1,8 +1,8 @@
 ---
 id: vertical-nav-tabs
-title: Nav
+title: Shell and navigation
 navigation:
-  group: Components
+  group: Templates
   showInSidebar: true
 status: complete
 storybookDefaultStory: Shell and Navigation
@@ -18,6 +18,11 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/nav/usage'
 storybookTitles:
   - Templates/Shell and Navigation
+reference:
+  component: templates-shell-and-navigation
+  sources:
+    - src/stories/templates/ShellAndNavigation.tsx
+  route: templates/shell-and-navigation
 ---
 
 ## Best practices

@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/image/usage'
 storybookTitles:
   - Components/Image
+reference:
+  component: components-image
 ---
 
 ## Behavior and states

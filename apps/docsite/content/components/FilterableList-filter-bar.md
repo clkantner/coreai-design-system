@@ -19,4 +19,9 @@ resources:
       https://www.figma.com/design/eXfSQrRg3poHRgmr0ivN5V/CoreAI-Figma-Library?node-id=432751-1312
 storybookTitles:
   - Templates/Filterable List
+reference:
+  component: templates-filterable-list
+  sources:
+    - src/stories/templates/FilterableList.tsx
+  route: templates/filterable-list
 ---

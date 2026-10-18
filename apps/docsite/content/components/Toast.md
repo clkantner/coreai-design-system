@@ -15,6 +15,8 @@ resources:
       https://www.figma.com/design/eXfSQrRg3poHRgmr0ivN5V/CoreAI-Figma-Library?node-id=49507-161985
 storybookTitles:
   - Components/Toast
+reference:
+  component: components-toast
 ---
 
 ## Best practices

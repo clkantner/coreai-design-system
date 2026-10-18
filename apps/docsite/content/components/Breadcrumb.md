@@ -18,6 +18,8 @@ resources:
       https://fluent2.microsoft.design/components/web/react/core/breadcrumb/usage
 storybookTitles:
   - Components/Breadcrumb
+reference:
+  component: components-breadcrumb
 ---
 
 ## Best practices

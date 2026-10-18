@@ -17,6 +17,11 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/field/usage'
 storybookTitles:
   - Components/Field
+reference:
+  component: components-field
+  omitDecorators: >-
+    Storybook-only layout decorators are omitted. Examples use the documentation
+    preview spacing instead.
 ---
 
 ## Best practices

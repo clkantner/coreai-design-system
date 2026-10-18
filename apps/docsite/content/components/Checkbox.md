@@ -18,6 +18,11 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/checkbox/usage'
 storybookTitles:
   - Components/Checkbox
+reference:
+  component: components-checkbox
+  omitDecorators: >-
+    Storybook-only layout decorators are omitted. Examples use the documentation
+    preview spacing instead.
 ---
 
 ## Best practices

@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/popover/usage'
 storybookTitles:
   - Components/Popover
+reference:
+  component: components-popover
 ---
 
 ## Best practices

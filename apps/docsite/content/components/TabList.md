@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/tablist/usage'
 storybookTitles:
   - Components/TabList
+reference:
+  component: components-tablist
 ---
 
 ## Best practices

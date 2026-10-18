@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/rating/usage'
 storybookTitles:
   - Components/Rating
+reference:
+  component: components-rating
 ---
 
 ## Best practices

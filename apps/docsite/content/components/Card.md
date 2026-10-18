@@ -18,6 +18,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/card/usage'
 storybookTitles:
   - Components/Card/Card
+reference:
+  component: components-card-card
 ---
 
 ## Behavior and states

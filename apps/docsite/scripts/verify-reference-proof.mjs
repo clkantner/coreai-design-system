@@ -84,6 +84,7 @@ async function verifyConsumerPackage() {
       ...Object.keys(manifest.dependencies),
       '@types/react',
       '@types/react-dom',
+      ...(metadata.versions['react-window'] ? ['@types/react-window'] : []),
     ]);
     dependencies.delete('@coreai-ds/react-components');
     for (const name of dependencies) {
@@ -104,7 +105,8 @@ async function verifyConsumerPackage() {
     }
     for (const page of metadata.pages) {
       for (const source of page.templateSources) {
-        const target = path.join(directory, source.name);
+        const target = path.join(directory, 'templates', page.id, source.name);
+        await fs.mkdir(path.dirname(target), { recursive: true });
         await fs.copyFile(path.join(outputDirectory, source.path), target);
         files.push(target);
       }
@@ -221,6 +223,7 @@ try {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin });
   const page = await context.newPage();
   const errors = [];
+  const pageProblems = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
@@ -235,19 +238,48 @@ try {
         ),
     );
     assert.equal(await page.locator('[data-example-id]').count(), record.examples.length);
-    assert.equal(await page.locator('.fui-FluentProvider').count(), 1, 'One app-level provider');
-    assert.equal(await page.getByRole('alert').count(), 0);
+    assert.equal(
+      await page.locator('nav[aria-label="Documentation"] a[aria-current="page"]').count(),
+      1,
+      `${record.id}: active navigation`,
+    );
+    for (const link of await page
+      .locator('nav[aria-label="Documentation"] a')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('href')))) {
+      assert.ok(link?.startsWith(metadata.basePath), `${record.id}: base-aware navigation ${link}`);
+    }
+    if (record.singlePreview) {
+      for (const example of record.examples) {
+        const container = page.locator(`[data-example-id="${example.id}"]`);
+        const run = container.getByRole('button', { name: 'Run this example', exact: true });
+        if (await run.count()) await run.click();
+        assert.equal(await run.count(), 0, `${example.id}: activated preview`);
+        assert.equal(await container.locator('[data-preview-error]').count(), 0);
+      }
+    }
+    assert.equal(
+      await page.locator('#reference-root > .coreai-docsite-provider').count(),
+      1,
+      `${record.id}: one app-level provider`,
+    );
+    const previewErrors = await page.locator('[data-preview-error]').count();
+    if (previewErrors)
+      pageProblems.push(
+        `${record.id}: failed previews ${JSON.stringify(await page.locator('[data-preview-error]').evaluateAll((elements) => elements.map((element) => element.closest('[data-example-id]')?.getAttribute('data-example-id'))))}; ${errors.slice(-4).join('\n')}`,
+      );
     const duplicateIds = await page.evaluate(() => {
       const ids = [...globalThis.document.querySelectorAll('[id]')].map((element) => element.id);
       return [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
     });
-    assert.deepEqual(duplicateIds, [], `${record.id}: duplicate DOM IDs`);
+    if (duplicateIds.length)
+      pageProblems.push(`${record.id}: duplicate IDs ${duplicateIds.join(', ')}`);
     for (const example of record.examples) {
       assert.equal(
         await page.locator(`[id="source-${example.id}"]`).textContent(),
         await get(example.sourcePath),
       );
     }
+    assert.deepEqual(pageProblems, [], 'Whole-catalog page checks');
   }
 
   await page.goto(`${root}components/button/`);
@@ -298,7 +330,7 @@ try {
   );
   await page.getByRole('link', { name: 'Button', exact: true }).click();
   await page.getByRole('button', { name: 'Switch to light theme', exact: true }).waitFor();
-  assert.equal(await page.locator('.fui-FluentProvider').count(), 1);
+  assert.equal(await page.locator('#reference-root > .coreai-docsite-provider').count(), 1);
   await page.getByRole('button', { name: 'Switch to light theme', exact: true }).click();
 
   await page.goto(`${root}components/dialog/`);
@@ -311,8 +343,9 @@ try {
   await page.getByRole('dialog').waitFor({ state: 'hidden' });
 
   await page.goto(`${root}components/tree/`);
-  await page.getByRole('treeitem', { name: 'People', exact: true }).click();
-  await page.getByText('People 1', { exact: true }).waitFor();
+  const lazyTree = page.locator('[data-example-id="components-tree--lazy-loading"]');
+  await lazyTree.getByRole('treeitem', { name: 'People', exact: true }).click();
+  await lazyTree.getByText('People 1', { exact: true }).waitFor();
 
   await page.goto(`${root}components/codeblock/`);
   await page
@@ -341,6 +374,39 @@ try {
     ).includes('export default Default'),
   );
   await noJavaScript.close();
+  await page.goto(`${root}components/button/`);
+  await page.getByRole('searchbox', { name: 'Filter navigation' }).fill('dropdown');
+  const filtered = page.locator('[data-navigation-entry]:visible');
+  assert.ok((await filtered.count()) >= 1);
+  for (const title of await filtered.allTextContents())
+    assert.match(title.toLowerCase(), /dropdown/);
+  await page.getByRole('searchbox', { name: 'Filter navigation' }).fill('');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+  await page.getByRole('dialog', { name: 'Site navigation dialog', exact: true }).waitFor();
+  assert.ok(await page.locator('.app-content').evaluate((element) => element.inert));
+  await page.keyboard.press('Escape');
+  assert.equal(
+    await page.getByRole('dialog', { name: 'Site navigation dialog', exact: true }).count(),
+    0,
+  );
+  assert.ok(
+    await page
+      .getByRole('button', { name: 'Open navigation', exact: true })
+      .evaluate((button) => globalThis.document.activeElement === button),
+  );
+  await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+  await page
+    .getByRole('navigation', { name: 'Documentation', exact: true })
+    .getByRole('link', { name: 'Dropdown', exact: true })
+    .click();
+  await page.getByRole('heading', { name: 'Dropdown', exact: true }).waitFor();
+  assert.equal(
+    await page.getByRole('dialog', { name: 'Site navigation dialog', exact: true }).count(),
+    0,
+  );
+  assert.equal(await page.locator('#reference-root > .coreai-docsite-provider').count(), 1);
+  assert.deepEqual(errors, [], 'Browser errors after navigation checks');
   console.log(
     'Chromium check: one shared provider, live theme propagation with state preservation and navigation persistence, all previews render, copying matches source, inline labels select, dialog opens/closes, relative Tree helpers load data, CodeBlock changes format, all template variants render, and guidance/source work without JavaScript. No browser errors.',
   );

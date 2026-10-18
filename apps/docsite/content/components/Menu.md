@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/menu/usage'
 storybookTitles:
   - Components/Menu/Menu
+reference:
+  component: components-menu-menu
 ---
 
 ## Best practices

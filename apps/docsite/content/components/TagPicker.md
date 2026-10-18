@@ -18,6 +18,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/tagpicker/usage'
 storybookTitles:
   - Components/TagPicker
+reference:
+  component: components-tagpicker
 ---
 
 ## Behavior and states

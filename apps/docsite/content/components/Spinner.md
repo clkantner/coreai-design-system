@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/spinner/usage'
 storybookTitles:
   - Components/Spinner
+reference:
+  component: components-spinner
 ---
 
 ## Best practices

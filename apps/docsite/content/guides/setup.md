@@ -1,7 +1,8 @@
 # Use these examples
 
-This is a small static documentation proof, not the complete design system site.
-It combines existing CoreAI guidance with selected Fluent and CoreAI examples.
+This staged static documentation site combines existing CoreAI guidance with
+the supported Fluent and CoreAI example catalog. Foundations and standalone
+guidance pages are still being migrated.
 
 ## Run an example
 
@@ -32,11 +33,14 @@ Each human page has a matching Markdown file. For example, replace
 Start at `llms.txt` to find pages and version information. Reading the Markdown
 does not require JavaScript, Storybook, or MCP.
 
-## Proof boundaries
+## Reference boundaries
 
 These are fixed examples, not Storybook controls or an editable playground.
 Native React interactions still work. Complex Storybook setup is not emulated.
-The coverage report lists examples intentionally outside this proof.
+The coverage report accounts for every selected example and CoreAI replacement.
+Some pages explicitly omit Storybook-only layout decorators. List previews run
+one at a time because their selection values become DOM IDs. Other pages show
+their examples together.
 
 The component pages retain existing authored guidance. Some upstream examples
 illustrate API capabilities rather than recommended product design. CoreAI

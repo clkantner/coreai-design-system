@@ -15,6 +15,8 @@ resources:
       https://www.figma.com/design/eXfSQrRg3poHRgmr0ivN5V/CoreAI-Figma-Library?node-id=298485-9476
 storybookTitles:
   - Components/DataGrid
+reference:
+  component: components-datagrid
 ---
 
 ## Best practices

@@ -15,6 +15,8 @@ resources:
       https://www.figma.com/design/eXfSQrRg3poHRgmr0ivN5V/CoreAI-Figma-Library?node-id=170592-76650
 storybookTitles:
   - Components/TeachingPopover
+reference:
+  component: components-teachingpopover
 ---
 
 ## Behavior and states

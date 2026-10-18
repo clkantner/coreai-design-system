@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/toolbar/usage'
 storybookTitles:
   - Components/Toolbar
+reference:
+  component: components-toolbar
 ---
 
 ## Best practices

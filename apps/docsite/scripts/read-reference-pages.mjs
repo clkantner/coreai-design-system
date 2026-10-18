@@ -24,8 +24,44 @@ export async function readReferencePages(contentDirectory) {
           fail('reference must be an object.');
         }
         for (const key of Object.keys(reference)) {
-          if (!['component', 'examples', 'sources', 'route'].includes(key)) {
+          if (
+            ![
+              'component',
+              'examples',
+              'sources',
+              'route',
+              'omitDecorators',
+              'exclude',
+              'singlePreview',
+            ].includes(key)
+          ) {
             fail(`unknown reference field "${key}".`);
+          }
+          if (
+            reference.singlePreview !== undefined &&
+            (typeof reference.singlePreview !== 'string' || !reference.singlePreview.trim())
+          ) {
+            fail('reference.singlePreview must explain why previews run one at a time.');
+          }
+          if (
+            reference.omitDecorators !== undefined &&
+            (typeof reference.omitDecorators !== 'string' || !reference.omitDecorators.trim())
+          ) {
+            fail('reference.omitDecorators must explain the layout simplification.');
+          }
+          if (reference.exclude !== undefined) {
+            if (
+              !reference.exclude ||
+              typeof reference.exclude !== 'object' ||
+              Array.isArray(reference.exclude) ||
+              Object.entries(reference.exclude).some(
+                ([name, reason]) => !name.trim() || typeof reason !== 'string' || !reason.trim(),
+              )
+            ) {
+              fail('reference.exclude must map example export names to reasons.');
+            }
+            if (reference.examples)
+              fail('Use either reference.examples or reference.exclude, not both.');
           }
         }
         for (const key of ['id', 'title', 'summary']) {

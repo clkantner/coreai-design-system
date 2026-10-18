@@ -15,6 +15,11 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/label/usage'
 storybookTitles:
   - Components/Label
+reference:
+  component: components-label
+  omitDecorators: >-
+    Storybook-only layout decorators are omitted. Examples use the documentation
+    preview spacing instead.
 ---
 
 ## Best practices

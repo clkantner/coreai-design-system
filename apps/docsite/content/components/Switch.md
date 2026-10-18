@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/switch/usage'
 storybookTitles:
   - Components/Switch
+reference:
+  component: components-switch
 ---
 
 ## Best practices

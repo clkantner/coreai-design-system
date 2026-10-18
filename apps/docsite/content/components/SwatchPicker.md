@@ -18,6 +18,8 @@ resources:
       https://github.com/microsoft/fluentui/blob/dfab5d732f028b0475663f5a945ede85e6ffc5c3/packages/react-components/react-swatch-picker/stories/src/SwatchPicker/SwatchPickerBestPractices.md
 storybookTitles:
   - Components/SwatchPicker
+reference:
+  component: components-swatchpicker
 ---
 
 ## Best practices

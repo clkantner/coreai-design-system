@@ -7,6 +7,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { readReferencePages } from '../scripts/read-reference-pages.mjs';
+import { readSourceCatalog, storyRoot } from '../scripts/sources/catalog.mjs';
 import {
   normalizeBase,
   escapeHtml,
@@ -16,7 +17,24 @@ import {
   accountForStories,
   pageMarkdown,
   exampleHeadingHtml,
+  scopeExampleIds,
 } from '../scripts/build-reference-proof.mjs';
+
+test('the staged Markdown catalog covers every selected core and template group', async () => {
+  const pages = await readReferencePages(path.resolve(storyRoot, '..', 'docsite', 'content'));
+  const catalog = await readSourceCatalog();
+  assert.deepEqual(
+    pages.map((page) => page.component).sort(),
+    catalog.components.map((component) => component.id).sort(),
+  );
+  assert.ok(!pages.some((page) => page.component === 'components-nav'));
+  for (const page of pages) {
+    assert.equal(page.examples, undefined, `${page.component}: include all selected examples`);
+    if (page.kind === 'templates') {
+      for (const source of page.sources) await fs.access(path.join(storyRoot, source));
+    }
+  }
+});
 
 test('Markdown owns page routes, scope, and template downloads without a scripted page list', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'reference-pages-'));
@@ -104,6 +122,22 @@ test('generated source uses LF so browser copy, downloads and Markdown agree on 
   assert.equal(normalizeSource('const escaped = "\\r\\n";\r\n'), 'const escaped = "\\r\\n";\n');
 });
 
+test('co-located examples scope literal and template DOM IDs with matching accessibility references', () => {
+  const source =
+    'export const Example = () => <><label htmlFor="menu">Menu</label><div id="menu" /><a href="#menu">Jump</a><div id={`card-${index}`} aria-labelledby={`card-${index}`} /><span aria-controls="menu other" /></>;';
+  const result = scopeExampleIds(source, 'component--example');
+  assert.match(result, /id="component--example-menu"/);
+  assert.match(result, /htmlFor="component--example-menu"/);
+  assert.match(result, /href="#component--example-menu"/);
+  assert.match(result, /aria-controls="component--example-menu other"/);
+  assert.match(result, /id=\{`component--example-card-\$\{index\}`\}/);
+  assert.match(result, /aria-labelledby=\{`component--example-card-\$\{index\}`\}/);
+  assert.equal(
+    scopeExampleIds('export const Example = () => <div id={useId("unique")} />;', 'example'),
+    'export const Example = () => <div id={useId("unique")} />;',
+  );
+});
+
 test('example headings cannot collide with authored component headings', () => {
   const html = exampleHeadingHtml({
     id: 'templates-empty-state--default',
@@ -172,6 +206,17 @@ test('coverage accounts for upstream replacements and deliberately unselected ex
   );
   assert.ok(report.every((entry) => entry.status === 'included' || entry.reason));
   assert.throws(() => accountForStories(component, ['Missing']), /does not exist/);
+  const excluded = accountForStories(component, undefined, {
+    Size: 'The first pass omits this example.',
+  });
+  assert.equal(
+    excluded.find((entry) => entry.id === 'button--size').reason,
+    'The first pass omits this example.',
+  );
+  assert.throws(
+    () => accountForStories(component, undefined, { Missing: 'Unknown' }),
+    /does not exist/,
+  );
 });
 
 test('Markdown includes authored guidance, exact example source, base-aware links and template source', () => {

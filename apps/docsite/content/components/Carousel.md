@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/carousel/usage'
 storybookTitles:
   - Components/Carousel/Carousel
+reference:
+  component: components-carousel-carousel
 ---
 
 ## Best practices

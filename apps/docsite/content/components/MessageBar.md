@@ -19,6 +19,8 @@ resources:
       https://fluent2.microsoft.design/components/web/react/core/messagebar/usage
 storybookTitles:
   - Components/MessageBar
+reference:
+  component: components-messagebar
 ---
 
 ## Best practices

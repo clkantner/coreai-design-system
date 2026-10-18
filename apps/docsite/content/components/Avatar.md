@@ -19,6 +19,11 @@ resources:
       https://www.figma.com/design/eXfSQrRg3poHRgmr0ivN5V/CoreAI-Figma-Library?node-id=306874-117056
   - label: Fluent guidance
     url: 'https://fluent2.microsoft.design/components/web/react/core/avatar/usage'
+reference:
+  component: components-avatar
+  omitDecorators: >-
+    Storybook-only layout decorators are omitted. Examples use the documentation
+    preview spacing instead.
 ---
 
 ## Behavior and states

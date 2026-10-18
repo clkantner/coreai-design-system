@@ -341,8 +341,16 @@ export async function extractStorySource(story, { root, cache = new Map() }) {
   }
 
   await select(path.join(root, story.implementationFile), story.implementationExport, true);
+  const { source } = await moduleFile(path.join(root, story.implementationFile));
+  const jsxSource = source.match(/@jsxImportSource\s+([@\w/.-]+)/)?.[1];
+  const jsxRuntime = source.match(/@jsxRuntime\s+(automatic|classic)/)?.[1];
+  const pragmas = [
+    jsxRuntime ? `/** @jsxRuntime ${jsxRuntime} */` : '',
+    jsxSource ? `/** @jsxImportSource ${jsxSource} */` : '',
+  ].filter(Boolean);
+  if (jsxSource) requirements.add(jsxSource);
   return {
-    snippet: `${[...imports.values()].join('\n')}\n\n${definitions.join('\n\n')}\n`,
+    snippet: `${pragmas.length ? `${pragmas.join('\n')}\n` : ''}${[...imports.values()].join('\n')}\n\n${definitions.join('\n\n')}\n`,
     requirements: [...requirements].sort(),
     description: descriptions.join('\n\n'),
   };

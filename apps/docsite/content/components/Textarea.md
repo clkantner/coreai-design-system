@@ -18,6 +18,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/textarea/usage'
 storybookTitles:
   - Components/Textarea
+reference:
+  component: components-textarea
 ---
 
 ## Best practices

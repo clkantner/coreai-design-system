@@ -3,7 +3,6 @@ id: tree-item
 title: Tree
 reference:
   component: components-tree
-  examples: [LazyLoading]
 navigation:
   group: Components
   showInSidebar: true

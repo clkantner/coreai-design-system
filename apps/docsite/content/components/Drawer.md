@@ -18,6 +18,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/drawer/usage'
 storybookTitles:
   - Components/Drawer
+reference:
+  component: components-drawer
 ---
 
 ## Best practices

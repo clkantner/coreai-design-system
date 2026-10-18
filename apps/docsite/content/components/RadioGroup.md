@@ -19,6 +19,8 @@ resources:
       https://fluent2.microsoft.design/components/web/react/core/radiogroup/usage
 storybookTitles:
   - Components/RadioGroup
+reference:
+  component: components-radiogroup
 ---
 
 ## Best practices

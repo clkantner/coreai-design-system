@@ -18,6 +18,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/spin/usage'
 storybookTitles:
   - Components/SpinButton
+reference:
+  component: components-spinbutton
 ---
 
 ## Best practices

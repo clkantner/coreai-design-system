@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/skeleton/usage'
 storybookTitles:
   - Components/Skeleton
+reference:
+  component: components-skeleton
 ---
 
 ## Best practices

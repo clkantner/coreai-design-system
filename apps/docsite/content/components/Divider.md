@@ -18,6 +18,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/divider/usage'
 storybookTitles:
   - Components/Divider
+reference:
+  component: components-divider
 ---
 
 ## Behavior and states

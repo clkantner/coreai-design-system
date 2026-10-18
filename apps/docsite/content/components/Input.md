@@ -17,6 +17,8 @@ resources:
     url: 'https://fluent2.microsoft.design/components/web/react/core/input/usage'
 storybookTitles:
   - Components/Input
+reference:
+  component: components-input
 ---
 
 ## Best practices

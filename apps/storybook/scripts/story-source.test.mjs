@@ -45,6 +45,17 @@ test('source-backed examples retain helpers, data, styles, types and package imp
   }
 });
 
+test('Tree virtualization retains Fluent JSX runtime pragmas rather than rendering slot objects as React components', async () => {
+  const inventory = await createStoryInventory();
+  const story = inventory.components
+    .find((component) => component.id === 'components-tree')
+    .stories.find((story) => story.exportName === 'Virtualization');
+  const result = await extractStorySource(story, { root: appRoot });
+  assert.match(result.snippet, /@jsxRuntime automatic/);
+  assert.match(result.snippet, /@jsxImportSource @fluentui\/react-jsx-runtime/);
+  assert.ok(result.requirements.includes('@fluentui/react-jsx-runtime'));
+  assert.match(result.snippet, /<state\.root>/);
+});
 test('missing or conflicting relative dependencies produce explicit errors', async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'coreai-story-source-'));
   try {
