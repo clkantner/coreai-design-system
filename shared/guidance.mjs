@@ -32,6 +32,7 @@ export async function readGuidance(directory = guidanceDirectory) {
         'figmaPreviewUrl',
         'preview',
         'resources',
+        'reference',
       ];
       for (const key of Object.keys(data)) {
         if (!keys.includes(key)) throw new Error(`${name}: unsupported metadata "${key}".`);

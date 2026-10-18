@@ -1,6 +1,12 @@
 ---
 id: empty-state
 title: Empty state
+reference:
+  component: templates-empty-state
+  route: templates/empty-state
+  sources:
+    - src/stories/templates/EmptyState.tsx
+    - src/stories/templates/DetailsList.tsx
 navigation:
   group: Templates
   showInSidebar: true

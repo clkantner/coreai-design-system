@@ -1,6 +1,8 @@
 ---
 id: button
 title: Button
+reference:
+  component: components-button-button
 navigation:
   group: Components
   showInSidebar: true

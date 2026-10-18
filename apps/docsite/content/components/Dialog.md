@@ -1,6 +1,9 @@
 ---
 id: dialog
 title: Dialog
+reference:
+  component: components-dialog
+  examples: [Default, ControllingOpenAndClose, WithForm]
 navigation:
   group: Components
   showInSidebar: true

@@ -3,6 +3,10 @@
 
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { readReferencePages } from '../scripts/read-reference-pages.mjs';
 import {
   normalizeBase,
   escapeHtml,
@@ -13,6 +17,59 @@ import {
   pageMarkdown,
   exampleHeadingHtml,
 } from '../scripts/build-reference-proof.mjs';
+
+test('Markdown owns page routes, scope, and template downloads without a scripted page list', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'reference-pages-'));
+  try {
+    await fs.mkdir(path.join(root, 'components'));
+    await fs.mkdir(path.join(root, 'templates'));
+    await fs.mkdir(path.join(root, 'generated'));
+    const writePage = (filename, reference) =>
+      fs.writeFile(
+        path.join(root, filename),
+        `---\nid: example\ntitle: Example\nsummary: Useful guidance.\nreference:\n${reference}\n---\n\nGuidance.`,
+      );
+    await writePage('components/Button.md', '  component: components-button');
+    await writePage(
+      'templates/Example.md',
+      '  component: templates-example\n  sources: [src/stories/templates/Example.tsx]',
+    );
+    await fs.writeFile(path.join(root, 'generated/ignored.md'), '---\nreference: invalid\n---');
+    const pages = await readReferencePages(root);
+    assert.deepEqual(
+      pages.map((page) => `${page.kind}/${page.id}`),
+      ['components/button', 'templates/example'],
+    );
+    assert.equal(pages[0].examples, undefined, 'All examples are selected by default');
+    await writePage('components/Button.md', '  component: components-button\n  examples: []');
+    await assert.rejects(readReferencePages(root), /nonempty list/);
+    await writePage('components/Button.md', '  component: components-button\n  unknown: true');
+    await assert.rejects(readReferencePages(root), /unknown reference field/);
+    await writePage(
+      'components/Button.md',
+      '  component: components-button\n  route: components/../outside',
+    );
+    await assert.rejects(readReferencePages(root), /reference route/);
+    await writePage(
+      'components/Button.md',
+      '  component: components-button\n  route: templates/example',
+    );
+    await assert.rejects(readReferencePages(root), /template pages must provide/);
+    await writePage('components/Button.md', '  component: components-button');
+    await writePage(
+      'templates/Example.md',
+      '  component: templates-example\n  sources: [src/stories/templates/../private.tsx]',
+    );
+    await assert.rejects(readReferencePages(root), /reference.sources must name/);
+    await writePage(
+      'templates/Example.md',
+      '  component: templates-example\n  route: components/button',
+    );
+    await assert.rejects(readReferencePages(root), /Duplicate reference page route/);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
 
 test('base paths preserve a repository prefix and reject unsafe or ambiguous paths', () => {
   assert.equal(normalizeBase(), '/');

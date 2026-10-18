@@ -1,6 +1,8 @@
 ---
 id: codeblock
 title: CodeBlock
+reference:
+  component: components-codeblock
 summary: Display source code as plain text or with syntax highlighting.
 resources: []
 ---

@@ -1,6 +1,8 @@
 ---
 id: dropdown
 title: Dropdown
+reference:
+  component: components-dropdown
 navigation:
   group: Components
   showInSidebar: true

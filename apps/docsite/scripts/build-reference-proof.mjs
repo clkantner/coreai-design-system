@@ -17,42 +17,13 @@ import { createStoryInventory } from '../../storybook/scripts/story-inventory.mj
 import { extractStorySource } from '../../storybook/scripts/story-source.mjs';
 import { readStoryDescriptions } from '../../storybook/scripts/story-descriptions.mjs';
 import { assertFluentStoryVersion } from '../../storybook/scripts/fluent-story-version.mjs';
+import { readReferencePages } from './read-reference-pages.mjs';
 
 export const appRoot = fileURLToPath(new URL('../', import.meta.url));
 export const outputDirectory = path.join(appRoot, 'dist-reference-proof');
 const storyRoot = path.resolve(appRoot, '../storybook');
 const repositoryRoot = path.resolve(appRoot, '../..');
 const require = createRequire(import.meta.url);
-
-const pageScope = [
-  { id: 'button', component: 'components-button-button', guidance: 'components/Button.md' },
-  { id: 'dropdown', component: 'components-dropdown', guidance: 'components/Dropdown.md' },
-  {
-    id: 'dialog',
-    component: 'components-dialog',
-    guidance: 'components/Dialog.md',
-    examples: ['Default', 'ControllingOpenAndClose', 'WithForm'],
-  },
-  {
-    id: 'tree',
-    component: 'components-tree',
-    guidance: 'components/Tree.md',
-    examples: ['LazyLoading'],
-  },
-  {
-    id: 'codeblock',
-    component: 'components-codeblock',
-    guidance: 'reference-proof/CodeBlock.md',
-  },
-  {
-    id: 'empty-state',
-    component: 'templates-empty-state',
-    guidance: 'components/EmptyState.md',
-    examples: ['Default'],
-    kind: 'templates',
-    source: 'src/stories/templates/EmptyState.tsx',
-  },
-];
 
 export const providerSource = `import * as React from 'react';
 import { CoreAIFluentProvider, coreaiLightTheme } from '@coreai-ds/react-components';
@@ -288,6 +259,7 @@ function sourceHtml(source, id, downloadPath, base) {
 
 export async function buildReferenceProof({ basePath = '/', outDir = outputDirectory } = {}) {
   basePath = normalizeBase(basePath);
+  const pageScope = await readReferencePages(path.join(appRoot, 'content'));
   const checkout = path.join(storyRoot, 'fluent-stories');
   const fluentRef = git(['rev-parse', 'HEAD'], checkout);
   const sourceVersion = JSON.parse(
@@ -295,8 +267,11 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
   ).version;
   assertFluentStoryVersion(sourceVersion, packageManifest('@fluentui/react-components').version);
   const inventory = await createStoryInventory();
+  const templateDirectory = path.join(storyRoot, 'src/stories/templates');
   const templates = await createStoryInventory({
-    localFiles: [path.join(storyRoot, 'src/stories/templates/EmptyState.stories.tsx')],
+    localFiles: (await fs.readdir(templateDirectory, { recursive: true }))
+      .filter((filename) => /\.stories\.tsx?$/.test(filename))
+      .map((filename) => path.join(templateDirectory, filename)),
     fluentFiles: [],
   });
   const cacheDirectory = path.join(appRoot, '.cache/reference-proof');
@@ -369,12 +344,12 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
         dependencies: extracted.requirements,
       });
     }
-    if (scope.source) {
-      const name = path.basename(scope.source);
+    for (const source of scope.sources ?? []) {
+      const name = path.basename(source);
       page.templateSources.push({
         name,
         path: `source/templates/${scope.id}/${name}`,
-        source: normalizeSource(await fs.readFile(path.join(storyRoot, scope.source), 'utf8')),
+        source: normalizeSource(await fs.readFile(path.join(storyRoot, source), 'utf8')),
       });
     }
     pages.push(page);
@@ -482,9 +457,9 @@ ${renderGuidance(implementationMarkdown(page, metadata, '/')).html}`;
 ${sourceHtml(example.source, `source-${example.id}`, example.sourcePath, basePath)}</section>`;
       await write(example.sourcePath, example.source);
     }
-    for (const source of page.templateSources) {
+    for (const [index, source] of page.templateSources.entries()) {
       body += `<section><h2>Template source: ${escapeHtml(source.name)}</h2><p>Copy this file into your app. Do not import this template from the package.</p>
-${sourceHtml(source.source, `template-${page.id}`, source.path, basePath)}</section>`;
+${sourceHtml(source.source, `template-${page.id}-${index}`, source.path, basePath)}</section>`;
       await write(source.path, source.source);
     }
     await write(`${page.kind}/${page.id}.md`, markdown);

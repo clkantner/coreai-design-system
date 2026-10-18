@@ -101,7 +101,7 @@ No dependencies or static-site framework were added.
 | Dialog      |                   3 | CoreAI default plus Fluent controlled state and form examples                  |
 | Tree        |                   1 | Fluent lazy loading, including its relative `useQuery` and `mockFetch` helpers |
 | CodeBlock   |                   5 | CoreAI-only component examples                                                 |
-| Empty state |                   1 | Copy-and-adapt template with a separate original component download            |
+| Empty state |                   9 | All template variants, with EmptyState and DetailsList source downloads        |
 
 Each page has a physical HTML file and a Markdown counterpart, for example
 `components/button/index.html` and `components/button.md`. HTML includes
@@ -151,9 +151,25 @@ Simplify the example or narrow the explicit proof selection instead of adding
 a general Storybook compatibility layer.
 
 Guidance is read directly from the existing component Markdown. Only CodeBlock
-guidance and the common setup page are new, under
-[`content/reference-proof/`](content/reference-proof/). Generated files live
+guidance and the common setup page are new. CodeBlock now lives alongside the
+other component guidance. Generated files live
 outside the authoring tree. There is no automatic Fluent/CoreAI prose merge.
+
+Page selection is owned by Markdown frontmatter, not a list in the build script:
+
+```yaml
+reference:
+  component: components-dropdown
+```
+
+The route follows the content filename: `content/components/Dropdown.md` becomes
+`components/dropdown/` and `components/dropdown.md`. An optional `route` overrides
+that location while existing template guidance is migrated. An optional `examples`
+list narrows a representative page; omitting it includes all selected examples.
+Template pages must declare `sources`, listing complete component files under
+`src/stories/templates/`. Empty State also provides DetailsList for its detail-card
+variant. Invalid metadata, duplicate ownership, and duplicate routes fail the build.
+Pages without `reference` metadata remain outside the staged reference site.
 
 The proof explicitly deduplicates React, React DOM, and Fluent's component
 barrel. The build checks their actual module roots and versions and rejects a
@@ -185,7 +201,7 @@ Examples demonstrate APIs and are explicitly subordinate to CoreAI design
 guidance. Task-based evaluation of designer/agent decision quality is still
 needed before replacing the public site.
 
-The first build uses one shared example bundle (about 260 KB gzipped). Vite
+The build uses one shared example bundle (about 280 KB gzipped). Vite
 reports its normal large-chunk warning. Page-level splitting is deferred rather
 than adding it before the proof is reviewed. GitHub Pages response headers and
 actual public deployment have not been tested; raw Markdown retrieval is checked
