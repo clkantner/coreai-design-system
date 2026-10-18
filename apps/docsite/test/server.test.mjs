@@ -68,12 +68,46 @@ test('production server serves content and navigation', async (t) => {
   assert.equal(markdownResponse.status, 200);
   assert.equal(markdownResponse.headers.get('content-type'), 'text/markdown; charset=utf-8');
   assert.equal(markdownResponse.headers.get('cache-control'), 'no-cache');
-  assert.match(await markdownResponse.text(), /^# Accordion/m);
+  const canonicalMarkdown = await markdownResponse.text();
+  assert.match(canonicalMarkdown, /^# Accordion/m);
+  assert.match(canonicalMarkdown, /## Props/);
+  assert.match(canonicalMarkdown, /components-accordion--with-icon/);
+
+  const referenceResponse = await globalThis.fetch(
+    `http://127.0.0.1:${port}/llms/components-combobox.md`,
+  );
+  assert.equal(referenceResponse.status, 200);
+  assert.equal(referenceResponse.headers.get('content-type'), 'text/markdown; charset=utf-8');
+  assert.equal(referenceResponse.headers.get('cache-control'), 'no-cache');
+  const referenceMarkdown = await referenceResponse.text();
+  assert.match(referenceMarkdown, /## Subcomponents/);
+  assert.match(referenceMarkdown, /Source: local CoreAI override/);
+  assert.match(referenceMarkdown, /Source: Fluent upstream/);
+  assert.match(referenceMarkdown, /@coreai-ds\/react-components/);
+  const referenceHead = await globalThis.fetch(
+    `http://127.0.0.1:${port}/llms/components-combobox.md`,
+    { method: 'HEAD' },
+  );
+  assert.equal(referenceHead.status, 200);
+  assert.equal(await referenceHead.text(), '');
+  const referenceIndex = await globalThis.fetch(`http://127.0.0.1:${port}/llms/index.json`);
+  assert.equal(referenceIndex.status, 200);
+  assert.equal(referenceIndex.headers.get('cache-control'), 'no-cache');
+  assert.ok(
+    (await referenceIndex.json()).documents.some(
+      (document) => document.id === 'components-combobox',
+    ),
+  );
+  const missingReference = await globalThis.fetch(
+    `http://127.0.0.1:${port}/llms/nonexistent-document.md`,
+  );
+  assert.equal(missingReference.status, 404);
 
   const llmsResponse = await globalThis.fetch(`http://127.0.0.1:${port}/llms.txt`);
   assert.equal(llmsResponse.status, 200);
   assert.equal(llmsResponse.headers.get('content-type'), 'text/plain; charset=utf-8');
   assert.equal(llmsResponse.headers.get('cache-control'), 'no-cache');
+  assert.match(await llmsResponse.text(), /\(\/llms\/components-combobox\.md\)/);
 
   const redirects = new Map([
     ['/guidance/', '/package/'],

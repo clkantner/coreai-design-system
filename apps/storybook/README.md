@@ -163,6 +163,55 @@ Upstream references: [Manifests](https://storybook.js.org/docs/ai/manifests),
 [docgen server configuration](https://storybook.js.org/docs/api/main-config/main-config-features#experimentaldocgenserver),
 and [MCP docs tools](https://storybook.js.org/docs/ai/mcp/overview#docs).
 
+### Static Markdown export
+
+`npm run build:storybook` also runs `docs:markdown` after Storybook finishes.
+To regenerate from an existing build, run:
+
+```bash
+npm --workspace apps/storybook run docs:markdown
+```
+
+The [exporter](scripts/generate-markdown.mjs) resolves the built component/docs
+manifests and their `$ref` snapshots from disk. It does not scrape the preview DOM,
+launch Chromium, contact a hosted MCP, or truncate examples to the first three.
+It writes `storybook-static/llms/{id}.md` and `storybook-static/llms/index.json`.
+Output is deterministic; unchanged files keep their modification times and stale
+generated documents are removed.
+
+Component references contain descriptions and JSDoc, prop tables (including
+required/default values and `children`), subcomponent APIs, attached docs, and
+every selected story's description and complete source. Source-backed examples
+keep the CoreAI imports, local/upstream provenance, and dependency notes supplied
+by the existing story-docs provider. Where Storybook omits property JSDoc, the
+exporter reads the declared local TypeScript source and matches the exact
+owner/property to recover descriptions and tags, including deprecation warnings.
+An unmatched declaration keeps the available metadata and states the limitation.
+
+Standalone MDX docs, including generated templates and the agent skill, are
+parsed without executing JavaScript. Imports, metadata, and comments are removed;
+prose, tables, and fenced/static source are preserved. Interactive Canvas and
+custom components that cannot be expanded statically receive explicit notices
+instead of disappearing or being presented as fully rendered documentation.
+
+This follows Fluent's build-time static-export model, but uses our pinned
+Storybook manifest APIs rather than Fluent's browser story-store internals.
+The existing two allowed `No component found` extraction errors remain visible
+as limitations, not invented API tables. Unexpected extraction errors, broken
+references, empty docs, and missing example source fail generation.
+
+The normal build verifier checks that every manifest document and complete
+example was exported. Focused fixtures run with:
+
+```bash
+node --test apps/storybook/scripts/generate-markdown.test.mjs
+```
+
+The [docsite](../docsite/README.md#static-storybook-markdown) publishes these
+references and joins matching API/example sections to its canonical guidance
+downloads. Storybook remains a build-time source; public Storybook and MCP
+hosting are unchanged by this prototype.
+
 ### Validating story extraction
 
 Generated component metadata now uses public import names such as `Accordion`, not internal

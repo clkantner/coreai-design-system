@@ -11,7 +11,7 @@
     "generate:content": "node scripts/generate-content.mjs",
     "generate:content:refresh": "node scripts/generate-content.mjs --refresh-storybook",
     "dev": "npm run generate:content && vite",
-    "build": "npm run generate:content && vite build",
+    "build": "node scripts/generate-content.mjs --require-storybook-markdown && vite build",
     "preview": "vite preview",
     "start": "node server.js",
     "test": "npm run build && node --test test/*.test.mjs",

@@ -45,6 +45,69 @@ async function readStorybookEntries({ refresh, indexPath, snapshotPath, indexUrl
   return Object.values(index.entries).filter((entry) => entry.type === 'story');
 }
 
+async function readStorybookMarkdown(directory, entries, required) {
+  if (directory === null) {
+    if (required) throw new Error('A production build requires Storybook Markdown.');
+    return { version: 1, documents: [] };
+  }
+  let source;
+  try {
+    source = await fs.readFile(path.join(directory, 'index.json'), 'utf8');
+  } catch (error) {
+    if (error.code !== 'ENOENT' || required) {
+      throw new Error(
+        'Unable to read Storybook Markdown. Run npm run build:storybook before building the docsite.',
+        { cause: error },
+      );
+    }
+    console.warn(
+      'Storybook Markdown is unavailable; generating guidance only. Run npm run build:storybook for APIs and examples.',
+    );
+    return { version: 1, documents: [] };
+  }
+  const index = JSON.parse(source);
+  if (index.version !== 1 || !Array.isArray(index.documents) || !index.documents.length) {
+    throw new Error('Storybook Markdown index must contain version 1 and nonempty documents.');
+  }
+  const ids = new Set();
+  const storyIds = new Set();
+  const storiesById = new Map(entries.map((entry) => [entry.id, entry]));
+  const documents = [];
+  for (const document of index.documents) {
+    if (
+      !document ||
+      typeof document.id !== 'string' ||
+      !/^[a-z0-9]+(?:-+[a-z0-9]+)*$/.test(document.id) ||
+      ids.has(document.id) ||
+      typeof document.title !== 'string' ||
+      !document.title.trim() ||
+      !['component', 'docs'].includes(document.kind) ||
+      document.path !== `llms/${document.id}.md` ||
+      !Array.isArray(document.storyIds)
+    ) {
+      throw new Error('Invalid or duplicate document in Storybook Markdown index.');
+    }
+    ids.add(document.id);
+    for (const id of document.storyIds) {
+      const story = storiesById.get(id);
+      if (!story || storyIds.has(id) || story.title !== document.title) {
+        throw new Error(`Storybook Markdown does not match its story index: ${id}`);
+      }
+      storyIds.add(id);
+    }
+    const markdown = await fs.readFile(path.join(directory, `${document.id}.md`), 'utf8');
+    if (!markdown.trim()) throw new Error(`Empty Storybook Markdown: ${document.id}`);
+    documents.push({ ...document, markdown });
+  }
+  const missing = entries.filter((entry) => !storyIds.has(entry.id));
+  if (missing.length) {
+    throw new Error(
+      `Storybook Markdown is missing stories: ${missing.map(({ id }) => id).join(', ')}`,
+    );
+  }
+  return { version: 1, documents };
+}
+
 function resourceSource(resource, index) {
   const hostname = new URL(resource.url).hostname;
   const kind =
@@ -76,10 +139,24 @@ export async function generateContent({
   storybookRoot = process.env.STORYBOOK_ROOT ?? 'https://coreai-ds-storybook.azurewebsites.net',
   indexUrl = process.env.STORYBOOK_INDEX_URL ?? `${storybookRoot}/index.json`,
   contentDirectory,
+  storybookMarkdownDirectory = refresh || indexPath === null
+    ? null
+    : path.join(
+        indexPath
+          ? path.dirname(indexPath)
+          : path.resolve(appRoot, '../storybook/storybook-static'),
+        'llms',
+      ),
+  requireStorybookMarkdown = false,
 } = {}) {
   const pagesDirectory = path.join(outputDirectory, 'pages');
   const authored = await readGuidance(contentDirectory);
   const entries = await readStorybookEntries({ refresh, indexPath, snapshotPath, indexUrl });
+  const storybookMarkdown = await readStorybookMarkdown(
+    storybookMarkdownDirectory,
+    entries,
+    requireStorybookMarkdown,
+  );
   const compare = (left, right) => (left < right ? -1 : left > right ? 1 : 0);
   const components = [];
   const manifest = { storybookRoot, components: {}, guidanceByStoryTitle: {} };
@@ -145,7 +222,13 @@ export async function generateContent({
       url:
         source.kind === 'storybook' ? `${source.url}/?path=/story/${source.storyId}` : source.url,
     }));
-    const markdown = guidanceMarkdown(record, resources);
+    const guidance = guidanceMarkdown(record, resources);
+    const references = titles.flatMap((title) =>
+      storybookMarkdown.documents.filter(
+        (document) => document.kind === 'component' && document.title === title,
+      ),
+    );
+    const markdown = [guidance, ...references.map(({ markdown }) => markdown)].join('\n\n');
     components.push({
       id: record.id,
       title: record.title,
@@ -157,7 +240,7 @@ export async function generateContent({
       ...(preview === 'figma' ? { figmaPreviewSourceId: figmaSource.id } : {}),
       resourceSourceIds: sources.map((source) => source.id),
       anchors,
-      searchText: markdownToSearchText(markdown),
+      searchText: markdownToSearchText(guidance),
     });
     await Promise.all([
       writeIfChanged(path.join(pagesDirectory, `${record.id}.html`), html),
@@ -174,6 +257,25 @@ export async function generateContent({
     if (/\.(html|md)$/.test(file) && !ids.has(path.parse(file).name))
       await fs.unlink(path.join(pagesDirectory, file));
   }
+  const markdownDirectory = path.join(outputDirectory, 'llms');
+  await fs.mkdir(markdownDirectory, { recursive: true });
+  const documents = storybookMarkdown.documents.map(({ markdown, ...document }) => {
+    void markdown;
+    return document;
+  });
+  for (const document of storybookMarkdown.documents) {
+    await writeIfChanged(path.join(markdownDirectory, `${document.id}.md`), document.markdown);
+  }
+  const documentIds = new Set(documents.map(({ id }) => id));
+  for (const file of await fs.readdir(markdownDirectory)) {
+    if (/^[a-z0-9-]+\.md$/.test(file) && !documentIds.has(path.parse(file).name)) {
+      await fs.unlink(path.join(markdownDirectory, file));
+    }
+  }
+  await writeIfChanged(
+    path.join(markdownDirectory, 'index.json'),
+    JSON.stringify({ version: 1, documents }, null, 2) + '\n',
+  );
   for (const [file, value] of [
     ['metadata.json', components],
     ['storybook-manifest.json', manifest],
@@ -207,4 +309,7 @@ export async function generateContent({
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
-  await generateContent({ refresh: process.argv.includes('--refresh-storybook') });
+  await generateContent({
+    refresh: process.argv.includes('--refresh-storybook'),
+    requireStorybookMarkdown: process.argv.includes('--require-storybook-markdown'),
+  });

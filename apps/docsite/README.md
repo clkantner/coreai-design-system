@@ -20,6 +20,7 @@ Run from repo root:
 
 ```bash
 npm run docsite        # vite dev server on http://localhost:8080
+npm run build:storybook # generate the local API/example Markdown input first
 npm run build:docsite  # vite build → dist/
 ```
 
@@ -35,6 +36,40 @@ npm -w apps/docsite run generate:content:refresh # refresh from deployed Storybo
 ```
 
 To exercise the exact production runtime (Node static server + SPA fallback) instead of vite's preview server, run `npm -w apps/docsite run build` then `npm -w apps/docsite start`.
+
+### Static Storybook Markdown
+
+The Storybook build exports complete component references and standalone docs at
+`apps/storybook/storybook-static/llms/`. The docsite build copies those files into
+its own static output. No Storybook server, MCP connection, browser, or network
+request is needed to read the published documents.
+
+| Endpoint                       | Content                                                                                                                                         |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/llms.txt`                    | Canonical guidance links plus every exported Storybook reference.                                                                               |
+| `/llms/index.json`             | Reference IDs, titles, paths, and complete story-ID coverage.                                                                                   |
+| `/llms/{storybook-id}.md`      | Component description, API tables, subcomponents, all selected examples, or standalone docs.                                                    |
+| `/components/{guidance-id}.md` | Existing canonical guidance and resources, followed by matching component APIs and examples.                                                    |
+| `/llms-full.txt`               | Combined canonical component downloads, including their matching references. Standalone Storybook docs remain discoverable through `/llms.txt`. |
+
+For example, `/llms/components-accordion.md` contains the Accordion family API
+and all selected variants. `/llms/components-combobox.md` includes both upstream
+examples and local CoreAI overrides. The existing **Copy for LLM** and **View as
+Markdown** actions use the enriched `/components/{id}.md` download. The human
+guidance rendering, navigation search data, and interactive previews are unchanged.
+
+Production builds require the export from the same Storybook build as their
+index. Missing documents, stale story IDs, and incomplete exports fail the build.
+`STORYBOOK_INDEX_PATH` selects another local build; its sibling `llms/` is used.
+Plain `generate:content`, dev, and type-check can still use the committed offline
+snapshot without a Storybook build. They explicitly warn when APIs and examples
+are unavailable. A hosted-index refresh updates story associations, not API data.
+
+These references preserve the selected public Storybook scope, not every Fluent
+component or upstream variant. Known extraction limitations are stated inside
+the affected references. Interactive MDX content that cannot be expanded
+statically is identified rather than executed. See the [Storybook exporter documentation](../storybook/README.md#static-markdown-export)
+for generation and validation details.
 
 ## What ships
 
@@ -322,8 +357,9 @@ request access.
   `STORYBOOK_ROOT`. Storybook's generated MDX, build folders, and `.playwright*`
   artifacts are also ignored. The docsite `clean` script removes its generated output.
 - CI/deploy build Storybook before testing/building the docsite against that exact
-  index. Missing explicit paths fail instead of falling back. Without a local
-  build, docsite generation works offline after dependencies are installed;
+  index and its Markdown export. Missing explicit paths or production Markdown
+  exports fail instead of falling back. Without a local build, guidance-only
+  dev generation works offline after dependencies are installed;
   Storybook itself still requires its pinned Fluent checkout.
 - Story options are ordered by authored family order, then Default first and
   story ID. Unchanged docsite output is not rewritten. Dev/build/type-check use

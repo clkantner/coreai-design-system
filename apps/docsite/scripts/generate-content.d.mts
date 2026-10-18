@@ -9,4 +9,6 @@ export function generateContent(options?: {
   storybookRoot?: string;
   indexUrl?: string;
   contentDirectory?: URL;
+  storybookMarkdownDirectory?: string | null;
+  requireStorybookMarkdown?: boolean;
 }): Promise<void>;

@@ -310,7 +310,30 @@ export function renderComponentMarkdown(component: ComponentContent): string {
   return component.markdown;
 }
 
-export function renderLlmsIndex(components: ComponentContent[]): string {
+export interface StorybookMarkdownDocument {
+  id: string;
+  title: string;
+  kind: 'component' | 'docs';
+  path: string;
+  storyIds: string[];
+}
+
+export function renderLlmsIndex(
+  components: ComponentContent[],
+  storybookDocuments: StorybookMarkdownDocument[] = [],
+): string {
+  const references = storybookDocuments.length
+    ? `
+## Storybook APIs and examples
+
+Complete exported references, including every selected upstream and custom story.
+Extraction limitations are stated in the affected documents.
+
+- [Reference index](/llms/index.json): Document IDs, paths, and story coverage.
+
+${storybookDocuments.map((document) => `- [${document.title}](/${document.path})`).join('\n')}
+`
+    : '';
   return `# CoreAI design system
 
 > Canonical CoreAI component guidance for agents and humans.
@@ -327,6 +350,7 @@ ${components
       `- [${component.title}](/components/${component.id}.md): ${component.summary.text}`,
   )
   .join('\n')}
+${references}
 `;
 }
 

@@ -139,8 +139,10 @@ Infrastructure-only merges still trigger an application redeployment, but do not
 apply infrastructure changes.
 
 The deployment job provisions the pinned Fluent story checkout, builds Storybook
-and its MCP manifests, verifies its content, then builds the docsite against that
-exact Storybook index. The ZIP layouts are:
+and its MCP manifests and static Markdown export, verifies its content, then
+builds the docsite against that exact Storybook index and export. The docsite ZIP
+includes the generated `/llms/{id}.md` references and `/llms/index.json`; serving
+them requires no Storybook or MCP runtime. The ZIP layouts are:
 
 | App           | ZIP root                                                                      | Startup                                  |
 | ------------- | ----------------------------------------------------------------------------- | ---------------------------------------- |

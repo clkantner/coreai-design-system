@@ -76,6 +76,7 @@ function cacheControlFor(filePath) {
     extension === '.html' ||
     extension === '.md' ||
     basename === 'site-registry.json' ||
+    filePath === path.join(rootDir, 'llms', 'index.json') ||
     basename === 'changelog.json' ||
     basename === 'llms.txt' ||
     basename === 'llms-full.txt'
