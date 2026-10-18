@@ -13,10 +13,10 @@ import react from '@vitejs/plugin-react';
 import matter from 'gray-matter';
 import ts from 'typescript';
 import { guidanceMarkdown, renderGuidance } from '../../../shared/guidance.mjs';
-import { createStoryInventory } from '../../storybook/scripts/story-inventory.mjs';
-import { extractStorySource } from '../../storybook/scripts/story-source.mjs';
-import { readStoryDescriptions } from '../../storybook/scripts/story-descriptions.mjs';
-import { assertFluentStoryVersion } from '../../storybook/scripts/fluent-story-version.mjs';
+import { createStoryInventory } from './sources/story-inventory.mjs';
+import { extractStorySource } from './sources/story-source.mjs';
+import { readStoryDescriptions } from './sources/story-descriptions.mjs';
+import { assertFluentStoryVersion } from './sources/fluent-story-version.mjs';
 import { readReferencePages } from './read-reference-pages.mjs';
 
 export const appRoot = fileURLToPath(new URL('../', import.meta.url));

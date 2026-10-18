@@ -119,6 +119,13 @@ and source without requiring JavaScript. Other outputs include:
 The output is suitable for an artifact-based GitHub Pages deployment. No Pages
 workflow is changed or deployed by these commands.
 
+Reusable acquisition, inventory, source extraction, descriptions, and Markdown
+sanitization now live in [`scripts/sources/`](scripts/sources/). Local Storybook
+imports those implementations directly. Its existing `stories:*` commands remain
+available, with provisioning delegated to the docsite's `sources:*` commands.
+The upstream checkout and authored story files retain their existing locations
+under Storybook for now; moving them is not required to change tool ownership.
+
 ### Implementation and concrete source findings
 
 [`build-reference-proof.mjs`](scripts/build-reference-proof.mjs) uses the shared

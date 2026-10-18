@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { createStoryInventory } from './story-inventory.mjs';
+import { createStoryInventory } from '../../docsite/scripts/sources/story-inventory.mjs';
 
 async function withSources(sources, callback) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'coreai-story-inventory-'));

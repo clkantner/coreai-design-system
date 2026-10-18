@@ -8,8 +8,8 @@
 //
 // Cross-platform (no shell-isms) so it behaves identically locally and in CI.
 //
-//   node scripts/setup-fluent-stories.mjs              # (re)provision from scratch
-//   node scripts/setup-fluent-stories.mjs --if-missing # provision only if absent
+//   npm --workspace apps/docsite run sources:update
+//   npm --workspace apps/docsite run sources:ensure
 
 import { spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
@@ -38,7 +38,7 @@ const config = {
   ],
 };
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = fileURLToPath(new URL('../../../storybook/', import.meta.url));
 const dir = path.join(root, 'fluent-stories');
 const temporaryDir = `${dir}.tmp-${process.pid}`;
 const backupDir = `${dir}.backup-${process.pid}`;

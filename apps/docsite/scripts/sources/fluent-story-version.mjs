@@ -6,7 +6,7 @@ export function assertFluentStoryVersion(expected, installed, source = expected)
     throw new Error(
       `Fluent story version mismatch: pinned ${expected}, installed ${installed}, source ${source}. ` +
         'Resolve the exact installed @fluentui/react-components release tag, update version/ref ' +
-        'in scripts/setup-fluent-stories.mjs, then run stories:update.',
+        'in apps/docsite/scripts/sources/setup-fluent-stories.mjs, then run stories:update.',
     );
   }
 }

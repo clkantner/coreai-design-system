@@ -5,8 +5,11 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import ts from 'typescript';
-import { createStoryInventory } from './story-inventory.mjs';
-import { readStoryDescriptions, descriptionComment } from './story-descriptions.mjs';
+import { createStoryInventory } from '../../docsite/scripts/sources/story-inventory.mjs';
+import {
+  readStoryDescriptions,
+  descriptionComment,
+} from '../../docsite/scripts/sources/story-descriptions.mjs';
 
 export const appRoot = fileURLToPath(new URL('../', import.meta.url));
 export const generatedRoot = path.join(appRoot, '.storybook', '.cache', 'component-stories');

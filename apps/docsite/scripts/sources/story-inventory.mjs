@@ -9,7 +9,7 @@ import { loadCsf } from 'storybook/internal/csf-tools';
 import { storyNameFromExport, toId } from 'storybook/internal/csf';
 import { excludedFluentPackages, includedFluentPackages } from './fluent-story-scope.mjs';
 
-const appRoot = fileURLToPath(new URL('../', import.meta.url));
+const appRoot = fileURLToPath(new URL('../../../storybook/', import.meta.url));
 
 async function walk(dir, predicate) {
   const files = [];

@@ -39,7 +39,7 @@ You normally never need to run these by hand: `dev` and `build` explicitly invok
 
 `apps/storybook/fluent-stories/` is a separately-provisioned, sparse, shallow checkout of [`microsoft/fluentui`](https://github.com/microsoft/fluentui) that contains only the canonical story sources. It is gitignored from this repo, and the Storybook app's webpack config rewrites Fluent imports inside those stories to route through the CoreAI barrel — so the canonical Fluent stories render with CoreAI defaults applied, without us editing any of Fluent's code.
 
-It is provisioned by [`scripts/setup-fluent-stories.mjs`](scripts/setup-fluent-stories.mjs), a cross-platform
+It is provisioned by the docsite-owned [`setup-fluent-stories.mjs`](../docsite/scripts/sources/setup-fluent-stories.mjs), a cross-platform
 script driven by `{ repo, version, ref, sparsePaths }`. The checkout is pinned to
 `ee856ea115d3a1c7b7a81cfd5b42613ff4bf9a06`, the peeled
 `@fluentui/react-components_v9.74.9` release tag. Its upstream package version matches the installed
@@ -255,7 +255,7 @@ try {
 ### Fluent ingestion pipeline
 
 The source-backed provider is implemented in `scripts/component-story-docs.mjs`, with AST
-dependency extraction in `scripts/story-source.mjs`. It publishes selected implementations,
+dependency extraction in [`story-source.mjs`](../docsite/scripts/sources/story-source.mjs). It publishes selected implementations,
 required declarations and imports, relative helper source, provenance, and required package
 names. It is now enabled in the main configuration for generated component owners. Non-generated
 entries delegate to Storybook's provider. Templates and MDX discovery are unchanged.
@@ -283,7 +283,9 @@ are explicitly routed through the CoreAI barrel and aliased to avoid conflicts w
 deterministic regeneration, and stale-index removal. Normal development and build preparation
 now run generation, and Storybook discovers the generated component indexes.
 
-The shared story inventory is implemented in [`scripts/story-inventory.mjs`](scripts/story-inventory.mjs).
+The shared story inventory is implemented in the docsite-owned
+[`story-inventory.mjs`](../docsite/scripts/sources/story-inventory.mjs).
+Storybook uses these same source tools rather than maintaining a second importer.
 Run `npm --workspace apps/storybook run stories:inventory` to write
 `.storybook/.cache/story-inventory.json` (gitignored). The module also exports
 `createStoryInventory()` for the future generated indexes and provider to share.

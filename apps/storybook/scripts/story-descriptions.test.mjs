@@ -6,9 +6,12 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { readStoryDescriptions, descriptionComment } from './story-descriptions.mjs';
+import {
+  readStoryDescriptions,
+  descriptionComment,
+} from '../../docsite/scripts/sources/story-descriptions.mjs';
 import { appRoot } from './generate-component-stories.mjs';
-import { publicMarkdown } from './public-markdown.mjs';
+import { publicMarkdown } from '../../docsite/scripts/sources/public-markdown.mjs';
 
 test('local component and story JSDoc and upstream parameter descriptions are preserved', async () => {
   const component = await readStoryDescriptions(

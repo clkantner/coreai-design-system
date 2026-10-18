@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import test from 'node:test';
 import { createStorybookMcpHandler } from '@storybook/mcp';
-import { createStoryInventory } from './story-inventory.mjs';
+import { createStoryInventory } from '../../docsite/scripts/sources/story-inventory.mjs';
 
 const root = new URL('../storybook-static/', import.meta.url);
 const liveUrl = process.env.MCP_TEST_URL;
