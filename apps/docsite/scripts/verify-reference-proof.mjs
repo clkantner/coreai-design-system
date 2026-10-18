@@ -227,12 +227,15 @@ try {
   });
   for (const record of metadata.pages) {
     await page.goto(`${root}${record.htmlPath}`);
-    await page.waitForFunction(() =>
-      [...globalThis.document.querySelectorAll('[data-example-id]')].every((container) =>
-        container.querySelector('.fui-FluentProvider'),
-      ),
+    await page.waitForFunction(
+      () =>
+        globalThis.document.querySelector('[data-reference-ready="true"]') &&
+        [...globalThis.document.querySelectorAll('[data-example-id]')].every(
+          (container) => container.children.length > 0,
+        ),
     );
     assert.equal(await page.locator('[data-example-id]').count(), record.examples.length);
+    assert.equal(await page.locator('.fui-FluentProvider').count(), 1, 'One app-level provider');
     assert.equal(await page.getByRole('alert').count(), 0);
     const duplicateIds = await page.evaluate(() => {
       const ids = [...globalThis.document.querySelectorAll('[id]')].map((element) => element.id);
@@ -268,6 +271,35 @@ try {
   await dropdown.click();
   await page.getByRole('option', { name: 'In progress', exact: true }).click();
   assert.match(await dropdown.innerText(), /In progress/);
+  const beforeTheme = await page
+    .locator('[data-example-id]')
+    .evaluateAll((containers) =>
+      containers.map((container) =>
+        globalThis.getComputedStyle(container).getPropertyValue('--colorNeutralBackground1'),
+      ),
+    );
+  await page.getByRole('button', { name: 'Switch to dark theme', exact: true }).click();
+  await page.waitForFunction(() => globalThis.document.documentElement.dataset.theme === 'dark');
+  const darkTheme = await page
+    .locator('[data-example-id]')
+    .evaluateAll((containers) =>
+      containers.map((container) =>
+        globalThis.getComputedStyle(container).getPropertyValue('--colorNeutralBackground1'),
+      ),
+    );
+  assert.ok(
+    darkTheme.every((color, index) => color && color !== beforeTheme[index]),
+    'All examples inherit the changed theme',
+  );
+  assert.match(
+    await dropdown.innerText(),
+    /In progress/,
+    'Theme changes must preserve example state',
+  );
+  await page.getByRole('link', { name: 'Button', exact: true }).click();
+  await page.getByRole('button', { name: 'Switch to light theme', exact: true }).waitFor();
+  assert.equal(await page.locator('.fui-FluentProvider').count(), 1);
+  await page.getByRole('button', { name: 'Switch to light theme', exact: true }).click();
 
   await page.goto(`${root}components/dialog/`);
   await page
@@ -310,7 +342,7 @@ try {
   );
   await noJavaScript.close();
   console.log(
-    'Chromium check: all previews render, copying matches source, inline labels select, dialog opens/closes, relative Tree helpers load data, CodeBlock changes format, template renders, and guidance/source work without JavaScript. No browser errors.',
+    'Chromium check: one shared provider, live theme propagation with state preservation and navigation persistence, all previews render, copying matches source, inline labels select, dialog opens/closes, relative Tree helpers load data, CodeBlock changes format, all template variants render, and guidance/source work without JavaScript. No browser errors.',
   );
 } finally {
   if (browser) await browser.close();

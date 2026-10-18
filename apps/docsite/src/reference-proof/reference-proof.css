@@ -21,16 +21,29 @@ body {
 
 header,
 main,
-footer {
+footer,
+.reference-theme-tools {
   max-width: 76rem;
   margin-inline: auto;
   padding: 1.5rem;
 }
 
+.reference-theme-tools {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.reference-application {
+  color: var(--colorNeutralForeground1, #242424);
+  background: var(--colorNeutralBackground1, #fafafa);
+  min-height: 100vh;
+}
+
 header,
 footer {
-  background: #fff;
-  border-block-end: 1px solid #ddd;
+  background: var(--colorNeutralBackground2, #fff);
+  border-block-end: 1px solid var(--colorNeutralStroke2, #ddd);
 }
 
 nav,
@@ -42,7 +55,7 @@ nav,
 }
 
 a {
-  color: #005a9e;
+  color: var(--colorBrandForegroundLink, #005a9e);
 }
 
 h1,
@@ -69,10 +82,10 @@ h2 {
 }
 
 .preview {
-  border: 1px solid #ccc;
+  border: 1px solid var(--colorNeutralStroke1, #ccc);
   border-radius: 0.5rem;
   padding: 1.5rem;
-  background: #fff;
+  background: var(--colorNeutralBackground1, #fff);
   overflow-x: auto;
 }
 
@@ -88,9 +101,9 @@ button {
 pre {
   padding: 1rem;
   overflow-x: auto;
-  border: 1px solid #ddd;
+  border: 1px solid var(--colorNeutralStroke2, #ddd);
   border-radius: 0.25rem;
-  background: #f0f0f0;
+  background: var(--colorNeutralBackground3, #f0f0f0);
   font-size: 0.875rem;
   line-height: 1.5;
 }
@@ -106,9 +119,9 @@ code {
 }
 
 .do-dont-card {
-  border: 1px solid #ddd;
+  border: 1px solid var(--colorNeutralStroke2, #ddd);
   padding: 1rem;
-  background: #fff;
+  background: var(--colorNeutralBackground2, #fff);
 }
 
 footer {

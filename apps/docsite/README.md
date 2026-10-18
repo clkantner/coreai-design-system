@@ -171,6 +171,18 @@ Template pages must declare `sources`, listing complete component files under
 variant. Invalid metadata, duplicate ownership, and duplicate routes fail the build.
 Pages without `reference` metadata remain outside the staged reference site.
 
+The reference application now uses the existing docsite `ThemeProvider` once
+at its React root. The layout and all examples inherit that one provider.
+React portals mount examples into the static page's preview slots without
+creating another React root or provider. A theme switch updates all examples
+and preserves their current state. The chosen theme persists across page
+navigation. Static HTML remains readable before JavaScript loads or with it
+disabled. The layout is still intentionally minimal, not the final branded shell.
+
+External font loading belongs to the legacy application's entry point, not the
+shared provider. The reference site uses the package's font stacks and does not
+request the old Azure font service.
+
 The proof explicitly deduplicates React, React DOM, and Fluent's component
 barrel. The build checks their actual module roots and versions and rejects a
 Storybook runtime dependency. This matters because the current workspace's
@@ -191,6 +203,8 @@ checks the packed CoreAI artifact against that consumer version.
 - Runs Chromium checks for every preview, duplicate DOM IDs, clipboard copying,
   Dropdown inline-label selection, Dialog opening/closing, asynchronous Tree
   expansion, CodeBlock format selection, and template rendering.
+- Asserts exactly one provider per document and checks live theme inheritance,
+  selection-state preservation, and theme persistence after navigation.
 - Confirms that human guidance and source remain readable without JavaScript.
 - Cleans up its temporary packed consumer, browser, and test server.
 

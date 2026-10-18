@@ -243,12 +243,12 @@ function shell(title, body, metadata, assets, navigation) {
 <title>${escapeHtml(title)} | CoreAI reference proof</title>
 <link rel="icon" href="data:,">
 ${assets.css.map((file) => `<link rel="stylesheet" href="${metadata.basePath}${file}">`).join('\n')}
-</head><body><a class="skip-link" href="#main">Skip to content</a>
+</head><body><div id="reference-root"><div id="reference-content"><a class="skip-link" href="#main">Skip to content</a>
 <header><a href="${metadata.basePath}">CoreAI reference proof</a><nav aria-label="Documentation">${navigation}</nav></header>
 <main id="main">${body}</main>
 <footer>Current-release proof. CoreAI ${escapeHtml(metadata.versions['@coreai-ds/react-components'])}; Fluent ${escapeHtml(metadata.versions['@fluentui/react-components'])}.
 <a href="${metadata.basePath}llms.txt">Agent index</a> · <a href="${metadata.basePath}llms/index.json">Coverage and provenance</a> · <a href="${metadata.basePath}THIRD-PARTY-NOTICES.txt">License</a></footer>
-<script type="module" src="${metadata.basePath}${assets.entry}"></script></body></html>\n`;
+</div></div><script type="module" src="${metadata.basePath}${assets.entry}"></script></body></html>\n`;
 }
 
 function sourceHtml(source, id, downloadPath, base) {

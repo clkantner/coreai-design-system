@@ -7,7 +7,6 @@ import {
   coreaiLightTheme,
   coreaiDarkTheme,
 } from '@coreai-ds/react-components';
-import '../styles/fonts.css';
 
 export type ThemeMode = 'light' | 'dark';
 export type ThemePreference = ThemeMode;

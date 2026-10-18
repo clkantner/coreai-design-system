@@ -7,6 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { App } from './App';
 import './styles/docsite.css';
+import './styles/fonts.css';
 
 const container = document.getElementById('root');
 if (!container) {
