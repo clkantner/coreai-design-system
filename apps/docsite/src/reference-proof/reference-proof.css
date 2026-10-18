@@ -1,0 +1,116 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT license.
+ */
+
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  color: #242424;
+  background: #fafafa;
+  line-height: 1.6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+header,
+main,
+footer {
+  max-width: 76rem;
+  margin-inline: auto;
+  padding: 1.5rem;
+}
+
+header,
+footer {
+  background: #fff;
+  border-block-end: 1px solid #ddd;
+}
+
+nav,
+.source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+a {
+  color: #005a9e;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+}
+
+h2 {
+  margin-block-start: 2rem;
+}
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: -100rem;
+}
+
+.skip-link:focus {
+  position: static;
+}
+
+.example {
+  margin-block: 3rem;
+}
+
+.preview {
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  background: #fff;
+  overflow-x: auto;
+}
+
+.source-actions {
+  margin-block: 1rem;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+pre {
+  padding: 1rem;
+  overflow-x: auto;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  background: #f0f0f0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+code {
+  font-family: ui-monospace, monospace;
+}
+
+.do-dont-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+}
+
+.do-dont-card {
+  border: 1px solid #ddd;
+  padding: 1rem;
+  background: #fff;
+}
+
+footer {
+  margin-block-start: 3rem;
+}

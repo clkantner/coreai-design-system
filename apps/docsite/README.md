@@ -71,6 +71,126 @@ the affected references. Interactive MDX content that cannot be expanded
 statically is identified rather than executed. See the [Storybook exporter documentation](../storybook/README.md#static-markdown-export)
 for generation and validation details.
 
+## Standalone static reference proof
+
+The reference proof tests a simpler documentation architecture without changing
+the existing site, its build, or its hosting. It does **not** require a Storybook
+build or server. It uses the pinned Fluent source checkout and existing source
+extraction helpers as build-time inputs.
+
+From the repository root:
+
+```powershell
+npm --workspace apps/docsite run build:reference-proof -- --base=/coreai-design-system/
+npm --workspace apps/docsite run verify:reference-proof
+npm --workspace apps/docsite run preview:reference-proof
+```
+
+Open `http://127.0.0.1:8081/coreai-design-system/`. Omit `--base` when building
+to use root URLs instead. Preview reads the base path from the generated index.
+Rebuild after changing guidance or examples; this proof has no development watcher.
+
+Output is isolated in `dist-reference-proof/`. The existing `dist/`, running
+docsite, Storybook, MCP, and Azure deployment configuration are untouched.
+No dependencies or static-site framework were added.
+
+| Page        | Executable examples | Source                                                                         |
+| ----------- | ------------------: | ------------------------------------------------------------------------------ |
+| Button      |                   9 | All selected Fluent variants, two CoreAI replacements, and a CoreAI addition   |
+| Dropdown    |                  16 | All selected Fluent variants, the CoreAI default, inline label, and truncation |
+| Dialog      |                   3 | CoreAI default plus Fluent controlled state and form examples                  |
+| Tree        |                   1 | Fluent lazy loading, including its relative `useQuery` and `mockFetch` helpers |
+| CodeBlock   |                   5 | CoreAI-only component examples                                                 |
+| Empty state |                   1 | Copy-and-adapt template with a separate original component download            |
+
+Each page has a physical HTML file and a Markdown counterpart, for example
+`components/button/index.html` and `components/button.md`. HTML includes
+expanded source and live React previews. Markdown includes the same guidance
+and source without requiring JavaScript. Other outputs include:
+
+- `guides/setup/` and `guides/setup.md`: provider, packages, and copy instructions.
+- `source/examples/{story-id}.tsx`: complete, default-exported example modules.
+- `source/templates/empty-state/EmptyState.tsx`: the template source, not an npm export.
+- `llms.txt`: discovery links and exact package versions.
+- `llms/index.json`: page/source URLs, hashes, included/replaced/excluded examples,
+  pinned Fluent revision, and verified runtime peer versions.
+- `.nojekyll` and `THIRD-PARTY-NOTICES.txt`: static publishing and source attribution.
+
+The output is suitable for an artifact-based GitHub Pages deployment. No Pages
+workflow is changed or deployed by these commands.
+
+### Implementation and concrete source findings
+
+[`build-reference-proof.mjs`](scripts/build-reference-proof.mjs) uses the shared
+story inventory to select examples and apply local-over-Fluent ownership.
+It generates plain React TSX using the existing source extractor. Those **same
+generated modules** are bundled for previews, displayed as code, and published
+as downloads and Markdown. One generated file per example avoids export/helper
+name collisions; authors can still group many examples in their original files.
+
+This was simpler than importing raw Storybook modules and building a separate
+runtime adapter:
+
+- Fluent Button entry points reexport normal React functions. Their index and
+  documentation imports do not need to enter the browser bundle.
+- Local Button, Dropdown, and CodeBlock stories use explicit `render` functions.
+  Extracting those functions removes Storybook metadata while preserving React
+  state, hooks, CSS, and native component interactions.
+- Tree lazy loading imports real local helper modules. The existing extractor
+  already includes their source closure; no new dependency flattener was needed.
+- Upstream Dropdown's optional Fluent props need the existing type-only
+  adaptation for CoreAI's inline-label prop union. Runtime behavior is unchanged.
+- Empty State's source is independent of Storybook and can be offered directly
+  as a copyable component.
+
+The initial contract accepts function examples and explicit render functions
+with no Storybook context. Controls and interaction-test scripts are not run.
+Args, decorators, loaders, inherited render functions, globals, or setup hooks
+that this proof would otherwise discard fail with adaptation/exclusion instructions.
+Simplify the example or narrow the explicit proof selection instead of adding
+a general Storybook compatibility layer.
+
+Guidance is read directly from the existing component Markdown. Only CodeBlock
+guidance and the common setup page are new, under
+[`content/reference-proof/`](content/reference-proof/). Generated files live
+outside the authoring tree. There is no automatic Fluent/CoreAI prose merge.
+
+The proof explicitly deduplicates React, React DOM, and Fluent's component
+barrel. The build checks their actual module roots and versions and rejects a
+Storybook runtime dependency. This matters because the current workspace's
+CoreAI development dependency resolves Fluent 9.74.7 while the docsite and
+pinned examples resolve 9.74.9. The proof bundles the latter and separately
+checks the packed CoreAI artifact against that consumer version.
+
+### Verification and limits
+
+`test:reference-proof` runs focused Node tests. `verify:reference-proof`:
+
+- Packs CoreAI locally and type-checks every downloaded example, the template,
+  and provider setup in an isolated consumer directory without workspace aliases.
+  It does not install from or verify availability on the public npm registry.
+- Uses a static preview server with no SPA fallback to check paired URLs, raw
+  downloads, missing-page 404s, licenses, versions, coverage, and source hashes.
+- Checks exact guidance/source parity across HTML, Markdown, and downloads.
+- Runs Chromium checks for every preview, duplicate DOM IDs, clipboard copying,
+  Dropdown inline-label selection, Dialog opening/closing, asynchronous Tree
+  expansion, CodeBlock format selection, and template rendering.
+- Confirms that human guidance and source remain readable without JavaScript.
+- Cleans up its temporary packed consumer, browser, and test server.
+
+The proof intentionally stops short of the complete catalog, API tables,
+an editable playground, search, archived releases, and final branded styling.
+Some inherited guidance remains under construction or needs a UX review.
+Examples demonstrate APIs and are explicitly subordinate to CoreAI design
+guidance. Task-based evaluation of designer/agent decision quality is still
+needed before replacing the public site.
+
+The first build uses one shared example bundle (about 260 KB gzipped). Vite
+reports its normal large-chunk warning. Page-level splitting is deferred rather
+than adding it before the proof is reviewed. GitHub Pages response headers and
+actual public deployment have not been tested; raw Markdown retrieval is checked
+over local static HTTP and does not depend on `text/markdown` negotiation.
+
 ## What ships
 
 - Landing page with Storybook, Figma, and npm links.
