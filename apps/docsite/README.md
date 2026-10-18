@@ -71,12 +71,16 @@ the affected references. Interactive MDX content that cannot be expanded
 statically is identified rather than executed. See the [Storybook exporter documentation](../storybook/README.md#static-markdown-export)
 for generation and validation details.
 
-## Standalone static reference proof
+## Static reference catalog (staged)
 
-The reference proof tests a simpler documentation architecture without changing
-the existing site, its build, or its hosting. It does **not** require a Storybook
-build or server. It uses the pinned Fluent source checkout and existing source
-extraction helpers as build-time inputs.
+The static reference app now covers **75 component groups and 11 template
+groups**, with **709 working examples**. It uses the existing CoreAI site layout
+styles, grouped sidebar navigation, logo, mobile navigation header, and shared
+theme provider. It does **not** require a Storybook build or server. The source
+checkout and extraction tools are build-time inputs only.
+
+It remains staged while foundations, patterns, and production hosting are
+migrated. The normal site build and Azure deployment are unchanged.
 
 From the repository root:
 
@@ -88,20 +92,23 @@ npm --workspace apps/docsite run preview:reference-proof
 
 Open `http://127.0.0.1:8081/coreai-design-system/`. Omit `--base` when building
 to use root URLs instead. Preview reads the base path from the generated index.
-Rebuild after changing guidance or examples; this proof has no development watcher.
+Rebuild after changing guidance or examples; this path has no development watcher.
 
 Output is isolated in `dist-reference-proof/`. The existing `dist/`, running
 docsite, Storybook, MCP, and Azure deployment configuration are untouched.
-No dependencies or static-site framework were added.
+No static-site framework was added. The docsite explicitly declares the support
+packages already used by the example catalog, including React Router, react-window
+and its types, Fluent's JSX runtime, and drag-and-drop utilities.
 
-| Page        | Executable examples | Source                                                                         |
-| ----------- | ------------------: | ------------------------------------------------------------------------------ |
-| Button      |                   9 | All selected Fluent variants, two CoreAI replacements, and a CoreAI addition   |
-| Dropdown    |                  16 | All selected Fluent variants, the CoreAI default, inline label, and truncation |
-| Dialog      |                   3 | CoreAI default plus Fluent controlled state and form examples                  |
-| Tree        |                   1 | Fluent lazy loading, including its relative `useQuery` and `mockFetch` helpers |
-| CodeBlock   |                   5 | CoreAI-only component examples                                                 |
-| Empty state |                   9 | All template variants, with EmptyState and DetailsList source downloads        |
+| Catalog                  | Groups | Executable examples |
+| ------------------------ | -----: | ------------------: |
+| Core components          |     75 |                 689 |
+| Copy-and-adapt templates |     11 |                  20 |
+
+CoreAI replacements win 70 matching upstream story IDs. The published catalog
+includes every selected story in the existing supported scope. Fluent packages
+excluded by the source inventory, such as Nav, remain excluded. The separately
+authored Shell and Navigation template is not a Fluent Nav reference.
 
 Each page has a physical HTML file and a Markdown counterpart, for example
 `components/button/index.html` and `components/button.md`. HTML includes
@@ -149,18 +156,29 @@ runtime adapter:
   adaptation for CoreAI's inline-label prop union. Runtime behavior is unchanged.
 - Empty State's source is independent of Storybook and can be offered directly
   as a copyable component.
+- Tree virtualization needs its original `@jsxImportSource` pragma. Extraction
+  preserves that compiler instruction and lists the required Fluent JSX runtime.
+- Static DOM IDs are prefixed per generated example, including matching label,
+  fragment, and ARIA references. This lets Breadcrumb and Carousel examples share
+  a document. The code users copy includes the same IDs as the preview.
+- List derives DOM IDs from selection values. Its page explicitly runs one live
+  example at a time instead of altering its selection model or adding iframes.
+- CounterBadge uses a fixed count rather than controls-only Storybook args.
+  Popover's example does not require callers to supply children it already owns.
+  React Router template types use distinct names so flattened source remains valid.
 
 The initial contract accepts function examples and explicit render functions
 with no Storybook context. Controls and interaction-test scripts are not run.
-Args, decorators, loaders, inherited render functions, globals, or setup hooks
-that this proof would otherwise discard fail with adaptation/exclusion instructions.
-Simplify the example or narrow the explicit proof selection instead of adding
+Args, loaders, inherited render functions, globals, or setup hooks that this
+path would otherwise discard fail with adaptation/exclusion instructions.
+Layout-only decorators are omitted only where the Markdown metadata explicitly
+documents that simplification. Simplify unsupported examples instead of adding
 a general Storybook compatibility layer.
 
-Guidance is read directly from the existing component Markdown. Only CodeBlock
-guidance and the common setup page are new. CodeBlock now lives alongside the
-other component guidance. Generated files live
-outside the authoring tree. There is no automatic Fluent/CoreAI prose merge.
+Existing CoreAI guidance is preserved. New pages start from source descriptions
+and are marked under construction until their CoreAI UX guidance is reviewed.
+Generated files live outside the authoring tree. Builds never overwrite guidance
+or merge Fluent and CoreAI paragraphs.
 
 Page selection is owned by Markdown frontmatter, not a list in the build script:
 
@@ -172,19 +190,29 @@ reference:
 The route follows the content filename: `content/components/Dropdown.md` becomes
 `components/dropdown/` and `components/dropdown.md`. An optional `route` overrides
 that location while existing template guidance is migrated. An optional `examples`
-list narrows a representative page; omitting it includes all selected examples.
+list narrows a page; omitting it includes all selected examples. Alternatively,
+`exclude` maps export names to explicit reasons. Unknown selections fail the build.
+`omitDecorators` explains a deliberate layout simplification. `singlePreview`
+explains why a page must run examples one at a time.
 Template pages must declare `sources`, listing complete component files under
 `src/stories/templates/`. Empty State also provides DetailsList for its detail-card
 variant. Invalid metadata, duplicate ownership, and duplicate routes fail the build.
 Pages without `reference` metadata remain outside the staged reference site.
+
+To seed newly supported source groups, run `npm --workspace apps/docsite run
+catalog:init`, review the Markdown changes, and commit them. This initializer is
+not part of ordinary builds. Existing page text stays intact. Template sources
+include the local files their examples need, including React Router slot helpers.
 
 The reference application now uses the existing docsite `ThemeProvider` once
 at its React root. The layout and all examples inherit that one provider.
 React portals mount examples into the static page's preview slots without
 creating another React root or provider. A theme switch updates all examples
 and preserves their current state. The chosen theme persists across page
-navigation. Static HTML remains readable before JavaScript loads or with it
-disabled. The layout is still intentionally minimal, not the final branded shell.
+navigation. Static HTML and grouped navigation remain readable without JavaScript.
+The sidebar includes a title filter, active-page state, and keyboard-accessible
+mobile navigation. Example bundles load per component page, not for the full
+catalog on every navigation.
 
 External font loading belongs to the legacy application's entry point, not the
 shared provider. The reference site uses the package's font stacks and does not
@@ -210,21 +238,22 @@ checks the packed CoreAI artifact against that consumer version.
 - Runs Chromium checks for every preview, duplicate DOM IDs, clipboard copying,
   Dropdown inline-label selection, Dialog opening/closing, asynchronous Tree
   expansion, CodeBlock format selection, and template rendering.
+- Activates every List preview individually and checks navigation filtering,
+  active links, mobile opening/closing, Escape focus restoration, and base paths.
 - Asserts exactly one provider per document and checks live theme inheritance,
   selection-state preservation, and theme persistence after navigation.
 - Confirms that human guidance and source remain readable without JavaScript.
 - Cleans up its temporary packed consumer, browser, and test server.
 
-The proof intentionally stops short of the complete catalog, API tables,
-an editable playground, search, archived releases, and final branded styling.
-Some inherited guidance remains under construction or needs a UX review.
+This staged app still omits standalone foundation/pattern migration, API tables,
+an editable playground, full-text search, archived releases, and the existing
+animated homepage. Some inherited guidance and new reference pages need UX review.
 Examples demonstrate APIs and are explicitly subordinate to CoreAI design
 guidance. Task-based evaluation of designer/agent decision quality is still
 needed before replacing the public site.
 
-The build uses one shared example bundle (about 280 KB gzipped). Vite
-reports its normal large-chunk warning. Page-level splitting is deferred rather
-than adding it before the proof is reviewed. GitHub Pages response headers and
+The build splits examples by page and shares common dependencies. Some common
+chunks still trigger Vite's large-chunk warning. GitHub Pages response headers and
 actual public deployment have not been tested; raw Markdown retrieval is checked
 over local static HTTP and does not depend on `text/markdown` negotiation.
 
