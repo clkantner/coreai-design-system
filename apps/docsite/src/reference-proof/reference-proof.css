@@ -40,7 +40,7 @@
   font-size: 24px;
 }
 
-.reference-shell a:not(.reference-brand, .reference-nav-link) {
+.reference-shell a:not(.reference-brand, .reference-nav-link, .reference-tree-link) {
   color: var(--colorBrandForegroundLink, #005a9e);
   text-decoration: underline;
 }
@@ -99,6 +99,26 @@
 
 .reference-nav-link[hidden] {
   display: none;
+}
+
+.reference-navigation-tree {
+  padding-block: 8px;
+}
+
+.reference-tree-link {
+  display: block;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.reference-navigation-tree .fui-TreeItem[aria-current='page'] > .fui-TreeItemLayout {
+  background: var(--colorNeutralBackground1Selected, #ddd);
+  font-weight: 600;
+}
+
+.reference-retry {
+  margin: 8px 24px;
 }
 
 .reference-shell .app-sidenav__footer {

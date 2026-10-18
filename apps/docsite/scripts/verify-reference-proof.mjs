@@ -224,9 +224,18 @@ try {
   const page = await context.newPage();
   const errors = [];
   const pageProblems = [];
+  const expectedNavigationErrors = [];
+  let simulatingNavigationFailure = false;
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
+    if (message.type() === 'error') {
+      if (
+        simulatingNavigationFailure &&
+        /503|Could not load documentation page/.test(message.text())
+      )
+        expectedNavigationErrors.push(message.text());
+      else errors.push(message.text());
+    }
   });
   for (const record of metadata.pages) {
     await page.goto(`${root}${record.htmlPath}`);
@@ -332,6 +341,206 @@ try {
   await page.getByRole('button', { name: 'Switch to light theme', exact: true }).waitFor();
   assert.equal(await page.locator('#reference-root > .coreai-docsite-provider').count(), 1);
   await page.getByRole('button', { name: 'Switch to light theme', exact: true }).click();
+  const navigation = page.getByRole('navigation', { name: 'Documentation', exact: true });
+  const tree = navigation.getByRole('tree', { name: 'Documentation pages', exact: true });
+  await tree.waitFor();
+  const timeOrigin = await page.evaluate(() => {
+    globalThis.document
+      .querySelector('#reference-root > .coreai-docsite-provider')
+      .setAttribute('data-provider-sentinel', 'persistent');
+    globalThis.document
+      .querySelector('.app-sidenav')
+      .setAttribute('data-sidebar-sentinel', 'persistent');
+    return globalThis.performance.timeOrigin;
+  });
+  await page
+    .locator('#main')
+    .getByRole('link', { name: 'Setup and dependencies', exact: true })
+    .click();
+  await page.getByRole('heading', { name: 'Use these examples', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  assert.equal(
+    await page.evaluate(() => globalThis.performance.timeOrigin),
+    timeOrigin,
+    'Links inside static article content use the same router',
+  );
+  await page.goBack();
+  await page.getByRole('heading', { name: 'Button', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  const templates = tree.getByRole('treeitem', { name: 'Templates', exact: true });
+  await templates.focus();
+  await page.keyboard.press('ArrowLeft');
+  assert.equal(await templates.getAttribute('aria-expanded'), 'false');
+  const savedScroll = await page.locator('.app-page').evaluate((region) => {
+    region.scrollTop = 600;
+    return region.scrollTop;
+  });
+  await navigation.getByRole('link', { name: 'Dropdown', exact: true }).click();
+  await page.getByRole('heading', { name: 'Dropdown', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  assert.equal(
+    await page.evaluate(() => globalThis.performance.timeOrigin),
+    timeOrigin,
+    'Client navigation must not reload the document',
+  );
+  assert.equal(await page.locator('[data-provider-sentinel="persistent"]').count(), 1);
+  assert.equal(await page.locator('[data-sidebar-sentinel="persistent"]').count(), 1);
+  assert.equal(
+    await templates.getAttribute('aria-expanded'),
+    'false',
+    'Tree expansion persists across page navigation',
+  );
+  assert.ok(
+    await page.locator('#main').evaluate((main) => main === globalThis.document.activeElement),
+  );
+
+  await page.goBack();
+  await page.getByRole('heading', { name: 'Button', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  await page.waitForFunction(
+    (expected) => Math.abs(globalThis.document.querySelector('.app-page').scrollTop - expected) < 2,
+    savedScroll,
+  );
+  await page.goForward();
+  await page.getByRole('heading', { name: 'Dropdown', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  assert.equal(await page.evaluate(() => globalThis.performance.timeOrigin), timeOrigin);
+  const treeItem = tree.getByRole('treeitem', { name: 'Tree', exact: true });
+  await treeItem.focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('heading', { name: 'Tree', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  assert.equal(await page.title(), 'Tree | CoreAI design system');
+  assert.equal(
+    await navigation.getByRole('link', { name: 'Tree', exact: true }).getAttribute('aria-current'),
+    'page',
+  );
+  assert.equal(
+    await page.evaluate(() => globalThis.performance.timeOrigin),
+    timeOrigin,
+    'Enter activation uses the router',
+  );
+
+  await templates.focus();
+  await page.keyboard.press('ArrowRight');
+  await navigation.getByRole('link', { name: 'Tab Link List', exact: true }).click();
+  await page.getByRole('heading', { name: 'Tab Link List', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  const routerExample = page.locator(
+    '[data-example-id="templates-react-router-tab-link-list--default"]',
+  );
+  await routerExample.getByRole('tab', { name: 'Activity', exact: true }).click();
+  await routerExample
+    .locator('[role="tab"][aria-selected="true"]')
+    .filter({ hasText: 'Activity' })
+    .waitFor();
+  assert.equal(
+    await routerExample
+      .getByRole('tab', { name: 'Activity', exact: true })
+      .getAttribute('aria-selected'),
+    'true',
+  );
+  assert.ok(
+    page.url().endsWith('/templates/react-router-tab-link-list/'),
+    'Demo router must not navigate the documentation app',
+  );
+  assert.equal(await page.evaluate(() => globalThis.performance.timeOrigin), timeOrigin);
+
+  const failureUrl = `${root}components/button/`;
+  await page.route(failureUrl, (route) =>
+    route.fulfill({ status: 503, contentType: 'text/plain', body: 'Simulated outage' }),
+  );
+  simulatingNavigationFailure = true;
+  await navigation.getByRole('link', { name: 'Button', exact: true }).click();
+  await page.locator('[data-navigation-error]').filter({ hasText: 'HTTP 503' }).waitFor();
+  assert.ok(
+    expectedNavigationErrors.some((message) =>
+      message.includes('Could not load documentation page'),
+    ),
+    'Navigation failures are logged, not silently hidden',
+  );
+  assert.equal(await page.evaluate(() => globalThis.performance.timeOrigin), timeOrigin);
+  await page.unroute(failureUrl);
+  simulatingNavigationFailure = false;
+  await page.getByRole('button', { name: 'Retry page loading', exact: true }).click();
+  await page.getByRole('heading', { name: 'Button', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  assert.equal(await page.locator('[data-navigation-error]').count(), 0);
+
+  let release;
+  let started;
+  let finished;
+  const blocked = new Promise((resolve) => {
+    release = resolve;
+  });
+  const requestStarted = new Promise((resolve) => {
+    started = resolve;
+  });
+  const requestFinished = new Promise((resolve) => {
+    finished = resolve;
+  });
+  const delayedUrl = `${root}components/dropdown/`;
+  const delayedHtml = await get('components/dropdown/');
+  await page.route(delayedUrl, async (route) => {
+    started();
+    await blocked;
+    await route.fulfill({ status: 200, contentType: 'text/html', body: delayedHtml });
+    finished();
+  });
+  await navigation.getByRole('link', { name: 'Dropdown', exact: true }).click();
+  await requestStarted;
+  await navigation.getByRole('link', { name: 'Tree', exact: true }).click();
+  await page.getByRole('heading', { name: 'Tree', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  release();
+  await requestFinished;
+  await page.unroute(delayedUrl);
+  assert.equal(
+    await page.title(),
+    'Tree | CoreAI design system',
+    'Late responses cannot replace a newer page',
+  );
+
+  await page.evaluate((href) => {
+    const link = globalThis.document.createElement('a');
+    link.href = href;
+    link.textContent = 'Go to Dropdown guidance';
+    globalThis.document.getElementById('main').prepend(link);
+  }, `${root}components/dropdown/#guidance-best-practices`);
+  await page.getByRole('link', { name: 'Go to Dropdown guidance', exact: true }).click();
+  await page.getByRole('heading', { name: 'Dropdown', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  assert.ok(page.url().endsWith('/components/dropdown/#guidance-best-practices'));
+  await page.waitForFunction(() => {
+    const heading = globalThis.document.getElementById('guidance-best-practices');
+    const region = globalThis.document.querySelector('.app-page');
+    return Math.abs(heading.getBoundingClientRect().top - region.getBoundingClientRect().top) < 8;
+  });
+  assert.equal(await page.evaluate(() => globalThis.performance.timeOrigin), timeOrigin);
+
+  const [newTab] = await Promise.all([
+    context.waitForEvent('page'),
+    navigation
+      .getByRole('link', { name: 'Button', exact: true })
+      .click({ modifiers: ['ControlOrMeta'] }),
+  ]);
+  await newTab.getByRole('heading', { name: 'Button', exact: true }).waitFor();
+  await newTab.close();
+  assert.ok(
+    page.url().includes('/components/dropdown/'),
+    'Modified clicks do not navigate the current page',
+  );
+
+  const rawPage = await context.newPage();
+  await rawPage.goto(`${root}components/button/`);
+  await rawPage.locator('[data-reference-ready="true"]').waitFor();
+  await Promise.all([
+    rawPage.waitForRequest(
+      (request) => request.isNavigationRequest() && request.url() === `${root}components/button.md`,
+    ),
+    rawPage.getByRole('link', { name: 'View as Markdown', exact: true }).click(),
+  ]);
+  await rawPage.close();
 
   await page.goto(`${root}components/dialog/`);
   await page
@@ -408,7 +617,7 @@ try {
   assert.equal(await page.locator('#reference-root > .coreai-docsite-provider').count(), 1);
   assert.deepEqual(errors, [], 'Browser errors after navigation checks');
   console.log(
-    'Chromium check: one shared provider, live theme propagation with state preservation and navigation persistence, all previews render, copying matches source, inline labels select, dialog opens/closes, relative Tree helpers load data, CodeBlock changes format, all template variants render, and guidance/source work without JavaScript. No browser errors.',
+    'Chromium check: persistent React Router navigation, CoreAI Tree keyboard/expansion/filtering, history and scroll restoration, mobile focus, fragments, failure/retry/cancellation, native downloads/new tabs, isolated demo routers, shared theme, all previews and source parity. No unexpected browser errors.',
   );
 } finally {
   if (browser) await browser.close();

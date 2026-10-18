@@ -210,9 +210,26 @@ React portals mount examples into the static page's preview slots without
 creating another React root or provider. A theme switch updates all examples
 and preserves their current state. The chosen theme persists across page
 navigation. Static HTML and grouped navigation remain readable without JavaScript.
-The sidebar includes a title filter, active-page state, and keyboard-accessible
-mobile navigation. Example bundles load per component page, not for the full
-catalog on every navigation.
+The sidebar uses CoreAI `Tree`, `TreeItem`, and `TreeItemLayout`, with Components,
+Templates, and a nested React Router group. It includes a title filter, active-page
+state, arrow-key expansion/navigation, Enter activation, and mobile navigation.
+The static link list remains as a no-JavaScript fallback.
+
+React Router handles normal documentation links without reloading the document.
+The app-level provider, sidebar, theme controls, and expanded Tree groups stay
+mounted; only the page content and its examples change. The router fetches the
+existing static HTML for the destination, so no separate page-data service or
+SPA server fallback is needed. Direct visits and refreshes still use the physical
+HTML files. Markdown, source downloads, external links, and modified/new-tab
+clicks retain normal browser behavior.
+
+Page changes update the title, focus, fragments, and history scroll positions.
+Pending requests are canceled when another navigation wins. Failed requests show
+an explicit error with a Retry control rather than stale content or a silent
+full reload. The example subtree shares the theme but sits outside the site router,
+so React Router templates can supply their own isolated demo routers.
+Example bundles load per component page, not for the full catalog on every
+navigation.
 
 External font loading belongs to the legacy application's entry point, not the
 shared provider. The reference site uses the package's font stacks and does not
@@ -240,6 +257,10 @@ checks the packed CoreAI artifact against that consumer version.
   expansion, CodeBlock format selection, and template rendering.
 - Activates every List preview individually and checks navigation filtering,
   active links, mobile opening/closing, Escape focus restoration, and base paths.
+- Confirms that sidebar clicks, static article links, Tree Enter activation, and
+  Back/Forward keep the same document, sidebar, and provider. Checks Tree
+  expansion state, independent demo routers, fragment navigation, modified clicks,
+  raw Markdown navigation, failed-request retry, and late-response cancellation.
 - Asserts exactly one provider per document and checks live theme inheritance,
   selection-state preservation, and theme persistence after navigation.
 - Confirms that human guidance and source remain readable without JavaScript.

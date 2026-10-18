@@ -4,104 +4,199 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
+import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { Button, SearchBox, Text } from '@coreai-ds/react-components';
-import type { ComponentType } from 'react';
 import '@coreai-ds/react-components/fonts/fonts.css';
-import { loadExamples } from 'virtual:reference-proof-examples';
 import { ThemeProvider, useThemeMode } from '../theme/ThemeProvider';
 import { CoreAILogo } from '../components/Icons';
 import { Header } from '../components/Header';
+import { NavigationTree, type NavigationEntry } from './NavigationTree';
+import { PageContent, type ReferencePage } from './PageContent';
+import { clientNavigationTarget, normalizeReferencePath } from './navigation.mjs';
 import '../styles/docsite.css';
 import './reference-proof.css';
 
-class ExampleBoundary extends React.Component<
-  { children: React.ReactNode; id: string },
-  { failed: boolean }
-> {
-  state = { failed: false };
+const basePath = import.meta.env.BASE_URL;
+const container = document.getElementById('reference-root');
+const content = document.getElementById('reference-content');
+if (!container || !content) throw new Error('Missing static documentation content.');
+const parsed = new DOMParser().parseFromString(content.innerHTML, 'text/html');
+const main = parsed.getElementById('main');
+if (!main) throw new Error('Missing static documentation page.');
+const initialPage: ReferencePage = {
+  path: normalizeReferencePath(window.location.pathname.slice(basePath.length - 1)),
+  title: document.title,
+  html: main.innerHTML,
+  status: 'ready',
+};
+main.replaceChildren();
+const shellHtml = parsed.body.innerHTML;
+const entries: NavigationEntry[] = [
+  ...parsed.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Documentation"] a'),
+].map((link) => ({
+  path: normalizeReferencePath(
+    new URL(link.getAttribute('href') ?? '', window.location.href).pathname.slice(
+      basePath.length - 1,
+    ),
+  ),
+  title: link.textContent?.trim() ?? '',
+}));
+const paths = new Set(entries.map((entry) => entry.path));
 
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-
-  componentDidCatch(error: Error) {
-    console.error(`Reference example failed: ${this.props.id}`, error);
-  }
-
-  render() {
-    return this.state.failed ? (
-      <p role="alert" data-preview-error>
-        This preview failed to render. See the console for details.
-      </p>
-    ) : (
-      this.props.children
-    );
-  }
-}
-
-function DocumentationApp({ html }: { html: string }) {
+function DocumentationShell({
+  page,
+  renderedPage,
+  onPageChange,
+  onMainTarget,
+}: {
+  page: ReferencePage;
+  renderedPage: ReferencePage | null;
+  onPageChange: (page: ReferencePage) => void;
+  onMainTarget: (target: HTMLElement) => void;
+}) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const navigationType = useNavigationType();
+  const pathname = normalizeReferencePath(location.pathname);
   const { mode, setPreference } = useThemeMode();
   const contentRef = React.useRef<HTMLDivElement>(null);
-  const markup = React.useMemo(() => ({ __html: html }), [html]);
-  const [targets, setTargets] = React.useState<HTMLElement[] | null>(null);
-  const [examples, setExamples] = React.useState<Record<string, ComponentType>>({});
-  const [loadError, setLoadError] = React.useState<string>();
+  const menuButtonRef = React.useRef<HTMLButtonElement>(null);
+  const lastPage = React.useRef(initialPage);
+  const scrollPositions = React.useRef(new Map<string, number>());
+  const initialLocation = React.useRef(location.key);
+  const [slots, setSlots] = React.useState<Record<string, HTMLElement>>({});
   const [query, setQuery] = React.useState('');
   const [navigationOpen, setNavigationOpen] = React.useState(false);
-  const [activeExample, setActiveExample] = React.useState<string>();
-  const menuButtonRef = React.useRef<HTMLButtonElement>(null);
+  const [retry, setRetry] = React.useState(0);
+  const markup = React.useMemo(() => ({ __html: shellHtml }), []);
 
-  React.useEffect(() => {
-    let active = true;
-    const containers = [
-      ...(contentRef.current?.querySelectorAll<HTMLElement>('[data-example-id]') ?? []),
-    ];
-    const component = containers[0]?.dataset.exampleId?.split('--')[0];
-    const load = component ? loadExamples[component] : undefined;
-    if (component && !load) throw new Error(`Missing component example bundle: ${component}`);
-    const ready = load ? load() : Promise.resolve({ examples: {} });
-    ready
-      .then((loaded) => {
-        if (!active) return;
-        for (const container of containers) container.replaceChildren();
-        setExamples(loaded.examples);
-        if (contentRef.current?.querySelector('[data-single-preview]')) {
-          setActiveExample(
-            (
-              containers.find((container) => container.dataset.exampleId?.endsWith('--default')) ??
-              containers[0]
-            )?.dataset.exampleId,
-          );
-        }
-        setTargets(containers);
-      })
-      .catch((error: unknown) => {
-        console.error('Could not load documentation examples.', error);
-        if (active)
-          setLoadError('Could not load examples. Reload this page or use the source downloads.');
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  React.useEffect(() => {
-    const links =
-      contentRef.current?.querySelectorAll<HTMLAnchorElement>('[data-navigation-entry]') ?? [];
-    for (const link of links)
-      link.hidden = !link.textContent?.toLowerCase().includes(query.trim().toLowerCase());
-    for (const group of contentRef.current?.querySelectorAll<HTMLDetailsElement>(
-      '.reference-nav-group',
-    ) ?? []) {
-      group.hidden = !group.querySelector('a:not([hidden])');
-      if (query) group.open = true;
+  React.useLayoutEffect(() => {
+    const root = contentRef.current;
+    const target = root?.querySelector<HTMLElement>('#main');
+    const nav = root?.querySelector<HTMLElement>('nav[aria-label="Documentation"]');
+    if (!root || !target || !nav) throw new Error('Missing documentation shell slots.');
+    nav.replaceChildren();
+    const next: Record<string, HTMLElement> = { navigation: nav };
+    for (const name of ['logo', 'theme', 'search', 'header']) {
+      const element = root.querySelector<HTMLElement>(`[data-shell-${name}]`);
+      if (!element) throw new Error(`Missing documentation shell slot: ${name}`);
+      next[name] = element;
     }
-  }, [query]);
+    setSlots(next);
+    onMainTarget(target);
+  }, [onMainTarget]);
+
+  React.useEffect(() => {
+    setQuery('');
+    setNavigationOpen(false);
+    if (lastPage.current.path === pathname) {
+      onPageChange(lastPage.current);
+      return;
+    }
+    const controller = new AbortController();
+    onPageChange({
+      path: pathname,
+      title: 'Loading documentation | CoreAI design system',
+      html: '',
+      status: 'loading',
+    });
+    async function loadPage() {
+      try {
+        const response = await fetch(`${basePath}${pathname.slice(1)}`, {
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status} while loading ${pathname}`);
+        if (!response.headers.get('content-type')?.includes('text/html'))
+          throw new Error(`Expected HTML at ${pathname}`);
+        const document = new DOMParser().parseFromString(await response.text(), 'text/html');
+        const main = document.getElementById('main');
+        if (!main || !document.querySelector('.reference-shell'))
+          throw new Error(`Invalid documentation page at ${pathname}`);
+        if (controller.signal.aborted) return;
+        const loaded: ReferencePage = {
+          path: pathname,
+          title: document.title,
+          html: main.innerHTML,
+          status: 'ready',
+        };
+        lastPage.current = loaded;
+        onPageChange(loaded);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error('Could not load documentation page.', error);
+        onPageChange({
+          path: pathname,
+          title: 'Documentation unavailable | CoreAI design system',
+          html: '',
+          status: 'error',
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+    void loadPage();
+    return () => controller.abort();
+  }, [pathname, retry, onPageChange]);
+
+  React.useEffect(() => {
+    document.title = page.title;
+  }, [page.title]);
+  React.useEffect(() => {
+    const root = document.getElementById('reference-root');
+    if (!root) throw new Error('Missing documentation application root.');
+    const followLink = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        !(event.target instanceof Element) ||
+        event.target.closest('[data-example-id]')
+      )
+        return;
+      const link = event.target.closest<HTMLAnchorElement>('a[href]');
+      if (!link) return;
+      const target = clientNavigationTarget(link.getAttribute('href') ?? link.href, {
+        currentUrl: window.location.href,
+        basePath,
+        paths,
+        button: event.button,
+        altKey: event.altKey,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+        shiftKey: event.shiftKey,
+        download: link.hasAttribute('download'),
+        target: link.target,
+      });
+      if (target === undefined) return;
+      event.preventDefault();
+      navigate(target);
+    };
+    root.addEventListener('click', followLink);
+    return () => root.removeEventListener('click', followLink);
+  }, [navigate]);
+  React.useLayoutEffect(() => {
+    const region = contentRef.current?.querySelector<HTMLElement>('.app-page');
+    return () => {
+      if (region) scrollPositions.current.set(location.key, region.scrollTop);
+    };
+  }, [location.key]);
+  React.useLayoutEffect(() => {
+    if (page !== renderedPage || page.path !== pathname || page.status !== 'ready') return;
+    const root = contentRef.current;
+    const region = root?.querySelector<HTMLElement>('.app-page');
+    if (!region) return;
+    region.scrollTop =
+      navigationType === 'POP' ? (scrollPositions.current.get(location.key) ?? 0) : 0;
+    if (location.key !== initialLocation.current)
+      root?.querySelector<HTMLElement>('#main')?.focus({ preventScroll: true });
+    if (location.hash) {
+      document
+        .getElementById(decodeURIComponent(location.hash.slice(1)))
+        ?.scrollIntoView({ block: 'start' });
+    }
+  }, [page, renderedPage, pathname, location.key, location.hash, navigationType]);
 
   React.useEffect(() => {
     const sidebar = contentRef.current?.querySelector<HTMLElement>('#app-navigation');
-    const page = contentRef.current?.querySelector<HTMLElement>('.app-content');
-    if (!sidebar || !page) return;
+    const body = contentRef.current?.querySelector<HTMLElement>('.app-content');
+    if (!sidebar || !body) return;
     sidebar.classList.toggle('is-open', navigationOpen);
     sidebar.setAttribute(
       'aria-label',
@@ -115,7 +210,7 @@ function DocumentationApp({ html }: { html: string }) {
       sidebar.removeAttribute('role');
       sidebar.removeAttribute('aria-modal');
     }
-    page.inert = navigationOpen;
+    body.inert = navigationOpen;
     const close = () => {
       setNavigationOpen(false);
       requestAnimationFrame(() => menuButtonRef.current?.focus());
@@ -128,8 +223,8 @@ function DocumentationApp({ html }: { html: string }) {
       }
       if (event.key === 'Tab') {
         const controls = [
-          ...sidebar.querySelectorAll<HTMLElement>('a[href], button, input, summary'),
-        ].filter((element) => element.getClientRects().length);
+          ...sidebar.querySelectorAll<HTMLElement>('a[href], button, input, [tabindex]'),
+        ].filter((element) => element.tabIndex >= 0 && element.getClientRects().length);
         const first = controls[0];
         const last = controls.at(-1);
         if (event.shiftKey && document.activeElement === first) {
@@ -153,15 +248,16 @@ function DocumentationApp({ html }: { html: string }) {
       document.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('resize', resize);
     };
-  }, [navigationOpen, targets]);
+  }, [navigationOpen, slots]);
 
-  const slot = (name: string) =>
-    contentRef.current?.querySelector<HTMLElement>(`[data-shell-${name}]`);
   return (
-    <div className="reference-application" data-reference-ready={targets !== null}>
+    <div className="reference-application">
       <div ref={contentRef} dangerouslySetInnerHTML={markup} />
-      {targets !== null && slot('logo') ? createPortal(<CoreAILogo />, slot('logo')!) : null}
-      {targets !== null && slot('theme')
+      {slots.logo ? createPortal(<CoreAILogo />, slots.logo) : null}
+      {slots.navigation
+        ? createPortal(<NavigationTree entries={entries} query={query} />, slots.navigation)
+        : null}
+      {slots.theme
         ? createPortal(
             <div className="reference-theme-tools">
               <Text>Theme: {mode}</Text>
@@ -172,10 +268,10 @@ function DocumentationApp({ html }: { html: string }) {
                 Switch to {mode === 'light' ? 'dark' : 'light'} theme
               </Button>
             </div>,
-            slot('theme')!,
+            slots.theme,
           )
         : null}
-      {targets !== null && slot('search')
+      {slots.search
         ? createPortal(
             <SearchBox
               aria-label="Filter navigation"
@@ -183,54 +279,59 @@ function DocumentationApp({ html }: { html: string }) {
               value={query}
               onChange={(_event, data) => setQuery(data.value)}
             />,
-            slot('search')!,
+            slots.search,
           )
         : null}
-      {targets !== null && slot('header')
+      {slots.header
         ? createPortal(
-            <Header
-              menuButtonRef={menuButtonRef}
-              navigationOpen={navigationOpen}
-              onNavigationOpen={() => setNavigationOpen(true)}
-            />,
-            slot('header')!,
+            <>
+              <Header
+                menuButtonRef={menuButtonRef}
+                navigationOpen={navigationOpen}
+                onNavigationOpen={() => setNavigationOpen(true)}
+              />
+              {page.status === 'error' ? (
+                <Button className="reference-retry" onClick={() => setRetry((value) => value + 1)}>
+                  Retry page loading
+                </Button>
+              ) : null}
+            </>,
+            slots.header,
           )
         : null}
-      {loadError ? (
-        <p role="alert" data-preview-error>
-          {loadError}
-        </p>
-      ) : null}
-      {targets?.map((container) => {
-        const id = container.dataset.exampleId;
-        const Example = id ? examples[id] : undefined;
-        if (!id || !Example) throw new Error(`Unknown reference example: ${id}`);
-        return createPortal(
-          <ExampleBoundary id={id}>
-            {activeExample && activeExample !== id ? (
-              <Button onClick={() => setActiveExample(id)}>Run this example</Button>
-            ) : (
-              <Example />
-            )}
-          </ExampleBoundary>,
-          container,
-          id,
-        );
-      })}
     </div>
   );
 }
 
-const container = document.getElementById('reference-root');
-const content = document.getElementById('reference-content');
-if (!container || !content) throw new Error('Missing static documentation content.');
-const html = content.innerHTML;
-createRoot(container).render(
-  <ThemeProvider>
-    <DocumentationApp html={html} />
-  </ThemeProvider>,
-);
+function ReferenceApp() {
+  const [page, setPage] = React.useState<ReferencePage>(initialPage);
+  const [renderedPage, setRenderedPage] = React.useState<ReferencePage | null>(null);
+  const [mainTarget, setMainTarget] = React.useState<HTMLElement | null>(null);
+  return (
+    <ThemeProvider>
+      <BrowserRouter basename={basePath}>
+        <DocumentationShell
+          page={page}
+          renderedPage={renderedPage}
+          onPageChange={setPage}
+          onMainTarget={setMainTarget}
+        />
+      </BrowserRouter>
+      {mainTarget
+        ? createPortal(
+            <PageContent
+              key={`${page.path}:${page.status}`}
+              page={page}
+              onReady={setRenderedPage}
+            />,
+            mainTarget,
+          )
+        : null}
+    </ThemeProvider>
+  );
+}
 
+createRoot(container).render(<ReferenceApp />);
 container.addEventListener('click', async (event) => {
   const button =
     event.target instanceof Element

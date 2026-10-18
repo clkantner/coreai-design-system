@@ -17,7 +17,7 @@
     "catalog:init": "node scripts/initialize-reference-catalog.mjs",
     "build:reference-proof": "npm run sources:ensure && npm --workspace @coreai-ds/react-components run build && node scripts/build-reference-proof.mjs",
     "preview:reference-proof": "node scripts/serve-reference-proof.mjs",
-    "test:reference-proof": "node --test test/reference-proof.test.mjs",
+    "test:reference-proof": "node --test test/reference-proof.test.mjs test/reference-navigation.test.mjs",
     "verify:reference-proof": "node scripts/verify-reference-proof.mjs",
     "preview": "vite preview",
     "start": "node server.js",
