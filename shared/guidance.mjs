@@ -166,9 +166,27 @@ function bestPracticesCards() {
   };
 }
 
-export function renderGuidance(markdown, { examples = {} } = {}) {
+export function renderGuidance(markdown, { examples = {}, views = {} } = {}) {
   const processor = unified().use(remarkParse).use(remarkGfm);
   const tree = processor.parse(markdown);
+  for (let index = 0; index < tree.children.length; index++) {
+    const node = tree.children[index];
+    const marker = node.type === 'html' && node.value.match(/^<!-- view:([\w-]+) -->$/);
+    if (!marker) continue;
+    if (!Object.hasOwn(views, marker[1])) throw new Error(`Unknown page view: ${marker[1]}`);
+    const end = tree.children.findIndex(
+      (child, childIndex) =>
+        childIndex > index &&
+        child.type === 'html' &&
+        child.value === `<!-- /view:${marker[1]} -->`,
+    );
+    if (end < 0) throw new Error(`Unclosed page view: ${marker[1]}`);
+    tree.children.splice(index, end - index + 1, {
+      type: 'blockquote',
+      children: tree.children.slice(index + 1, end),
+      data: { hName: 'div', hProperties: { dataPageWidget: marker[1] } },
+    });
+  }
   for (const node of tree.children) {
     if (node.type !== 'html') continue;
     const marker = node.value.match(/^<!-- live-example:([\w-]+) -->$/);
@@ -199,14 +217,16 @@ export function renderGuidance(markdown, { examples = {} } = {}) {
   }
   const slugger = new GithubSlugger();
   const anchors = [];
-  for (const node of tree.children) {
+  const annotateHeading = (node) => {
     if (node.type === 'heading') {
       const label = toString(node);
       const id = slugger.slug(label);
       node.data = { hProperties: { id } };
       if (node.depth === 2) anchors.push({ id: `guidance-${id}`, label });
     }
-  }
+    node.children?.forEach(annotateHeading);
+  };
+  tree.children.forEach(annotateHeading);
   const updateLinks = (node) => {
     if (
       ['link', 'definition'].includes(node.type) &&
@@ -224,7 +244,13 @@ export function renderGuidance(markdown, { examples = {} } = {}) {
       ...defaultSchema,
       attributes: {
         ...defaultSchema.attributes,
-        div: [...(defaultSchema.attributes.div ?? []), 'className', 'dataExampleId', 'ariaLabel'],
+        div: [
+          ...(defaultSchema.attributes.div ?? []),
+          'className',
+          'dataExampleId',
+          'ariaLabel',
+          'dataPageWidget',
+        ],
       },
       clobberPrefix: 'guidance-',
     })

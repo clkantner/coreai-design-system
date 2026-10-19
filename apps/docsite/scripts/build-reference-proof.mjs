@@ -23,7 +23,16 @@ import {
   rewriteDocumentationLinks,
   tokenSwatches,
 } from './standalone-markdown.mjs';
-import { standaloneSections } from './standalone-sections.mjs';
+import { standaloneSections, readFoundationData } from './standalone-sections.mjs';
+import {
+  escapeHtml,
+  pageGuidanceParts,
+  pageTemplateHeader,
+  pageTemplateResources,
+  homeHeroFallback,
+} from './page-template.mjs';
+import { stripPresentationMarkers } from './standalone-markdown.mjs';
+export { escapeHtml } from './page-template.mjs';
 
 export const appRoot = fileURLToPath(new URL('../', import.meta.url));
 export const outputDirectory = path.join(appRoot, 'dist-reference-proof');
@@ -53,12 +62,6 @@ export function normalizeBase(value = '/') {
     throw new Error('Base path must be / or an absolute URL path such as /coreai-design-system/.');
   }
   return value.endsWith('/') ? value : `${value}/`;
-}
-
-export function escapeHtml(value) {
-  return value.replace(/[&<>"']/g, (character) => {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
-  });
 }
 
 export function codeFence(source, language = 'tsx') {
@@ -337,7 +340,7 @@ function implementationMarkdown(page, metadata, extension = '.md') {
 }
 
 export function pageMarkdown(page, metadata) {
-  if (page.standalone) return page.guidance.replace(/<!-- live-example:[\w-]+ -->\n*/g, '');
+  if (page.standalone) return stripPresentationMarkers(page.guidance);
   return [
     page.guidance,
     implementationMarkdown(page, metadata),
@@ -364,7 +367,15 @@ export async function resolveStandalonePage(page, { pages, basePath, generated, 
     route: page.route,
     pages,
     basePath,
-    generated,
+    generated: Object.fromEntries(
+      Object.entries(generated).map(([key, content]) => [
+        key,
+        (page.renderer === 'colors' && ['colors', 'data-visualization'].includes(key)) ||
+        (page.renderer === 'typography' && ['font-families', 'typography'].includes(key))
+          ? `<!-- view:${key} -->\n\n${content}\n\n<!-- /view:${key} -->`
+          : content,
+      ]),
+    ),
     fence: codeFence,
     sourceFile: `apps/docsite/${page.guidanceSource}`,
     renderExample(id) {
@@ -380,17 +391,29 @@ export async function resolveStandalonePage(page, { pages, basePath, generated, 
 }
 
 export function standalonePageHtml(page, metadata) {
-  return `<article class="standalone-guidance">${tokenSwatches(
-    renderGuidance(
-      rewriteDocumentationLinks(page.guidance, {
-        route: page.route,
-        pages: metadata.pages,
-        basePath: metadata.basePath,
-        html: true,
-      }),
-      { examples: Object.fromEntries(page.examples.map((example) => [example.id, example])) },
-    ).html,
-  )}</article>`;
+  const markdown = rewriteDocumentationLinks(page.guidance, {
+    route: page.route,
+    pages: metadata.pages,
+    basePath: metadata.basePath,
+    html: true,
+  });
+  const parts = pageGuidanceParts(markdown, page.resources);
+  const body = renderGuidance(parts.body, {
+    examples: Object.fromEntries(page.examples.map((example) => [example.id, example])),
+    views: {
+      colors: true,
+      'data-visualization': true,
+      'font-families': true,
+      typography: true,
+      materials: true,
+    },
+  }).html;
+  return `<div class="reference-page-introduction${page.renderer === 'home' ? ' reference-home-introduction' : ''}">${pageTemplateHeader(page, metadata, parts)}${pageTemplateResources(page, metadata)}${page.renderer === 'home' ? homeHeroFallback(page, metadata, parts) : ''}<article class="standalone-guidance${page.renderer === 'home' ? ' home-documentation' : ''}">${tokenSwatches(body)}</article></div>`;
+}
+
+export function componentPageGuidanceHtml(page, metadata) {
+  const parts = pageGuidanceParts(page.guidance, page.resources);
+  return `<div class="reference-page-introduction">${pageTemplateHeader(page, metadata, parts)}${pageTemplateResources(page, metadata)}<div class="component-markdown">${renderGuidance(parts.body).html}</div></div>`;
 }
 
 function shell(title, body, metadata, assets, navigation, currentPath = '') {
@@ -405,14 +428,14 @@ function shell(title, body, metadata, assets, navigation, currentPath = '') {
 ${assets.css.map((file) => `<link rel="stylesheet" href="${metadata.basePath}${file}">`).join('\n')}
 </head><body><div id="reference-root"><div id="reference-content"><div class="app-shell reference-shell"><a class="skip-link" href="#main">Skip to content</a>
 <div class="app-body"><aside class="app-sidenav" id="app-navigation" aria-label="Site navigation">
-<div class="app-sidenav__header"><a class="reference-brand" href="${metadata.basePath}"><span data-shell-logo></span>CoreAI design system</a>
-<div data-shell-search></div><div data-shell-theme></div><button type="button" class="reference-close" data-close-navigation>Close navigation</button></div>
-<nav class="app-sidenav__nav" aria-label="Documentation">${navigation}</nav>
-<div class="app-sidenav__footer"><a href="${metadata.basePath}llms.txt">For agents</a><a href="${metadata.basePath}guides/setup/">Package setup</a></div></aside>
+<div class="app-sidenav__header"><div class="app-sidenav__search-row"><button type="button" class="app-sidenav__search-logo" data-shell-logo aria-label="Hide navigation" aria-expanded="true" aria-controls="app-navigation-links"></button>
+<div data-shell-search></div><div data-shell-theme></div><button type="button" class="app-sidenav__dismiss" data-close-navigation aria-label="Close navigation"><span></span><span></span><span></span></button></div></div>
+<nav class="app-sidenav__nav" id="app-navigation-links" aria-label="Documentation">${navigation}</nav>
+<div class="app-sidenav__footer"><a class="app-sidenav__link" href="https://github.com/microsoft/coreai-design-system/issues">Questions?</a><a class="app-sidenav__link" href="https://github.com/microsoft/coreai-design-system/issues/new">Feedback</a></div></aside>
 <div class="app-content"><div data-shell-header></div><div class="app-page"><main class="site-main" id="main" tabindex="-1">${body}
 <footer class="reference-footer">CoreAI ${escapeHtml(metadata.versions['@coreai-ds/react-components'])}; Fluent ${escapeHtml(metadata.versions['@fluentui/react-components'])}.
 <a href="${metadata.basePath}llms.txt">Agent index</a> · <a href="${metadata.basePath}llms/index.json">Coverage and provenance</a> · <a href="${metadata.basePath}THIRD-PARTY-NOTICES.txt">License</a></footer>
-</main></div></div></div></div></div></div><script type="module" src="${metadata.basePath}${assets.entry}"></script></body></html>\n`;
+</main></div></div></div></div><div class="copy-toast" role="status"></div></div></div><script type="module" src="${metadata.basePath}${assets.entry}"></script></body></html>\n`;
 }
 
 function sourceHtml(source, id, downloadPath, base) {
@@ -465,6 +488,8 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
       route: scope.route,
       label: scope.label ?? data.title,
       standalone: !scope.component,
+      renderer: scope.renderer,
+      resources: data.resources ?? [],
       aliases: scope.aliases ?? [],
       legacyIds: [
         ...(scope.legacyIds ?? []),
@@ -571,12 +596,19 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
   const allExamples = new Map(
     pages.flatMap((page) => page.examples).map((example) => [example.id, example]),
   );
+  const foundationData = await readFoundationData(appRoot);
+  const foundationDataFile = path.join(cacheDirectory, 'foundation-data.ts');
+  await fs.writeFile(
+    foundationDataFile,
+    `import type { FoundationData } from '../../src/reference-proof/foundation-types';\nexport const foundationData = ${JSON.stringify(foundationData, null, 2)} satisfies FoundationData;\n`,
+  );
   const generated = await standaloneSections({
     appRoot,
     pages,
     versions: metadata.versions,
     providerSource,
     fence: codeFence,
+    foundationData,
   });
   for (const page of pages.filter((page) => page.standalone)) {
     Object.assign(
@@ -595,6 +627,7 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
         name: 'coreai:reference-proof-examples',
         resolveId(id) {
           if (id === 'virtual:reference-proof-examples') return registryFile;
+          if (id === 'virtual:reference-foundation-data') return foundationDataFile;
         },
       },
       {
@@ -679,10 +712,10 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
     const markdown = pageMarkdown(page, metadata);
     const markdownPath = page.route ? `${page.route}.md` : 'index.md';
     const htmlPath = page.route ? `${page.route}/` : '';
-    let body = `${page.singlePreview ? '<div data-single-preview></div>' : ''}<a href="${basePath}${markdownPath}">View as Markdown</a>\n`;
+    let body = `${page.singlePreview ? '<div data-single-preview></div>' : ''}`;
     body += page.standalone
       ? standalonePageHtml(page, { ...metadata, pages })
-      : `${renderGuidance(page.guidance).html}\n${renderGuidance(implementationMarkdown(page, metadata, '/')).html}`;
+      : `${componentPageGuidanceHtml(page, { ...metadata, pages })}\n${renderGuidance(implementationMarkdown(page, metadata, '/')).html}`;
     for (const example of page.standalone ? [] : page.examples) {
       body += `<section class="example" id="${example.id}">${exampleHeadingHtml(example)}
 <div class="preview" data-example-id="${example.id}" aria-label="${escapeHtml(example.name)} preview">
@@ -730,6 +763,10 @@ ${sourceHtml(source.source, `template-${page.id}-${index}`, source.path, basePat
       await fs.readFile(path.join(appRoot, `public/assets/material-1-${mode}.png`)),
     );
   }
+  await write(
+    'assets/favicon.svg',
+    await fs.readFile(path.join(appRoot, 'public/assets/favicon.svg')),
+  );
   const listing = pages
     .map(
       (page) =>

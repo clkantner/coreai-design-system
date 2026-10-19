@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 import ts from 'typescript';
 import { chromium } from 'playwright';
 import matter from 'gray-matter';
-import { guidanceMarkdown, renderGuidance } from '../../../shared/guidance.mjs';
+import { guidanceMarkdown } from '../../../shared/guidance.mjs';
 import {
   appRoot,
   outputDirectory,
@@ -22,6 +22,7 @@ import {
   resolveStandalonePage,
   standalonePageHtml,
   pageMarkdown,
+  componentPageGuidanceHtml,
 } from './build-reference-proof.mjs';
 import { standaloneSections } from './standalone-sections.mjs';
 import { serveReferenceProof } from './serve-reference-proof.mjs';
@@ -227,6 +228,8 @@ try {
     const html = await get(page.htmlPath);
     const markdown = await get(page.markdownPath);
     const authored = matter(await fs.readFile(path.join(appRoot, page.guidanceSource), 'utf8'));
+    assert.deepEqual(page.resources, authored.data.resources ?? []);
+    assert.equal(page.renderer, authored.data.reference?.renderer);
     const guidance = guidanceMarkdown({ ...authored.data, body: authored.content.trim() });
     if (page.standalone) {
       const expected = {
@@ -253,11 +256,11 @@ try {
     } else {
       assert.ok(markdown.includes(guidance), `${page.id}: authored guidance in Markdown`);
       assert.ok(
-        html.includes(renderGuidance(guidance).html),
-        `${page.id}: authored guidance in HTML`,
+        html.includes(componentPageGuidanceHtml({ ...page, guidance }, metadata)),
+        `${page.id}: templated guidance and resources in HTML`,
       );
     }
-    assert.doesNotMatch(markdown, /<!--\s*(?:include|generated|example|live-example):/);
+    assert.doesNotMatch(markdown, /<!--\s*(?:include|generated|example|live-example|\/?view):/);
     for (const alias of page.aliases) {
       assert.ok((await get(alias.slice(1))).includes(`${metadata.basePath}${page.htmlPath}`));
       assert.equal(await get(`${alias.slice(1, -1)}.md`), markdown);
@@ -286,6 +289,19 @@ try {
   const context = await browser.newContext();
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin });
   const page = await context.newPage();
+  async function setTheme(mode) {
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    const settings = page.locator('.docsite-settings');
+    await settings
+      .getByRole('tab', { name: mode === 'dark' ? 'Dark' : 'Light', exact: true })
+      .click();
+    await page.keyboard.press('Escape');
+    await settings.waitFor({ state: 'hidden' });
+    await page.waitForFunction(
+      (expected) => globalThis.document.documentElement.dataset.theme === expected,
+      mode,
+    );
+  }
   const errors = [];
   const pageProblems = [];
   const expectedNavigationErrors = [];
@@ -312,6 +328,18 @@ try {
         ),
     );
     assert.equal(await page.locator('[data-example-id]').count(), record.examples.length);
+    if (record.renderer !== 'home') {
+      assert.equal(
+        await page.locator('.page-header h1.fui-Text').count(),
+        1,
+        `${record.id}: CoreAI page title`,
+      );
+      assert.ok(
+        (await page.locator('.page-header .page-summary').innerText()).trim().length > 0,
+        `${record.id}: visible summary`,
+      );
+    }
+    assert.equal(await page.getByRole('button', { name: 'Copy for LLM', exact: true }).count(), 1);
     assert.equal(
       await page.locator('nav[aria-label="Documentation"] a[aria-current="page"]').count(),
       1,
@@ -390,26 +418,33 @@ try {
   await page.waitForURL(`${root}foundations/colors/`);
   await page.locator('[data-reference-ready="true"]').waitFor();
   const themes = await import('@coreai-ds/react-components');
-  const background = page
-    .locator('.standalone-guidance tr')
-    .filter({ has: page.getByRole('cell', { name: 'colorNeutralBackground1', exact: true }) });
-  for (const [index, theme] of [
-    'coreaiLightTheme',
-    'coreaiDarkTheme',
-    'azureLightTheme',
-    'azureDarkTheme',
-  ].entries()) {
-    assert.equal(
-      (
-        await background
-          .getByRole('cell')
-          .nth(index + 3)
-          .innerText()
-      ).trim(),
-      themes[theme].colorNeutralBackground1,
-    );
-  }
-  assert.ok((await page.locator('.reference-color-swatch').count()) >= 64);
+  assert.equal(await page.locator('#guidance-brand-ramps').count(), 1);
+  assert.equal(await page.locator('#guidance-semantic-surface-and-text-colors').count(), 1);
+  await setTheme('light');
+  assert.equal(
+    await page.locator('[data-token-value="colorNeutralBackground1"]').innerText(),
+    themes.coreaiLightTheme.colorNeutralBackground1,
+  );
+  await page.getByRole('tab', { name: 'Azure theme', exact: true }).click();
+  assert.equal(
+    await page.locator('[data-token-value="colorBrandBackground"]').innerText(),
+    themes.azureLightTheme.colorBrandBackground,
+  );
+  await setTheme('dark');
+  assert.equal(
+    await page.locator('[data-token-value="colorBrandBackground"]').innerText(),
+    themes.azureDarkTheme.colorBrandBackground,
+  );
+  await page.getByRole('button', { name: 'Copy colorNeutralBackground1', exact: true }).click();
+  await page
+    .locator('.copy-toast')
+    .filter({ hasText: 'Copied colorNeutralBackground1' })
+    .waitFor({ state: 'visible' });
+  assert.equal(
+    await page.evaluate(() => navigator.clipboard.readText()),
+    'colorNeutralBackground1',
+  );
+  await setTheme('light');
   const foundationOrigin = await page.evaluate(() => globalThis.performance.timeOrigin);
   await page
     .getByRole('navigation', { name: 'Documentation', exact: true })
@@ -418,6 +453,22 @@ try {
   await page.getByRole('heading', { name: 'Typography', exact: true }).waitFor();
   await page.locator('[data-reference-ready="true"]').waitFor();
   await page.locator('[data-example-id="components-text--presets"] .fui-Text').first().waitFor();
+  assert.equal(await page.locator('.font-card').count(), 2);
+  const typeSizes = await page
+    .locator('.reference-type-table [data-type-preset]')
+    .evaluateAll((elements) =>
+      elements.map((element) => parseFloat(globalThis.getComputedStyle(element).fontSize)),
+    );
+  assert.ok(
+    typeSizes[0] > typeSizes[1] && typeSizes[1] > typeSizes[4],
+    'Type samples use real text presets',
+  );
+  await page.locator('.reference-type-table button.type-table__row').first().click();
+  await page
+    .locator('.copy-toast')
+    .filter({ hasText: 'Copied heading1' })
+    .waitFor({ state: 'visible' });
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), 'heading1');
   assert.equal(await page.evaluate(() => globalThis.performance.timeOrigin), foundationOrigin);
   await page
     .getByRole('navigation', { name: 'Documentation', exact: true })
@@ -427,8 +478,23 @@ try {
   await page.locator('[data-reference-ready="true"]').waitFor();
   assert.equal(await page.locator('[data-example-id]').count(), 3);
   assert.equal(await page.evaluate(() => globalThis.performance.timeOrigin), foundationOrigin);
+  await page.goto(`${root}foundations/materials/`);
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  const materialsImage = page.locator('[data-page-widget="materials"] img');
+  assert.ok((await materialsImage.getAttribute('src')).endsWith('-light.png'));
+  await setTheme('dark');
+  assert.ok((await materialsImage.getAttribute('src')).endsWith('-dark.png'));
+  await setTheme('light');
 
   await page.goto(`${root}components/button/`);
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  await page.getByRole('button', { name: 'Copy for LLM', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Copy page as Markdown', exact: true }).click();
+  await page.getByRole('button', { name: 'Copied', exact: true }).waitFor();
+  assert.equal(
+    normalizeSource(await page.evaluate(() => navigator.clipboard.readText())),
+    normalizeSource(await get('components/button.md')),
+  );
   const defaultButton = page.locator('[data-example-id="components-button-button--default"]');
   await defaultButton.getByRole('button', { name: 'Example', exact: true }).waitFor();
   await page.locator('[data-copy-source="source-components-button-button--default"]').click();
@@ -456,8 +522,7 @@ try {
         globalThis.getComputedStyle(container).getPropertyValue('--colorNeutralBackground1'),
       ),
     );
-  await page.getByRole('button', { name: 'Switch to dark theme', exact: true }).click();
-  await page.waitForFunction(() => globalThis.document.documentElement.dataset.theme === 'dark');
+  await setTheme('dark');
   const darkTheme = await page
     .locator('[data-example-id]')
     .evaluateAll((containers) =>
@@ -475,9 +540,9 @@ try {
     'Theme changes must preserve example state',
   );
   await page.getByRole('link', { name: 'Button', exact: true }).click();
-  await page.getByRole('button', { name: 'Switch to light theme', exact: true }).waitFor();
+  await page.waitForFunction(() => globalThis.document.documentElement.dataset.theme === 'dark');
   assert.equal(await page.locator('#reference-root > .coreai-docsite-provider').count(), 1);
-  await page.getByRole('button', { name: 'Switch to light theme', exact: true }).click();
+  await setTheme('light');
   const navigation = page.getByRole('navigation', { name: 'Documentation', exact: true });
   const tree = navigation.getByRole('tree', { name: 'Documentation pages', exact: true });
   await tree.waitFor();
@@ -559,6 +624,8 @@ try {
   );
 
   await templates.focus();
+  await page.keyboard.press('ArrowRight');
+  await tree.getByRole('treeitem', { name: 'React Router', exact: true }).focus();
   await page.keyboard.press('ArrowRight');
   await navigation.getByRole('link', { name: 'Tab Link List', exact: true }).click();
   await page.getByRole('heading', { name: 'Tab Link List', exact: true }).waitFor();
@@ -671,11 +738,43 @@ try {
   const rawPage = await context.newPage();
   await rawPage.goto(`${root}components/button/`);
   await rawPage.locator('[data-reference-ready="true"]').waitFor();
+  const copyErrors = [];
+  rawPage.on('console', (message) => {
+    if (message.type() === 'error' && message.text().includes('Failed to copy page Markdown.'))
+      copyErrors.push(message.text());
+  });
+  const copyMenu = rawPage.locator('.component-copy-menu__trigger');
+  await rawPage.route(`${root}components/button.md`, (route) =>
+    route.fulfill({ status: 503, contentType: 'text/plain', body: 'Simulated outage' }),
+  );
+  await copyMenu.click();
+  await rawPage.getByRole('menuitem', { name: 'Copy page as Markdown', exact: true }).click();
+  await rawPage.getByRole('button', { name: 'Copy failed', exact: true }).waitFor();
+  await rawPage
+    .getByRole('status')
+    .filter({ hasText: 'Use View as Markdown' })
+    .waitFor({ state: 'attached' });
+  assert.equal(copyErrors.length, 1);
+  await rawPage.unroute(`${root}components/button.md`);
+  await rawPage.evaluate(() => {
+    navigator.clipboard.writeText = async () => {
+      throw new Error('Clipboard blocked for regression test');
+    };
+  });
+  await copyMenu.click();
+  await rawPage.getByRole('menuitem', { name: 'Copy page as Markdown', exact: true }).click();
+  await rawPage.getByRole('button', { name: 'Copy failed', exact: true }).waitFor();
+  assert.equal(copyErrors.length, 2);
+  await rawPage.evaluate(() => {
+    delete navigator.clipboard.writeText;
+  });
+  await copyMenu.click();
   await Promise.all([
-    rawPage.waitForRequest(
-      (request) => request.isNavigationRequest() && request.url() === `${root}components/button.md`,
-    ),
-    rawPage.getByRole('link', { name: 'View as Markdown', exact: true }).click(),
+    context.waitForEvent('request', {
+      predicate: (request) =>
+        request.isNavigationRequest() && request.url() === `${root}components/button.md`,
+    }),
+    rawPage.getByRole('menuitem', { name: 'View as Markdown', exact: true }).click(),
   ]);
   await rawPage.close();
 
@@ -719,18 +818,68 @@ try {
       await staticPage.locator('[id="source-components-button-button--default"]').textContent()
     ).includes('export default Default'),
   );
+  await staticPage.goto(`${root}foundations/colors/`);
+  assert.equal(await staticPage.locator('[data-page-widget="colors"] table').count(), 2);
+  assert.ok(
+    (await staticPage.locator('.standalone-guidance').innerText()).includes(
+      themes.azureDarkTheme.colorBrandBackground,
+    ),
+  );
+  await staticPage.goto(`${root}foundations/typography/`);
+  assert.equal(await staticPage.locator('[data-page-widget="font-families"] table').count(), 1);
+  assert.equal(await staticPage.locator('[data-page-widget="typography"] table').count(), 1);
+  await staticPage.goto(`${root}foundations/materials/`);
+  assert.equal(await staticPage.locator('[data-page-widget="materials"] img').count(), 2);
+  await staticPage.goto(root);
+  assert.equal(await staticPage.locator('.home-resource-links a').count(), 3);
+  assert.ok(await staticPage.locator('.home-logo-fallback').isVisible());
   await noJavaScript.close();
   await page.goto(`${root}components/button/`);
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  await page.keyboard.press('Alt+s');
+  await page.locator('.app-sidenav.is-collapsed').waitFor();
+  assert.equal(
+    await page.evaluate(() => localStorage.getItem('coreai-docsite-sidebar-collapsed')),
+    'true',
+  );
+  await page.keyboard.press('Control+k');
+  await page.waitForFunction(
+    () => globalThis.document.activeElement?.getAttribute('aria-label') === 'Filter navigation',
+  );
   await page.getByRole('searchbox', { name: 'Filter navigation' }).fill('dropdown');
   const filtered = page.locator('[data-navigation-entry]:visible');
   assert.ok((await filtered.count()) >= 1);
   for (const title of await filtered.allTextContents())
     assert.match(title.toLowerCase(), /dropdown/);
   await page.getByRole('searchbox', { name: 'Filter navigation' }).fill('');
+  await page.locator('#main').focus();
+  await page.keyboard.press('Control+Shift+ArrowUp');
+  assert.equal(await tree.locator('[role="treeitem"][aria-expanded="true"]').count(), 0);
+  await page.keyboard.press('Control+Shift+ArrowDown');
+  assert.ok((await tree.locator('[role="treeitem"][aria-expanded="true"]').count()) > 5);
+  await page.keyboard.press('Alt+m');
+  await page.waitForFunction(() => globalThis.document.documentElement.dataset.theme === 'dark');
+  await page.keyboard.press('Alt+m');
+  await page.waitForFunction(() => globalThis.document.documentElement.dataset.theme === 'light');
+  await page.keyboard.press('Alt+ArrowDown');
+  await page.getByRole('heading', { name: 'Card', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  await page.keyboard.press('Alt+ArrowUp');
+  await page.getByRole('heading', { name: 'Button', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await page.getByRole('dialog', { name: 'Site navigation dialog', exact: true }).waitFor();
   assert.ok(await page.locator('.app-content').evaluate((element) => element.inert));
+  const settingsBounds = await page
+    .getByRole('button', { name: 'Settings', exact: true })
+    .boundingBox();
+  const sidebarBounds = await page.locator('.app-sidenav').boundingBox();
+  assert.ok(
+    settingsBounds.x >= sidebarBounds.x &&
+      settingsBounds.x + settingsBounds.width <= sidebarBounds.x + sidebarBounds.width,
+    'Mobile settings remain inside the sidebar',
+  );
   await page.keyboard.press('Escape');
   assert.equal(
     await page.getByRole('dialog', { name: 'Site navigation dialog', exact: true }).count(),
@@ -752,6 +901,42 @@ try {
     0,
   );
   assert.equal(await page.locator('#reference-root > .coreai-docsite-provider').count(), 1);
+  await page.goto(root);
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  assert.equal(await page.locator('.home-resource-links a').count(), 3);
+  assert.ok((await page.locator('.home-heading p').innerText()).includes('Shared components'));
+  assert.equal(
+    await page.evaluate(
+      () => globalThis.document.documentElement.scrollWidth > globalThis.innerWidth,
+    ),
+    false,
+    'Homepage fits mobile width',
+  );
+  const homeOrigin = await page.evaluate(() => globalThis.performance.timeOrigin);
+  await page
+    .locator('.home-resource-links')
+    .getByRole('link', { name: 'Components', exact: true })
+    .click();
+  await page.waitForFunction(
+    () =>
+      globalThis.location.hash === '#guidance-components' &&
+      globalThis.document.querySelector('.app-page').scrollTop > 0,
+  );
+  assert.equal(await page.evaluate(() => globalThis.performance.timeOrigin), homeOrigin);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(root);
+  await page.bringToFront();
+  await page.locator('.coreai-logo-cube[data-ready="true"]').waitFor();
+  const canvas = page.locator('.coreai-logo-cube canvas');
+  await page.waitForTimeout(600);
+  const firstFrame = await canvas.screenshot();
+  await page.waitForTimeout(200);
+  assert.deepEqual(
+    await canvas.screenshot(),
+    firstFrame,
+    'Reduced-motion homepage does not animate',
+  );
   assert.deepEqual(errors, [], 'Browser errors after navigation checks');
   console.log(
     'Chromium check: persistent React Router navigation, CoreAI Tree keyboard/expansion/filtering, history and scroll restoration, mobile focus, fragments, failure/retry/cancellation, native downloads/new tabs, isolated demo routers, shared theme, all previews and source parity. No unexpected browser errors.',

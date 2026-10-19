@@ -96,7 +96,7 @@ export function useDocsiteInteractions({
       if (!toast) {
         return;
       }
-      toast.textContent = `Copied ${value}`;
+      toast.textContent = value;
       toast.classList.remove('is-visible');
       void toast.offsetWidth;
       toast.classList.add('is-visible');
@@ -117,10 +117,11 @@ export function useDocsiteInteractions({
       navigator.clipboard
         .writeText(value)
         .then(() => {
-          showToast(value);
+          showToast(`Copied ${value}`);
         })
-        .catch(() => {
-          showToast('failed');
+        .catch((error: unknown) => {
+          console.error('Could not copy the selected token or value.', error);
+          showToast('Copy failed. Select the text or try again.');
         });
     };
 

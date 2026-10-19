@@ -1,9 +1,16 @@
 ---
 id: home
-title: CoreAI design system
+title: CoreAI Design System
 summary: Shared components, patterns, and tools for building consistent, accessible CoreAI experiences.
-resources: []
+resources:
+  - label: Components
+    url: /index.md#components
+  - label: Figma
+    url: https://www.figma.com/design/eXfSQrRg3poHRgmr0ivN5V/CoreAI-DS?node-id=0-1
+  - label: npm
+    url: https://www.npmjs.com/package/@coreai-ds/react-components
 reference:
+  renderer: home
   route: index
   label: Home
   legacyIds: [introduction--docs]

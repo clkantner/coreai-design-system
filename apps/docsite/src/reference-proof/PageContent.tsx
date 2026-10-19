@@ -5,6 +5,13 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@coreai-ds/react-components';
 import { loadExamples } from 'virtual:reference-proof-examples';
+import {
+  PageHeader,
+  ResourceCards,
+  readPagePresentation,
+  type PagePresentation,
+} from './PagePresentation';
+import type { PageWidgetProps } from './FoundationViews';
 
 export interface ReferencePage {
   path: string;
@@ -50,12 +57,36 @@ export function PageContent({
   const [examples, setExamples] = React.useState<Record<string, React.ComponentType>>({});
   const [loadError, setLoadError] = React.useState<string>();
   const [activeExample, setActiveExample] = React.useState<string>();
+  const [presentation, setPresentation] = React.useState<{
+    model: PagePresentation;
+    header: HTMLElement;
+    resources: HTMLElement | null;
+  }>();
+  const [widgets, setWidgets] = React.useState<
+    { name: string; element: HTMLElement; sourceHtml: string }[]
+  >([]);
+  const [views, setViews] = React.useState<Record<string, React.ComponentType<PageWidgetProps>>>(
+    {},
+  );
   React.useEffect(() => {
     if (page.status !== 'ready') return;
     let active = true;
     const containers = [
       ...(contentRef.current?.querySelectorAll<HTMLElement>('[data-example-id]') ?? []),
     ];
+    const root = contentRef.current;
+    if (!root) throw new Error('Missing page content.');
+    const model = readPagePresentation(root);
+    const header = root.querySelector<HTMLElement>('[data-page-header]');
+    if (!header) throw new Error('Missing page header.');
+    const resources = model.home ? null : root.querySelector<HTMLElement>('[data-page-resources]');
+    const pageWidgets = [...root.querySelectorAll<HTMLElement>('[data-page-widget]')].map(
+      (element) => {
+        const name = element.dataset.pageWidget;
+        if (!name) throw new Error('Unnamed page widget.');
+        return { name, element, sourceHtml: element.innerHTML };
+      },
+    );
     const components = [
       ...new Set(containers.map((container) => container.dataset.exampleId?.split('--')[0])),
     ];
@@ -64,10 +95,24 @@ export function PageContent({
       if (!load) throw new Error(`Missing component example bundle: ${component}`);
       return load();
     });
-    Promise.all(loaders)
-      .then((loaded) => {
+    Promise.all([
+      Promise.all(loaders),
+      pageWidgets.some((widget) => widget.name !== 'home')
+        ? import('./FoundationViews').then((module) => module.foundationViews)
+        : Promise.resolve({}),
+      pageWidgets.some((widget) => widget.name === 'home')
+        ? import('./HomeView').then((module) => ({ home: module.default }))
+        : Promise.resolve({}),
+    ])
+      .then(([loaded, foundationViews, homeView]) => {
         if (!active) return;
         for (const container of containers) container.replaceChildren();
+        header.replaceChildren();
+        resources?.replaceChildren();
+        for (const widget of pageWidgets) widget.element.replaceChildren();
+        setPresentation({ model, header, resources });
+        setViews({ ...foundationViews, ...homeView });
+        setWidgets(pageWidgets);
         setExamples(
           Object.fromEntries(loaded.flatMap((module) => Object.entries(module.examples))),
         );
@@ -113,6 +158,23 @@ export function PageContent({
           {loadError}
         </p>
       ) : null}
+      {presentation
+        ? createPortal(<PageHeader model={presentation.model} />, presentation.header)
+        : null}
+      {presentation?.resources
+        ? createPortal(<ResourceCards model={presentation.model} />, presentation.resources)
+        : null}
+      {presentation
+        ? widgets.map((widget, index) => {
+            const View = views[widget.name];
+            if (!View) throw new Error(`Unknown custom page view: ${widget.name}`);
+            return createPortal(
+              <View sourceHtml={widget.sourceHtml} model={presentation.model} />,
+              widget.element,
+              `page-view-${index}`,
+            );
+          })
+        : null}
       {targets?.map((container) => {
         const id = container.dataset.exampleId;
         const Example = id ? examples[id] : undefined;

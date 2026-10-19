@@ -165,6 +165,7 @@ The supported build-time directives are deliberately small:
 <!-- generated: catalog -->
 <!-- generated: install -->
 <!-- generated: provider -->
+<!-- generated: font-families -->
 <!-- generated: release-summaries -->
 <!-- include: package-readme -->
 <!-- include: package-changelog -->
@@ -178,11 +179,35 @@ Includes use a fixed repository-source allowlist. Unknown or malformed directive
 fail the build. Relative documentation links, old Storybook documentation links,
 base paths, and cross-page heading anchors are resolved for each presentation.
 
-Color-role, typography, and visualization data are authored in Markdown tables
+Color-role, typography, font-family, and visualization data are authored in Markdown tables
 under `content/data/`. Color values come from the built CoreAI/Azure theme exports,
 not a second hand-maintained palette. Human tables add swatches; raw Markdown
 contains every value for both themes. The Typography, Theming, and Forms guides
 embed the same compiled examples and source as the component catalog.
+
+### Human presentation and custom views
+
+All pages share a CoreAI title/summary, independent resource cards, and a
+**Copy for LLM** menu with copy and raw-Markdown actions. These use the same
+Markdown and resource metadata as the static files, not another authored copy.
+The sidebar keeps React Router and the CoreAI Tree, with the compact logo,
+search, Settings, collapse control, and keyboard shortcuts from the original site.
+
+Standalone pages can opt into a bounded `reference.renderer`: `home`, `colors`,
+`typography`, or `materials`. These restore the homepage graphic/resource pills,
+interactive color ramps/token stacks, font cards/actual Text presets, and
+theme-specific materials diagram. The registry is in
+[`FoundationViews.tsx`](src/reference-proof/FoundationViews.tsx) and
+[`HomeView.tsx`](src/reference-proof/HomeView.tsx).
+
+Custom views enhance reserved static fallback slots; they do not replace the
+Markdown pipeline. Foundations read the same authored tables used to generate
+Markdown. The generated data is type-checked against CoreAI tokens and presets.
+Raw Markdown retains all themes and both materials images. Without JavaScript,
+HTML retains readable tables, images, resources, and the static homepage logo.
+Presentation markers are stripped from published Markdown, not from fenced
+code examples. Add specialized layouts only to this bounded registry; do not
+restore hosted Storybook iframes or per-example providers.
 
 The package README, changelog, skill, and router helper remain their canonical
 sources and are included at build time. The five authored Storybook MDX guides

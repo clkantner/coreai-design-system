@@ -342,12 +342,13 @@ test('search selection clears the filter, navigates, and closes the sidebar with
 });
 
 test('Figma previews and resources coexist with Storybook and Markdown actions', async () => {
-  const [component, icons, introduction, styles, home] = await Promise.all([
+  const [component, icons, introduction, styles, home, markdownActions] = await Promise.all([
     fs.readFile(new URL('apps/docsite/src/components/ComponentPage.tsx', repoRoot), 'utf8'),
     fs.readFile(new URL('apps/docsite/src/components/Icons.tsx', repoRoot), 'utf8'),
     fs.readFile(new URL('apps/storybook/src/stories/docs/IntroductionPage.tsx', repoRoot), 'utf8'),
     fs.readFile(new URL('apps/docsite/src/styles/docsite.css', repoRoot), 'utf8'),
     fs.readFile(new URL('apps/docsite/src/pages/Introduction.tsx', repoRoot), 'utf8'),
+    fs.readFile(new URL('apps/docsite/src/components/MarkdownActions.tsx', repoRoot), 'utf8'),
   ]);
   assert.match(component, /if \(source\.kind === 'figma'\)/);
   assert.match(component, /encodeURIComponent\(figmaPreviewSource\.url\)/);
@@ -362,8 +363,9 @@ test('Figma previews and resources coexist with Storybook and Markdown actions',
   assert.match(component, /src=\{embedUrl\.toString\(\)\}/);
   assert.match(component, /content\.resourceSourceIds\.map/);
   assert.match(component, /content\.resourceSourceIds\.length > 0/);
-  assert.match(component, /navigator\.clipboard\.writeText\(await response\.text\(\)\)/);
-  assert.match(component, /href=\{markdownUrl\}/);
+  assert.match(component, /<MarkdownActions markdownUrl=\{markdownUrl\}/);
+  assert.match(markdownActions, /navigator\.clipboard\.writeText\(markdown\)/);
+  assert.match(markdownActions, /href=\{markdownUrl\}/);
   assert.match(introduction, /href: siteLinks\.docsite/);
 });
 

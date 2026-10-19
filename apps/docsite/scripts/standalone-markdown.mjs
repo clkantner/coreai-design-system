@@ -140,3 +140,17 @@ export function tokenSwatches(html) {
       `<td><span class="reference-color-swatch" style="background-color:${color}" aria-hidden="true"></span><code>${color}</code></td>`,
   );
 }
+
+export function stripPresentationMarkers(markdown) {
+  const tree = parser.parse(markdown);
+  let result = markdown;
+  for (const node of [...tree.children].reverse()) {
+    if (
+      node.type === 'html' &&
+      /^<!-- (?:live-example:[\w-]+|\/?view:[\w-]+) -->$/.test(node.value)
+    ) {
+      result = result.slice(0, node.position.start.offset) + result.slice(node.position.end.offset);
+    }
+  }
+  return result;
+}

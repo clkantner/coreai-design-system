@@ -11,8 +11,16 @@ import {
   expandStandaloneMarkdown,
   rewriteDocumentationLinks,
   tokenSwatches,
+  stripPresentationMarkers,
 } from '../scripts/standalone-markdown.mjs';
 import { appRoot, codeFence } from '../scripts/build-reference-proof.mjs';
+import {
+  pageGuidanceParts,
+  pageTemplateHeader,
+  pageTemplateResources,
+  presentationResources,
+} from '../scripts/page-template.mjs';
+import { readFoundationData, standaloneSections } from '../scripts/standalone-sections.mjs';
 import { renderGuidance } from '../../../shared/guidance.mjs';
 import { publicMarkdown } from '../scripts/sources/public-markdown.mjs';
 import {
@@ -138,6 +146,94 @@ test('only registered live examples become preview slots in authored guidance', 
   assert.match(referenced, /href="#guidance-unreleased"/);
   assert.doesNotMatch(referenced, /href="#unreleased"|guidance-guidance/);
   assert.match(referenced, /href="#"/);
+});
+
+test('page templates preserve rich summaries and present canonical resources as separate links', () => {
+  const resources = [
+    { label: 'Components', url: '/index.md#components' },
+    { label: 'Figma & design', url: 'https://www.figma.com/' },
+  ];
+  const guidance =
+    '# CoreAI\n\nUse **CoreAI** with `React`.\n\n## Setup\n\nKeep this guidance.\n\n## Resources\n\n- [Components](/index.md#components)';
+  const parts = pageGuidanceParts(guidance, resources);
+  assert.equal(parts.headingId, 'guidance-coreai');
+  assert.match(parts.summaryHtml, /<strong>CoreAI<\/strong>.*<code>React<\/code>/);
+  assert.match(parts.body, /Keep this guidance/);
+  assert.doesNotMatch(parts.body, /## Resources/);
+  const page = { title: 'CoreAI', route: '', resources };
+  const metadata = { basePath: '/repo/', pages: [{ route: '' }] };
+  assert.deepEqual(presentationResources(page, metadata), [
+    { label: 'Components', href: '/repo/#guidance-components' },
+    { label: 'Figma & design', href: 'https://www.figma.com/' },
+  ]);
+  assert.match(pageTemplateHeader(page, metadata, parts), /data-markdown-url="\/repo\/index.md"/);
+  const html = pageTemplateResources(page, metadata);
+  assert.match(html, /class="component-resource-card"/);
+  assert.match(html, /Figma &amp; design/);
+  assert.throws(() => pageGuidanceParts('# Missing summary'), /title and summary/);
+  assert.throws(
+    () =>
+      presentationResources(
+        { ...page, resources: [{ label: 'Invalid', url: 'javascript:alert(1)' }] },
+        metadata,
+      ),
+    /Unsupported page resource/,
+  );
+});
+
+test('registered custom views keep readable fallbacks, heading IDs and code-fenced markers', () => {
+  const markdown =
+    '## Palette\n\n<!-- view:colors -->\n\n### Brand ramps\n\nFallback content.\n\n<!-- /view:colors -->\n\n```md\n<!-- view:colors -->\n<!-- /view:colors -->\n```';
+  const { html } = renderGuidance(markdown, { views: { colors: true } });
+  assert.match(html, /data-page-widget="colors"/);
+  assert.match(html, /id="guidance-brand-ramps"/);
+  assert.match(html, /Fallback content/);
+  assert.match(html, /&#x3C;!-- view:colors -->/);
+  const stripped = stripPresentationMarkers(markdown);
+  assert.match(stripped, /Fallback content/);
+  assert.equal(
+    stripped.split('<!-- view:colors -->').length,
+    2,
+    'Keep the code-fenced example only',
+  );
+  assert.throws(() => renderGuidance(markdown), /Unknown page view/);
+  assert.throws(
+    () => renderGuidance('<!-- view:colors -->', { views: { colors: true } }),
+    /Unclosed page view/,
+  );
+  assert.throws(() => renderGuidance('<!-- view:constructor -->'), /Unknown page view/);
+});
+
+test('custom foundation views and published Markdown share authored tokens, presets and fonts', async () => {
+  const data = await readFoundationData(appRoot);
+  const sections = await standaloneSections({
+    appRoot,
+    pages: [],
+    versions: {},
+    providerSource: '',
+    fence: codeFence,
+    foundationData: data,
+  });
+  const themes = await import('@coreai-ds/react-components');
+  for (const row of data.colors) {
+    assert.ok(sections.colors.includes(row.token));
+    assert.ok(sections.colors.includes(row.description));
+    for (const theme of [
+      'coreaiLightTheme',
+      'coreaiDarkTheme',
+      'azureLightTheme',
+      'azureDarkTheme',
+    ])
+      assert.ok(sections.colors.includes(themes[theme][row.token]));
+  }
+  for (const row of data.dataViz) assert.ok(sections['data-visualization'].includes(row.value));
+  for (const row of data.typography) assert.ok(sections.typography.includes(row.strongPreset));
+  assert.equal(data.fonts.length, 2);
+  for (const font of data.fonts) {
+    assert.ok(sections['font-families'].includes(font.name));
+    assert.ok(sections['font-families'].includes(font.token));
+    assert.ok(sections['font-families'].includes(font.download));
+  }
 });
 
 test('Storybook snapshots embed canonical Markdown for manifest-only readers without a second authored copy', async () => {

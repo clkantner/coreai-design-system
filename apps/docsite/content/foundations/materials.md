@@ -4,6 +4,7 @@ title: Materials
 summary: 'Surface tiers, depth, and visual hierarchy.'
 resources: []
 reference:
+  renderer: materials
   route: foundations/materials
   aliases:
     - /materials/
@@ -17,6 +18,8 @@ We use subtle variations in background color to simulate depth and layering in d
 
 Text, strokes, and fills that are darker than the background they rest on are perceived as being part of the page itself rather than floating above it, creating a visual sense of embedded content rather than layered depth.
 
+<!-- view:materials -->
+
 ## Dark theme
 
 ![Materials diagram in dark mode](/assets/material-1-dark.png)
@@ -24,5 +27,7 @@ Text, strokes, and fills that are darker than the background they rest on are pe
 ## Light theme
 
 ![Materials diagram in light mode](/assets/material-1-light.png)
+
+<!-- /view:materials -->
 
 See [semantic surface colors](./colors.md) for the current token values.

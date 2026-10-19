@@ -11,7 +11,15 @@ export interface NavigationEntry {
   title: string;
 }
 
-export function NavigationTree({ entries, query }: { entries: NavigationEntry[]; query: string }) {
+export interface NavigationTreeHandle {
+  collapseAll: () => void;
+  expandAll: () => void;
+}
+
+export const NavigationTree = React.forwardRef<
+  NavigationTreeHandle,
+  { entries: NavigationEntry[]; query: string }
+>(function NavigationTree({ entries, query }, ref) {
   const location = useLocation();
   const navigate = useNavigate();
   const activePath = normalizeReferencePath(location.pathname);
@@ -23,15 +31,15 @@ export function NavigationTree({ entries, query }: { entries: NavigationEntry[];
     { value: 'components', label: 'Components' },
     { value: 'templates', label: 'Templates' },
   ];
-  const [openItems, setOpenItems] = React.useState<TreeItemValue[]>([
+  const [openItems, setOpenItems] = React.useState<TreeItemValue[]>(() => [
     'overview',
-    'guides',
-    'foundations',
-    'patterns',
-    'components',
-    'templates',
-    'react-router',
+    activePath.split('/')[1] || 'overview',
+    ...(activePath.startsWith('/templates/react-router-') ? ['react-router'] : []),
   ]);
+  React.useImperativeHandle(ref, () => ({
+    collapseAll: () => setOpenItems([]),
+    expandAll: () => setOpenItems([...groups.map((group) => group.value), 'react-router']),
+  }));
   const needle = query.trim().toLowerCase();
   const visible = entries.filter((entry) => !needle || entry.title.toLowerCase().includes(needle));
 
@@ -124,4 +132,4 @@ export function NavigationTree({ entries, query }: { entries: NavigationEntry[];
       </Tree>
     </>
   );
-}
+});

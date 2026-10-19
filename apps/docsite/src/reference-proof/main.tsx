@@ -5,12 +5,14 @@ import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
-import { Button, SearchBox, Text } from '@coreai-ds/react-components';
+import { Button, SearchBox } from '@coreai-ds/react-components';
 import '@coreai-ds/react-components/fonts/fonts.css';
-import { ThemeProvider, useThemeMode } from '../theme/ThemeProvider';
+import { ThemeProvider } from '../theme/ThemeProvider';
 import { CoreAILogo } from '../components/Icons';
 import { Header } from '../components/Header';
-import { NavigationTree, type NavigationEntry } from './NavigationTree';
+import { ThemeSwitcher } from '../components/ThemeSwitcher';
+import { useDocsiteInteractions } from '../hooks/useDocsiteInteractions';
+import { NavigationTree, type NavigationEntry, type NavigationTreeHandle } from './NavigationTree';
 import { PageContent, type ReferencePage } from './PageContent';
 import { clientNavigationTarget, normalizeReferencePath } from './navigation.mjs';
 import '../styles/docsite.css';
@@ -58,9 +60,10 @@ function DocumentationShell({
   const navigate = useNavigate();
   const navigationType = useNavigationType();
   const pathname = normalizeReferencePath(location.pathname);
-  const { mode, setPreference } = useThemeMode();
   const contentRef = React.useRef<HTMLDivElement>(null);
   const menuButtonRef = React.useRef<HTMLButtonElement>(null);
+  const searchRef = React.useRef<HTMLInputElement>(null);
+  const treeRef = React.useRef<NavigationTreeHandle>(null);
   const lastPage = React.useRef(initialPage);
   const scrollPositions = React.useRef(new Map<string, number>());
   const initialLocation = React.useRef(location.key);
@@ -68,7 +71,47 @@ function DocumentationShell({
   const [query, setQuery] = React.useState('');
   const [navigationOpen, setNavigationOpen] = React.useState(false);
   const [retry, setRetry] = React.useState(0);
+  const [collapsed, setCollapsed] = React.useState(
+    () => localStorage.getItem('coreai-docsite-sidebar-collapsed') === 'true',
+  );
+  const isApplePlatform = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
   const markup = React.useMemo(() => ({ __html: shellHtml }), []);
+  const toggleNavigation = React.useCallback(() => {
+    if (window.innerWidth <= 1100) setNavigationOpen((open) => !open);
+    else setCollapsed((value) => !value);
+  }, []);
+  const focusSearch = React.useCallback(() => {
+    setCollapsed(false);
+    if (window.innerWidth <= 1100) setNavigationOpen(true);
+    requestAnimationFrame(() => {
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    });
+  }, []);
+  const collapseGroups = React.useCallback(() => {
+    setQuery('');
+    treeRef.current?.collapseAll();
+  }, []);
+  const expandGroups = React.useCallback(() => {
+    setQuery('');
+    treeRef.current?.expandAll();
+  }, []);
+  const navigatePage = React.useCallback(
+    (direction: -1 | 1) => {
+      const index = entries.findIndex((entry) => entry.path === pathname);
+      const next = entries[index + direction];
+      if (index >= 0 && next) navigate(next.path);
+    },
+    [pathname, navigate],
+  );
+  useDocsiteInteractions({
+    onToggleNavigation: toggleNavigation,
+    onCollapseNavigation: collapseGroups,
+    onExpandNavigation: expandGroups,
+    onNavigatePage: navigatePage,
+    onFocusSearch: focusSearch,
+    isApplePlatform,
+  });
 
   React.useLayoutEffect(() => {
     const root = contentRef.current;
@@ -85,6 +128,26 @@ function DocumentationShell({
     setSlots(next);
     onMainTarget(target);
   }, [onMainTarget]);
+
+  React.useEffect(() => {
+    const sidebar = contentRef.current?.querySelector<HTMLElement>('#app-navigation');
+    const logo = slots.logo;
+    sidebar?.classList.toggle('is-collapsed', collapsed && window.innerWidth > 1100);
+    localStorage.setItem('coreai-docsite-sidebar-collapsed', String(collapsed));
+    logo?.setAttribute(
+      'aria-label',
+      collapsed && !navigationOpen ? 'Show navigation' : 'Hide navigation',
+    );
+    logo?.setAttribute('aria-expanded', String(!collapsed || navigationOpen));
+    logo?.addEventListener('click', toggleNavigation);
+    return () => logo?.removeEventListener('click', toggleNavigation);
+  }, [collapsed, navigationOpen, slots, toggleNavigation]);
+
+  React.useLayoutEffect(() => {
+    const home = pathname === '/' && page.status === 'ready';
+    contentRef.current?.querySelector('.app-content')?.classList.toggle('app-content--home', home);
+    contentRef.current?.querySelector('.app-page')?.classList.toggle('app-page--home', home);
+  }, [pathname, page.status]);
 
   React.useEffect(() => {
     setQuery('');
@@ -255,27 +318,33 @@ function DocumentationShell({
       <div ref={contentRef} dangerouslySetInnerHTML={markup} />
       {slots.logo ? createPortal(<CoreAILogo />, slots.logo) : null}
       {slots.navigation
-        ? createPortal(<NavigationTree entries={entries} query={query} />, slots.navigation)
+        ? createPortal(
+            <NavigationTree ref={treeRef} entries={entries} query={query} />,
+            slots.navigation,
+          )
         : null}
       {slots.theme
         ? createPortal(
-            <div className="reference-theme-tools">
-              <Text>Theme: {mode}</Text>
-              <Button
-                appearance="subtle"
-                onClick={() => setPreference(mode === 'light' ? 'dark' : 'light')}
-              >
-                Switch to {mode === 'light' ? 'dark' : 'light'} theme
-              </Button>
-            </div>,
+            <ThemeSwitcher
+              key={`${pathname}:${collapsed}:${navigationOpen}`}
+              isApplePlatform={isApplePlatform}
+            />,
             slots.theme,
           )
         : null}
       {slots.search
         ? createPortal(
             <SearchBox
+              ref={searchRef}
               aria-label="Filter navigation"
-              placeholder="Find a component"
+              placeholder="Search"
+              title="Search documentation titles"
+              contentBefore={null}
+              contentAfter={
+                <span className="app-sidenav__search-shortcut" aria-hidden="true">
+                  {isApplePlatform ? 'Cmd' : 'Ctrl'} K
+                </span>
+              }
               value={query}
               onChange={(_event, data) => setQuery(data.value)}
             />,

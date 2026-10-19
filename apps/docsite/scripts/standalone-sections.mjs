@@ -20,7 +20,7 @@ export function markdownTable(headers, rows) {
   ].join('\n');
 }
 
-export async function standaloneSections({ appRoot, pages, versions, providerSource, fence }) {
+export async function readFoundationData(appRoot) {
   async function rows(name) {
     const source = await fs.readFile(path.join(appRoot, 'content/data', `${name}.md`), 'utf8');
     const table = unified()
@@ -31,8 +31,47 @@ export async function standaloneSections({ appRoot, pages, versions, providerSou
     if (!table) throw new Error(`Missing authored data table: ${name}`);
     return table.children.map((row) => row.children.map((cell) => toString(cell)));
   }
+  return {
+    colors: (await rows('color-roles'))
+      .slice(1)
+      .map(([name, token, description]) => ({ name, token, description })),
+    dataViz: (await rows('data-visualization'))
+      .slice(1)
+      .map(([slot, label, description, value]) => ({ slot, label, description, value })),
+    typography: (await rows('typography'))
+      .slice(1)
+      .map(([strongPreset, strongLabel, regularPreset, regularLabel, fluent, usage]) => ({
+        strongPreset,
+        strongLabel,
+        ...(regularPreset ? { regularPreset, regularLabel } : {}),
+        fluent,
+        usage,
+      })),
+    fonts: (await rows('fonts'))
+      .slice(1)
+      .map(([name, variant, sample, suffix, token, description, download]) => ({
+        name,
+        variant,
+        sample,
+        suffix,
+        token,
+        description,
+        download,
+      })),
+  };
+}
+
+export async function standaloneSections({
+  appRoot,
+  pages,
+  versions,
+  providerSource,
+  fence,
+  foundationData,
+}) {
+  const data = foundationData ?? (await readFoundationData(appRoot));
   const themes = await import('@coreai-ds/react-components');
-  const roles = (await rows('color-roles')).slice(1);
+  const roles = data.colors;
   const themeNames = ['coreaiLightTheme', 'coreaiDarkTheme', 'azureLightTheme', 'azureDarkTheme'];
   const colors = [
     '### Brand ramps',
@@ -46,10 +85,10 @@ export async function standaloneSections({ appRoot, pages, versions, providerSou
     '### Semantic surface and text colors',
     markdownTable(
       ['Role', 'Token', 'Usage', 'CoreAI light', 'CoreAI dark', 'Azure light', 'Azure dark'],
-      roles.map(([name, token, usage]) => [
+      roles.map(({ name, token, description }) => [
         name,
         `\`${token}\``,
-        usage,
+        description,
         ...themeNames.map((theme) => {
           const value = themes[theme][token];
           if (typeof value !== 'string')
@@ -59,13 +98,40 @@ export async function standaloneSections({ appRoot, pages, versions, providerSou
       ]),
     ),
   ].join('\n\n');
-  const typography = await rows('typography');
-  const viz = await rows('data-visualization');
   const history = JSON.parse(await fs.readFile(path.join(appRoot, 'changelog.json'), 'utf8'));
   return {
     colors,
-    typography: markdownTable(typography[0], typography.slice(1)),
-    'data-visualization': markdownTable(viz[0], viz.slice(1)),
+    typography: markdownTable(
+      [
+        'Strong preset',
+        'Strong label',
+        'Regular preset',
+        'Regular label',
+        'Fluent equivalent',
+        'Usage',
+      ],
+      data.typography.map((row) => [
+        row.strongPreset,
+        row.strongLabel,
+        row.regularPreset,
+        row.regularLabel,
+        row.fluent,
+        row.usage,
+      ]),
+    ),
+    'font-families': markdownTable(
+      ['Font', 'Token', 'Usage', 'Download'],
+      data.fonts.map((font) => [
+        font.name,
+        font.token,
+        font.description,
+        `[Microsoft font download](${font.download})`,
+      ]),
+    ),
+    'data-visualization': markdownTable(
+      ['Slot', 'Color', 'Usage', 'Value'],
+      data.dataViz.map((row) => [row.slot, row.label, row.description, row.value]),
+    ),
     install: `${fence(
       `npm install ${Object.entries(versions)
         .map(([name, version]) => `${name}@${version}`)

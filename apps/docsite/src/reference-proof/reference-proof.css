@@ -24,25 +24,91 @@
 
 .reference-shell .site-main {
   width: 100%;
-  max-width: 1200px;
+  max-width: 920px;
   margin-inline: auto;
-  padding: 48px;
+  padding: 64px 48px;
 }
 
-.reference-shell h1 {
-  font-size: 32px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.reference-shell h2 {
+.reference-shell .component-markdown > h2,
+.reference-shell .standalone-guidance > h2 {
   margin-block-start: 32px;
   font-size: 24px;
 }
 
-.reference-shell a:not(.reference-brand, .reference-nav-link, .reference-tree-link) {
+.reference-shell
+  a:not(
+    .reference-brand,
+    .reference-nav-link,
+    .reference-tree-link,
+    .component-resource-card,
+    .app-sidenav__quick-link,
+    .font-card-link
+  ) {
   color: var(--colorBrandForegroundLink, #005a9e);
   text-decoration: underline;
+}
+
+.reference-shell .page-header h1 {
+  font-size: var(--fontSizeHero900);
+  line-height: var(--lineHeightHero900);
+  font-weight: var(--fontWeightRegular);
+}
+
+.reference-shell .page-summary p {
+  margin: 0;
+}
+
+.reference-shell .component-resources {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+}
+
+.reference-shell .component-resources-section {
+  margin-block-end: 0;
+}
+
+.reference-page-introduction {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.reference-home-introduction {
+  display: block;
+}
+
+.component-markdown > :first-child,
+.standalone-guidance > :first-child {
+  margin-block-start: 0;
+}
+
+.reference-shell .component-resource-card strong {
+  font-weight: var(--fontWeightRegular);
+}
+
+.reference-shell .app-sidenav__search-row [data-shell-search] {
+  flex: 1;
+  min-width: 0;
+}
+
+.reference-shell [data-shell-search] .fui-SearchBox {
+  width: 100%;
+  min-width: 0;
+}
+
+.reference-shell .app-sidenav__search-logo > svg {
+  width: 24px;
+  height: 24px;
+}
+
+[data-shell-theme] {
+  display: flex;
+  flex: 0 0 32px;
+}
+
+[data-shell-theme] .fui-Button {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
 }
 
 .reference-brand {
@@ -57,18 +123,6 @@
   display: inline-flex;
   width: 28px;
   flex-shrink: 0;
-}
-
-.reference-theme-tools {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.reference-theme-tools button {
-  font-size: 12px;
 }
 
 .reference-nav-group {
@@ -99,6 +153,110 @@
 
 .reference-nav-link[hidden] {
   display: none;
+}
+
+.reference-color-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.reference-color-view section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.reference-color-view .color-scale__bar button {
+  position: relative;
+  flex: 1;
+  border: 0;
+  padding: 0;
+  cursor: copy;
+}
+
+.reference-color-view button.primary-card,
+.reference-token-stack button.stack-row,
+.reference-type-table button.type-table__row {
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  cursor: copy;
+  border: 0;
+}
+
+.reference-token-stack button.stack-row,
+.reference-type-table button.type-table__row {
+  background: transparent;
+}
+
+.reference-token-stack .stack-row__main,
+.reference-token-stack .stack-row__meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.reference-type-table {
+  overflow-x: auto;
+}
+
+.reference-type-table button.type-table__row {
+  border-bottom: 1px solid var(--colorNeutralStroke2);
+}
+
+.reference-shell .app-page--home .site-main {
+  max-width: none;
+  padding: 0;
+}
+
+.reference-shell .home-landing {
+  min-height: calc(100dvh - 8px);
+}
+
+.reference-shell .home-foreground {
+  max-width: 480px;
+}
+
+.reference-shell .home-visual {
+  position: absolute;
+  inset: 0 0 0 50%;
+  overflow: hidden;
+}
+
+.home-logo-fallback {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0.15;
+}
+
+.home-visual:has(.coreai-logo-cube[data-ready='true']) .home-logo-fallback {
+  visibility: hidden;
+}
+
+.home-resource-links .app-sidenav__quick-link-brand svg {
+  width: 20px;
+  height: 20px;
+}
+
+.home-page-actions {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  z-index: 5;
+}
+
+.home-documentation {
+  max-width: 920px;
+  margin-inline: auto;
+  padding: 48px;
+}
+
+.app-page--home .reference-footer {
+  max-width: 920px;
+  margin-inline: auto;
+  padding-inline: 48px;
 }
 
 .reference-navigation-tree {
@@ -220,7 +378,12 @@
   }
 
   .reference-shell .site-main {
-    padding: 48px 24px;
+    padding: 64px 24px;
+  }
+
+  .home-page-actions {
+    right: 72px;
+    top: 16px;
   }
 
   .reference-close {

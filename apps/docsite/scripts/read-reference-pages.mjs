@@ -37,6 +37,7 @@ export async function readReferencePages(contentDirectory) {
               'label',
               'migratedFrom',
               'legacyIds',
+              'renderer',
             ].includes(key)
           ) {
             fail(`unknown reference field "${key}".`);
@@ -124,6 +125,13 @@ export async function readReferencePages(contentDirectory) {
           (typeof reference.label !== 'string' || !reference.label.trim())
         )
           fail('reference.label must be a nonempty string.');
+        if (
+          reference.renderer !== undefined &&
+          !['home', 'colors', 'typography', 'materials'].includes(reference.renderer)
+        )
+          fail('Unknown page renderer.');
+        if (reference.renderer && reference.component)
+          fail('Custom renderers are for standalone pages.');
         for (const source of reference.sources ?? []) {
           if (
             !/^src\/stories\/templates\/[\w/-]+\.tsx$/.test(source) ||

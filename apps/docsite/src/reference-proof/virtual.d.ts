@@ -8,3 +8,7 @@ declare module 'virtual:reference-proof-examples' {
     () => Promise<{ examples: Record<string, ComponentType> }>
   >;
 }
+
+declare module 'virtual:reference-foundation-data' {
+  export const foundationData: import('./foundation-types').FoundationData;
+}

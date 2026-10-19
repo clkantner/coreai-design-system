@@ -4,6 +4,7 @@ title: Colors
 summary: 'Palette, semantic roles, token naming, and accessible color use.'
 resources: []
 reference:
+  renderer: colors
   route: foundations/colors
   aliases:
     - /colors/
