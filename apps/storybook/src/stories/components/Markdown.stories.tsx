@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 import * as React from 'react';
+import type { StoryObj } from '@storybook/react-vite';
 import { type JSXElement, Markdown } from '@coreai-ds/react-components';
 // `Markdown` renders a Markdown string as themed Fluent UI content. Fenced code
 // blocks render through CoreAI's `CodeBlock`; links through Fluent's `Link`.
@@ -93,6 +94,28 @@ LLMs are **changing the world**. Whether you're a developer, writer, or research
 `;
 
 export const Default = (): JSXElement => <Markdown content={defaultContent} />;
+
+/**
+ * Converts `details` and `summary` authoring syntax into a Fluent Accordion
+ * while preserving Markdown heading semantics in the header.
+ *
+ * @summary Converts details and summary Markdown into a Fluent Accordion.
+ */
+export const DetailsAsAccordion: StoryObj = {
+  render: () => {
+    const content = `<details>
+<summary>
+
+## Accordion header name
+
+</summary>
+
+Panel content
+</details>`;
+
+    return <Markdown content={content} />;
+  },
+};
 
 /**
  * Renders a Markdown string as themed Fluent content — GitHub Flavored Markdown

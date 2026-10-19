@@ -27,9 +27,18 @@
  * [2]: https://github.com/remarkjs/remark-gfm
  */
 import * as React from 'react';
-import { makeStyles, mergeClasses, tokens } from '@fluentui/react-components';
+import {
+  Accordion,
+  AccordionHeader,
+  AccordionItem,
+  AccordionPanel,
+  makeStyles,
+  mergeClasses,
+  tokens,
+} from '@fluentui/react-components';
 import type { Element } from 'hast';
 import ReactMarkdown, { type Components, type Options } from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './CodeBlock.js';
 import { Link } from './Link.js';
@@ -96,6 +105,35 @@ function extractCode(node: Element | undefined): { code: string; language?: stri
   return { code, language };
 }
 
+function Summary({ children }: React.ComponentPropsWithoutRef<'summary'>): React.JSX.Element {
+  return <>{children}</>;
+}
+
+function Details({
+  node: _node,
+  children,
+  open,
+}: { node?: Element } & React.ComponentProps<'details'>): React.JSX.Element {
+  const content = React.Children.toArray(children);
+  const summaryIndex = content.findIndex(
+    (child) => React.isValidElement(child) && child.type === Summary,
+  );
+  const summary =
+    summaryIndex >= 0 && React.isValidElement<{ children?: React.ReactNode }>(content[summaryIndex])
+      ? content[summaryIndex].props.children
+      : 'Details';
+  const panel = content.filter((_, index) => index !== summaryIndex);
+
+  return (
+    <Accordion collapsible defaultOpenItems={open ? ['details'] : undefined}>
+      <AccordionItem value="details">
+        <AccordionHeader>{summary}</AccordionHeader>
+        <AccordionPanel>{panel}</AccordionPanel>
+      </AccordionItem>
+    </Accordion>
+  );
+}
+
 function Heading({
   node,
   children,
@@ -158,6 +196,8 @@ const defaultComponents: Components = {
   h4: Heading,
   h5: Heading,
   h6: Heading,
+  details: Details,
+  summary: Summary,
 };
 
 const useStyles = makeStyles({
@@ -337,7 +377,7 @@ export function Markdown(props: MarkdownProps): React.JSX.Element {
     <div className={mergeClasses('fui-Markdown', styles.root, className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, ...(remarkPlugins ?? [])]}
-        rehypePlugins={[...(rehypePlugins ?? [])]}
+        rehypePlugins={[[rehypeRaw, { tagfilter: true }], ...(rehypePlugins ?? [])]}
         components={{ ...defaultComponents, ...components }}
         {...rest}
       >

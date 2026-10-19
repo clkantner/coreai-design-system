@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import { afterEach, expect, test, vi } from 'vitest';
+import { userEvent } from 'vitest/browser';
 import { cleanup } from 'vitest-browser-react';
 import { renderCoreAIComponent } from '../test-utils.js';
 import { Markdown } from './Markdown.js';
@@ -38,6 +39,66 @@ test('enables GitHub Flavored Markdown content by default', async () => {
   expect(screen.getByRole('table')).toBeInTheDocument();
   expect(screen.getByRole('cell', { name: 'CoreAI' })).toBeInTheDocument();
   expect(screen.getByRole('checkbox')).toBeChecked();
+});
+
+test('converts details and summary Markdown into a Fluent Accordion', async () => {
+  const screen = await renderCoreAIComponent(
+    <Markdown
+      content={`<details>
+<summary>
+
+## Accordion header name
+
+</summary>
+
+Panel content
+</details>`}
+    />,
+  );
+  const heading = screen
+    .getByRole('heading', {
+      level: 2,
+      name: 'Accordion header name',
+    })
+    .element();
+  const trigger = screen.getByRole('button', { name: 'Accordion header name' }).element();
+
+  expect(document.querySelector('details')).toBeNull();
+  expect(document.querySelector('summary')).toBeNull();
+  expect(trigger).toContainElement(heading);
+  expect(heading.closest('.fui-AccordionHeader')).not.toBeNull();
+  expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  expect(document.querySelector('.fui-AccordionPanel')).toBeNull();
+
+  await userEvent.click(trigger);
+
+  const panel = screen.getByText('Panel content').element();
+
+  expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  expect(panel.closest('.fui-AccordionPanel')).not.toBeNull();
+  expect(panel).toBeVisible();
+});
+
+test('converts an open details element with a plain-text summary', async () => {
+  const screen = await renderCoreAIComponent(
+    <Markdown
+      content={`<details open>
+<summary>
+Accordion header name
+</summary>
+
+Panel content
+</details>`}
+    />,
+  );
+  const trigger = screen.getByRole('button', { name: 'Accordion header name' }).element();
+  const panel = screen.getByText('Panel content').element();
+
+  expect(document.querySelector('details')).toBeNull();
+  expect(document.querySelector('summary')).toBeNull();
+  expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  expect(panel.closest('.fui-AccordionPanel')).not.toBeNull();
+  expect(panel).toBeVisible();
 });
 
 test('marks external links without changing fragment links', async () => {
