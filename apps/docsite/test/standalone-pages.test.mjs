@@ -113,6 +113,15 @@ test('links use canonical routes, base paths and HTML heading IDs without changi
     tokenSwatches('<td>#ff00aa</td>'),
     '<td><span class="reference-color-swatch" style="background-color:#ff00aa" aria-hidden="true"></span><code>#ff00aa</code></td>',
   );
+  assert.match(
+    tokenSwatches('<td>hsl(0, 0%, 6%)</td>'),
+    /style="background-color:hsl\(0, 0%, 6%\)"/,
+  );
+  assert.match(tokenSwatches('<td>rgba(0, 0, 0, 0.5)</td>'), /class="reference-color-swatch"/);
+  assert.equal(
+    tokenSwatches('<td>hsl(0, 0%, 6%); color:red</td>'),
+    '<td>hsl(0, 0%, 6%); color:red</td>',
+  );
 });
 
 test('only registered live examples become preview slots in authored guidance', () => {

@@ -135,7 +135,7 @@ export async function expandStandaloneMarkdown(
 
 export function tokenSwatches(html) {
   return html.replace(
-    /<td>(#[\da-f]{6}|#[\da-f]{8})<\/td>/gi,
+    /<td>(#[\da-f]{6}|#[\da-f]{8}|(?:hsl|hsla|rgb|rgba)\([\d.%+,\s/-]+\))<\/td>/gi,
     (_match, color) =>
       `<td><span class="reference-color-swatch" style="background-color:${color}" aria-hidden="true"></span><code>${color}</code></td>`,
   );
