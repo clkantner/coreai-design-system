@@ -18,6 +18,12 @@ export function escapeHtml(value) {
   );
 }
 
+export function codeFence(source, language = 'tsx') {
+  const longest = Math.max(2, ...[...source.matchAll(/`+/g)].map(([ticks]) => ticks.length));
+  const fence = '`'.repeat(longest + 1);
+  return `${fence}${language}\n${source.trimEnd()}\n${fence}`;
+}
+
 export function pageGuidanceParts(markdown, resources = []) {
   const tree = parser.parse(markdown);
   const [heading, summary] = tree.children;

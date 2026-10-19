@@ -233,10 +233,13 @@ AccordionItem, and AccordionPanel separately, after one shared Default example.
 component metadata; toMountNodeProps publishes its function signature.
 Complete template source remains copy-and-adapt code, not an npm API.
 
-Standard native DOM/event and ARIA props are omitted from the tables except
-common element/slot hooks. A missing default is not inferred. Conditional
-required props are labeled accordingly; complex type names use docgen's display
-form, and the exported Props type remains authoritative. Docgen instances are
+APIs render as TypeScript interface-style code blocks in HTML and Markdown,
+with descriptions, defaults, conditional requirements, and deprecations in
+JSDoc comments. Required properties omit `?`; optional properties include it.
+These are generated prop summaries, not replacement type declarations.
+Standard native DOM/event and ARIA props are omitted except common element/slot
+hooks. A missing default is not inferred. Type displays are not truncated, and
+the exported Props type remains authoritative. Docgen instances are
 component-local so cached generic props cannot leak between contexts.
 
 The package README, changelog, skill, and router helper remain their canonical

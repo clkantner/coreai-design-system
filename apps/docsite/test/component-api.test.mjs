@@ -5,12 +5,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
+import ts from 'typescript';
 import {
   createComponentApiReader,
   componentApiMarkdown,
+  componentApiSource,
 } from '../scripts/sources/component-api.mjs';
 import { componentBindings } from '../scripts/sources/component-bindings.mjs';
 import { readSourceCatalog } from '../scripts/sources/catalog.mjs';
+import { readReferencePages } from '../scripts/read-reference-pages.mjs';
 import {
   appRoot,
   pageMarkdown,
@@ -55,6 +58,29 @@ test('docgen reads CoreAI defaults, inherited props, required slots and componen
   assert.doesNotMatch(JSON.stringify(api), /import\(["'][A-Z]:|[/\\]node_modules[/\\]/);
   assert.equal(reader.read('toMountNodeProps').kind, 'function');
   assert.ok(reader.read('toMountNodeProps').signatures.length > 0);
+  const pages = await readReferencePages(path.join(appRoot, 'content'));
+  for (const page of pages.filter((page) => page.kind === 'components')) {
+    for (const member of reader.readComponent(
+      catalog.components.find((component) => component.id === page.component),
+      page.api,
+    )) {
+      const source = componentApiSource(member);
+      const ast = ts.createSourceFile(
+        'api.ts',
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+        ts.ScriptKind.TS,
+      );
+      assert.deepEqual(
+        ast.parseDiagnostics.map((diagnostic) =>
+          ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
+        ),
+        [],
+        `${member.name}: valid TypeScript summary`,
+      );
+    }
+  }
 });
 
 test('docgen keeps JSDoc, defaults, union props and required flags without copying generic caches', async () => {
@@ -99,7 +125,12 @@ export const NumberProvider = React.createContext(0).Provider;
       reader.read('NumberProvider').props.find((prop) => prop.name === 'value').type,
       'number',
     );
-    assert.match(componentApiMarkdown([api]), /\*\*Deprecated:\*\* Use title/);
+    assert.match(componentApiMarkdown([api]), /@deprecated Use title/);
+    const summary = componentApiSource(api);
+    assert.match(summary, /title: string;/);
+    assert.match(summary, /count\?: number;/);
+    assert.match(summary, /@default 0/);
+    assert.match(summary, /@remarks Required in some prop variants/);
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
   }
@@ -183,11 +214,37 @@ test('Default precedes separate APIs and guidance without duplicating the exampl
   assert.ok(markdown.indexOf('## API') < markdown.indexOf('## Best practices'));
   assert.ok(markdown.indexOf('## Best practices') < markdown.indexOf('## Other'));
   assert.equal(markdown.split(basic.source).length, 2);
-  assert.match(markdown, /"circular" \\\| "square"/);
+  assert.match(markdown, /interface ButtonProps \{/);
+  assert.match(markdown, /shape\?: "circular" \| "square";/);
+  assert.doesNotMatch(markdown, /\| Name \| Type \|/);
   const html = componentPageGuidanceHtml(page, metadata);
   assert.ok(html.indexOf('data-page-header') < html.indexOf('data-basic-example'));
   assert.ok(html.indexOf('data-basic-example') < html.indexOf('class="reference-api"'));
   assert.ok(html.indexOf('class="reference-api"') < html.indexOf('Best practices'));
   assert.match(html, /<details class="reference-basic-source"><summary>View example source/);
   assert.equal((html.match(/data-example-id="button--default"/g) ?? []).length, 1);
+});
+
+test('API summaries quote property names and protect JSDoc and Markdown fences', () => {
+  const api = {
+    name: 'Example',
+    kind: 'component',
+    props: [
+      {
+        name: 'data-label',
+        type: 'string',
+        required: false,
+        description: 'Preserve */ and ``` in documentation.',
+        defaultValue: '""',
+      },
+    ],
+  };
+  const source = componentApiSource(api);
+  assert.match(source, /"data-label"\?: string;/);
+  assert.match(source, /Preserve \* \/ and ```/);
+  assert.match(componentApiMarkdown([api]), /````ts/);
+  assert.equal(
+    ts.createSourceFile('api.ts', source, ts.ScriptTarget.Latest, true).parseDiagnostics.length,
+    0,
+  );
 });

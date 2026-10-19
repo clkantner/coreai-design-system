@@ -27,13 +27,14 @@ import {
 import { standaloneSections, readFoundationData } from './standalone-sections.mjs';
 import {
   escapeHtml,
+  codeFence,
   pageGuidanceParts,
   pageTemplateHeader,
   pageTemplateResources,
   homeHeroFallback,
 } from './page-template.mjs';
 import { stripPresentationMarkers } from './standalone-markdown.mjs';
-export { escapeHtml } from './page-template.mjs';
+export { escapeHtml, codeFence } from './page-template.mjs';
 
 export const appRoot = fileURLToPath(new URL('../', import.meta.url));
 export const outputDirectory = path.join(appRoot, 'dist-reference-proof');
@@ -63,12 +64,6 @@ export function normalizeBase(value = '/') {
     throw new Error('Base path must be / or an absolute URL path such as /coreai-design-system/.');
   }
   return value.endsWith('/') ? value : `${value}/`;
-}
-
-export function codeFence(source, language = 'tsx') {
-  const longest = Math.max(2, ...[...source.matchAll(/`+/g)].map(([ticks]) => ticks.length));
-  const fence = '`'.repeat(longest + 1);
-  return `${fence}${language}\n${source.trimEnd()}\n${fence}`;
 }
 
 export function normalizeSource(source) {

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 import { Parser } from 'react-docgen-typescript';
 import { componentBindings } from './component-bindings.mjs';
-import { markdownTable } from '../standalone-sections.mjs';
+import { codeFence } from '../page-template.mjs';
 
 const appRoot = fileURLToPath(new URL('../../', import.meta.url));
 const repositoryRoot = path.resolve(appRoot, '../..');
@@ -59,6 +59,7 @@ export function createComponentApiReader({
     ...parsed.options,
     paths: { ...parsed.options.paths, '@fluentui/react-components': [fluentEntry] },
     noEmit: true,
+    noErrorTruncation: true,
   });
   const checker = program.getTypeChecker();
   const source = program.getSourceFile(entry);
@@ -158,37 +159,44 @@ export function createComponentApiReader({
   };
 }
 
-function inlineCode(value) {
-  const ticks = '`'.repeat(
-    Math.max(0, ...[...value.matchAll(/`+/g)].map(([match]) => match.length)) + 1,
-  );
-  return `${ticks} ${value} ${ticks}`;
+export function componentApiSource(api) {
+  if (api.kind === 'function') {
+    return api.signatures
+      .map((signature) => `declare function ${api.name}${signature};`)
+      .join('\n');
+  }
+  const props = api.props.map((prop) => {
+    const comment = [
+      prop.description,
+      prop.conditional ? '@remarks Required in some prop variants.' : '',
+      prop.defaultValue === undefined ? '' : `@default ${prop.defaultValue}`,
+      prop.deprecated ? `@deprecated ${prop.deprecated}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+    const jsdoc = comment
+      ? `  /**\n${comment
+          .replaceAll('*/', '* /')
+          .split(/\r?\n/)
+          .map((line) => `   *${line ? ` ${line}` : ''}`)
+          .join('\n')}\n   */\n`
+      : '';
+    const name = /^[$A-Z_a-z][$\w]*$/.test(prop.name) ? prop.name : JSON.stringify(prop.name);
+    return `${jsdoc}  ${name}${prop.required ? '' : '?'}: ${prop.type};`;
+  });
+  return `interface ${api.propsType ?? `${api.name}Props`} {\n${props.join('\n\n')}\n}`;
 }
 
 export function componentApiMarkdown(apis = []) {
   if (!apis.length) return '';
   return [
     '## API',
-    'Types and documented defaults come from `@coreai-ds/react-components`. CoreAI defaults assume the default provider configuration. A dash means no default is documented. Conditional means required in one allowed prop shape, not every usage. Standard native DOM/event and ARIA props are supported where applicable but omitted here, except common element and slot hooks.',
+    'Generated CoreAI prop summaries, not replacement type declarations. Most native DOM/event and ARIA props are omitted. `?` means optional; JSDoc shows defaults, deprecations, and conditional requirements. Defaults assume the standard CoreAI provider.',
     ...apis.flatMap((api) => [
       `### ${api.name} API`,
       api.description,
       api.deprecated ? `**Deprecated:** ${api.deprecated}` : '',
-      `\`\`\`tsx\nimport { ${api.name}${api.propsType === `${api.name}Props` ? `, type ${api.propsType}` : ''} } from '@coreai-ds/react-components';\n\`\`\``,
-      api.kind === 'function'
-        ? `\`\`\`ts\n${api.signatures.map((signature) => `${api.name}${signature}`).join('\n')}\n\`\`\``
-        : markdownTable(
-            ['Name', 'Type', 'Required', 'Default', 'Description'],
-            api.props.map((prop) => [
-              inlineCode(prop.name),
-              inlineCode(prop.type),
-              prop.conditional ? 'Conditional' : prop.required ? 'Yes' : 'No',
-              prop.defaultValue === undefined ? '-' : inlineCode(prop.defaultValue),
-              [prop.description, prop.deprecated ? `**Deprecated:** ${prop.deprecated}` : '']
-                .filter(Boolean)
-                .join(' '),
-            ]),
-          ),
+      codeFence(componentApiSource(api), 'ts'),
     ]),
   ]
     .filter(Boolean)

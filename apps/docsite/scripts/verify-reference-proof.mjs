@@ -25,6 +25,7 @@ import {
   componentPageGuidanceHtml,
 } from './build-reference-proof.mjs';
 import { standaloneSections } from './standalone-sections.mjs';
+import { componentApiSource } from './sources/component-api.mjs';
 import { serveReferenceProof } from './serve-reference-proof.mjs';
 
 const require = createRequire(import.meta.url);
@@ -343,13 +344,20 @@ try {
   });
   for (const record of metadata.pages) {
     await page.goto(`${root}${record.htmlPath}`);
-    await page.waitForFunction(
-      () =>
-        globalThis.document.querySelector('[data-reference-ready="true"]') &&
-        [...globalThis.document.querySelectorAll('[data-example-id]')].every(
-          (container) => container.children.length > 0,
-        ),
-    );
+    try {
+      await page.waitForFunction(
+        () =>
+          globalThis.document.querySelector('[data-reference-ready="true"]') &&
+          [...globalThis.document.querySelectorAll('[data-example-id]')].every(
+            (container) => container.children.length > 0,
+          ),
+      );
+    } catch (error) {
+      throw new Error(
+        `${record.id}: page did not become ready. Preview errors: ${JSON.stringify(await page.locator('[data-preview-error]').allTextContents())}. Browser errors: ${errors.slice(-5).join('; ')}`,
+        { cause: error },
+      );
+    }
     assert.equal(await page.locator('[data-example-id]').count(), record.examples.length);
     if (!record.standalone) {
       assert.equal(
@@ -386,6 +394,14 @@ try {
           1,
         );
       }
+      assert.equal(await page.locator('.reference-api table').count(), 0);
+      assert.deepEqual(
+        (await page.locator('.reference-api pre code').allTextContents()).map((source) =>
+          source.trimEnd(),
+        ),
+        record.api.map(componentApiSource),
+        `${record.id}: complete interface/function API code`,
+      );
     }
     if (record.renderer !== 'home') {
       assert.equal(
@@ -556,10 +572,10 @@ try {
   );
   const defaultButton = page.locator('[data-example-id="components-button-button--default"]');
   await defaultButton.getByRole('button', { name: 'Example', exact: true }).waitFor();
-  const buttonShape = page
-    .locator('.reference-api tr')
-    .filter({ has: page.getByRole('cell', { name: 'shape', exact: true }) });
-  assert.equal(await buttonShape.getByRole('cell').nth(3).innerText(), "'circular'");
+  const buttonApi = await page.locator('.reference-api pre code').innerText();
+  assert.match(buttonApi, /interface ButtonProps \{/);
+  assert.match(buttonApi, /@default 'circular'/);
+  assert.match(buttonApi, /shape\?:/);
   await page.locator('.reference-basic-source > summary').click();
   await page.locator('[data-copy-source="source-components-button-button--default"]').click();
   assert.equal(

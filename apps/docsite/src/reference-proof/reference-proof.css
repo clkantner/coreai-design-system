@@ -324,29 +324,9 @@
   margin-block-start: 32px;
 }
 
-.reference-api table {
-  display: block;
-  max-width: 100%;
-  overflow-x: auto;
-  font-size: var(--fontSizeBase200);
-}
-
-.reference-api th,
-.reference-api td {
-  min-width: 80px;
-  max-width: 360px;
-  text-align: start;
-  vertical-align: top;
-}
-
-.reference-api td code {
+.reference-api pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-.reference-api td:first-child code {
-  white-space: nowrap;
-  overflow-wrap: normal;
 }
 
 .preview {
