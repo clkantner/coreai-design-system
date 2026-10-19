@@ -30,6 +30,14 @@ test('Pages preview deploys only the verified feature branch without touching Az
     step.run?.includes('run verify:reference-proof'),
   );
   assert.ok(verifyIndex >= 0 && verifyIndex < uploadIndex);
+  const buildIndex = build.steps.findIndex((step) =>
+    step.run?.includes('run build:reference-proof'),
+  );
+  const testIndex = build.steps.findIndex((step) => step.run?.includes('run test:reference-proof'));
+  assert.ok(
+    buildIndex >= 0 && buildIndex < testIndex,
+    'Build the package and fetch pinned sources before catalog tests on a clean runner',
+  );
   assert.ok(build.steps.some((step) => step.run?.includes('--base=/coreai-design-system/')));
   assert.equal(workflow.jobs.deploy.needs, 'build');
   assert.equal(workflow.jobs.deploy.environment.name, 'github-pages');

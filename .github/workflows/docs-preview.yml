@@ -30,10 +30,10 @@ jobs:
       - name: Check public source
         run: npm run check:public-source && npm run license:check
       - run: npm ci --prefer-offline
-      - name: Test Markdown, navigation, APIs and preview workflow
-        run: npm --workspace apps/docsite run test:reference-proof && node --test .github/workflows/scripts/docs-preview.test.mjs
       - name: Build static documentation
         run: npm --workspace apps/docsite run build:reference-proof -- --base=/coreai-design-system/
+      - name: Test Markdown, navigation, APIs and preview workflow
+        run: npm --workspace apps/docsite run test:reference-proof && node --test .github/workflows/scripts/docs-preview.test.mjs
       - name: Type-check documentation
         run: npm exec -- tsc --noEmit -p apps/docsite/tsconfig.json
       - name: Install Chromium
