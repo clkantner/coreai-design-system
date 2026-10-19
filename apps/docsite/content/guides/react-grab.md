@@ -1,11 +1,18 @@
-import { Meta } from '@storybook/addon-docs/blocks';
-
-<Meta
-  title="Docs/React Grab"
-  summary="Add development-only React Grab with Fluent-aware component context, Bippy source mapping, and a complete copy-paste plugin."
-/>
-
-# React Grab with CoreAI component context
+---
+id: react-grab
+title: React Grab
+summary: >-
+  Add development-only React Grab with Fluent-aware component context, Bippy
+  source mapping, and a complete copy-paste plugin.
+resources: []
+reference:
+  legacyIds: [docs-react-grab--docs]
+  route: guides/react-grab
+  aliases:
+    - /react-grab/
+  migratedFrom:
+    - apps/storybook/src/stories/docs/ReactGrab.mdx
+---
 
 [React Grab](https://react-grab.com) copies context from a selected UI element
 for a coding agent. This app-owned plugin customizes that context for CoreAI
@@ -45,7 +52,7 @@ to the same Bippy instance.
 
 Create `app/dev/reactGrab.ts` with the following source. This is the complete
 implementation from the
-[prototype plugin](../../../../prototype/app/dev/reactGrab.ts).
+[prototype plugin](../../../prototype/app/dev/reactGrab.ts).
 
 ```ts
 import {

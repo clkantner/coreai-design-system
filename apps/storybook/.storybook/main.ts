@@ -12,6 +12,11 @@ import { generateSkillDoc } from '../scripts/generate-skill-doc.mjs';
 import { componentStoryDocsProvider } from '../scripts/component-story-docs.mjs';
 import { publicMarkdown } from '../../docsite/scripts/sources/public-markdown.mjs';
 import { generatedStoryIndexer } from '../scripts/generate-component-stories.mjs';
+import remarkGfm from 'remark-gfm';
+import {
+  generateStandaloneDocs,
+  standaloneContentRoot,
+} from '../scripts/generate-standalone-docs.mjs';
 
 // Storybook 10 loads config files as native ESM, where `__dirname` doesn't
 // exist. Recreate it from `import.meta.url` for the path math below.
@@ -27,10 +32,14 @@ const config: StorybookConfig = {
     '../src/**/*.mdx',
     '../src/stories/templates/**/*.stories.@(ts|tsx)',
     './.cache/component-stories/*.stories.js',
+    './.cache/standalone-docs/*.mdx',
   ],
 
   addons: [
-    '@storybook/addon-docs',
+    {
+      name: '@storybook/addon-docs',
+      options: { mdxPluginOptions: { mdxCompileOptions: { remarkPlugins: [remarkGfm] } } },
+    },
     '@storybook/addon-a11y',
     '@storybook/addon-links',
     // Adds a "Design" tab to each story that embeds the linked Figma frame.
@@ -253,6 +262,33 @@ const config: StorybookConfig = {
         });
       },
     };
+    const standaloneDocWatcher: Plugin = {
+      name: 'coreai:standalone-doc-watcher',
+      async configureServer(server) {
+        await generateStandaloneDocs();
+        server.watcher.add(standaloneContentRoot);
+        const update = async (file: string) => {
+          if (
+            !file.replace(/\\/g, '/').startsWith(standaloneContentRoot.replace(/\\/g, '/')) ||
+            !file.endsWith('.md')
+          )
+            return;
+          try {
+            await generateStandaloneDocs();
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            server.config.logger.error(`Standalone documentation generation failed: ${message}`);
+            server.ws.send({
+              type: 'error',
+              err: { message, stack: error instanceof Error ? (error.stack ?? '') : '' },
+            });
+          }
+        };
+        server.watcher.on('change', update);
+        server.watcher.on('add', update);
+        server.watcher.on('unlink', update);
+      },
+    };
 
     return mergeConfig(config, {
       resolve: {
@@ -273,6 +309,7 @@ const config: StorybookConfig = {
         rawMarkdown,
         templateDocsWatcher,
         skillDocWatcher,
+        standaloneDocWatcher,
       ],
       // The vendored fluent-stories packages each ship a `stories/tsconfig.json`
       // that `extends` a base tsconfig which isn't part of our sparse checkout.

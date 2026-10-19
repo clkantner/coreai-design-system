@@ -166,9 +166,37 @@ function bestPracticesCards() {
   };
 }
 
-export function renderGuidance(markdown) {
+export function renderGuidance(markdown, { examples = {} } = {}) {
   const processor = unified().use(remarkParse).use(remarkGfm);
   const tree = processor.parse(markdown);
+  for (const node of tree.children) {
+    if (node.type !== 'html') continue;
+    const marker = node.value.match(/^<!-- live-example:([\w-]+) -->$/);
+    if (!marker) continue;
+    if (!Object.hasOwn(examples, marker[1]))
+      throw new Error(`Missing live example for guidance: ${marker[1]}`);
+    const example = examples[marker[1]];
+    node.type = 'paragraph';
+    node.children = [];
+    node.data = {
+      hName: 'div',
+      hProperties: {
+        className: ['preview'],
+        dataExampleId: example.id,
+        ariaLabel: `${example.name} preview`,
+      },
+      hChildren: [
+        {
+          type: 'element',
+          tagName: 'p',
+          properties: {},
+          children: [
+            { type: 'text', value: 'Loading interactive example. Full source is available below.' },
+          ],
+        },
+      ],
+    };
+  }
   const slugger = new GithubSlugger();
   const anchors = [];
   for (const node of tree.children) {
@@ -180,14 +208,26 @@ export function renderGuidance(markdown) {
     }
   }
   const updateLinks = (node) => {
-    if (node.type === 'link' && node.url.startsWith('#'))
+    if (
+      ['link', 'definition'].includes(node.type) &&
+      node.url.startsWith('#') &&
+      node.url.length > 1 &&
+      !/^#(?:guidance-|components-|templates-)/.test(node.url)
+    )
       node.url = `#guidance-${node.url.slice(1)}`;
     node.children?.forEach(updateLinks);
   };
   updateLinks(tree);
   const renderer = unified()
     .use(remarkRehype)
-    .use(rehypeSanitize, { ...defaultSchema, clobberPrefix: 'guidance-' })
+    .use(rehypeSanitize, {
+      ...defaultSchema,
+      attributes: {
+        ...defaultSchema.attributes,
+        div: [...(defaultSchema.attributes.div ?? []), 'className', 'dataExampleId', 'ariaLabel'],
+      },
+      clobberPrefix: 'guidance-',
+    })
     .use(bestPracticesCards)
     .use(rehypeStringify);
   return { html: renderer.stringify(renderer.runSync(tree)), anchors };

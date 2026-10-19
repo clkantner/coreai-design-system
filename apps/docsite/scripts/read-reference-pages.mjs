@@ -33,6 +33,10 @@ export async function readReferencePages(contentDirectory) {
               'omitDecorators',
               'exclude',
               'singlePreview',
+              'aliases',
+              'label',
+              'migratedFrom',
+              'legacyIds',
             ].includes(key)
           ) {
             fail(`unknown reference field "${key}".`);
@@ -67,10 +71,13 @@ export async function readReferencePages(contentDirectory) {
         for (const key of ['id', 'title', 'summary']) {
           if (typeof data[key] !== 'string' || !data[key].trim()) fail(`${key} is required.`);
         }
-        if (typeof reference.component !== 'string' || !/^[a-z0-9-]+$/.test(reference.component)) {
+        if (
+          reference.component !== undefined &&
+          (typeof reference.component !== 'string' || !/^[a-z0-9-]+$/.test(reference.component))
+        ) {
           fail('reference.component must be an inventory component ID.');
         }
-        for (const key of ['examples', 'sources']) {
+        for (const key of ['examples', 'sources', 'aliases', 'migratedFrom', 'legacyIds']) {
           if (
             reference[key] !== undefined &&
             (!Array.isArray(reference[key]) ||
@@ -83,10 +90,40 @@ export async function readReferencePages(contentDirectory) {
         }
         const guidance = path.relative(contentDirectory, filename).replaceAll('\\', '/');
         const route = reference.route ?? guidance.replace(/\.md$/, '').toLowerCase();
-        if (!/^(components|templates)\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(route)) {
-          fail('reference route must be components/name or templates/name.');
+        if (
+          route !== 'index' &&
+          !/^(components|templates|foundations|patterns|guides|overview)\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(
+            route,
+          )
+        ) {
+          fail('reference route must be a supported category/name or index.');
         }
-        const [kind, id] = route.split('/');
+        const [kind, id] = route === 'index' ? ['overview', 'home'] : route.split('/');
+        if (['components', 'templates'].includes(kind) && !reference.component)
+          fail('component and template pages require reference.component.');
+        if (
+          !reference.component &&
+          (reference.examples ||
+            reference.sources ||
+            reference.omitDecorators ||
+            reference.exclude ||
+            reference.singlePreview)
+        )
+          fail('Story settings require reference.component.');
+        for (const alias of reference.aliases ?? []) {
+          if (
+            !/^\/(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)+$/.test(alias) ||
+            /^\/(?:assets|source|llms)\//.test(alias)
+          )
+            fail('reference.aliases must be safe directory URLs.');
+        }
+        if ((reference.legacyIds ?? []).some((id) => !/^[a-z0-9][a-z0-9-]+$/.test(id)))
+          fail('reference.legacyIds must be safe document IDs.');
+        if (
+          reference.label !== undefined &&
+          (typeof reference.label !== 'string' || !reference.label.trim())
+        )
+          fail('reference.label must be a nonempty string.');
         for (const source of reference.sources ?? []) {
           if (
             !/^src\/stories\/templates\/[\w/-]+\.tsx$/.test(source) ||
@@ -104,7 +141,7 @@ export async function readReferencePages(contentDirectory) {
         if (kind === 'templates' && !reference.sources?.length) {
           fail('template pages must provide reference.sources for copying.');
         }
-        pages.push({ id, kind, guidance, ...reference });
+        pages.push({ ...reference, id, kind, guidance, route: route === 'index' ? '' : route });
       }
     }
   }
@@ -113,10 +150,20 @@ export async function readReferencePages(contentDirectory) {
     `${first.kind}/${first.id}`.localeCompare(`${second.kind}/${second.id}`),
   );
   if (!pages.length) throw new Error('No Markdown pages declare reference metadata.');
-  const routes = pages.map((page) => `${page.kind}/${page.id}`);
-  if (new Set(routes).size !== routes.length) throw new Error('Duplicate reference page route.');
-  const components = pages.map((page) => page.component);
+  const routes = pages.flatMap((page) => [
+    `/${page.route}${page.route ? '/' : ''}`,
+    ...(page.aliases ?? []),
+  ]);
+  if (new Set(routes).size !== routes.length)
+    throw new Error('Duplicate reference page route or alias.');
+  const components = pages.map((page) => page.component).filter(Boolean);
   if (new Set(components).size !== components.length)
     throw new Error('Duplicate reference component ownership.');
+  const legacyIds = pages.flatMap((page) => [
+    ...(page.legacyIds ?? []),
+    ...(page.kind === 'templates' ? [`${page.component}--source-code`] : []),
+  ]);
+  if (new Set(legacyIds).size !== legacyIds.length)
+    throw new Error('Duplicate legacy Markdown document ID.');
   return pages;
 }

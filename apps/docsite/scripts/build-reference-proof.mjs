@@ -18,6 +18,12 @@ import { readStoryDescriptions } from './sources/story-descriptions.mjs';
 import { assertFluentStoryVersion } from './sources/fluent-story-version.mjs';
 import { readReferencePages } from './read-reference-pages.mjs';
 import { readSourceCatalog } from './sources/catalog.mjs';
+import {
+  expandStandaloneMarkdown,
+  rewriteDocumentationLinks,
+  tokenSwatches,
+} from './standalone-markdown.mjs';
+import { standaloneSections } from './standalone-sections.mjs';
 
 export const appRoot = fileURLToPath(new URL('../', import.meta.url));
 export const outputDirectory = path.join(appRoot, 'dist-reference-proof');
@@ -331,6 +337,7 @@ function implementationMarkdown(page, metadata, extension = '.md') {
 }
 
 export function pageMarkdown(page, metadata) {
+  if (page.standalone) return page.guidance.replace(/<!-- live-example:[\w-]+ -->\n*/g, '');
   return [
     page.guidance,
     implementationMarkdown(page, metadata),
@@ -349,6 +356,41 @@ export function pageMarkdown(page, metadata) {
       ].join('\n\n'),
     ),
   ].join('\n\n');
+}
+
+export async function resolveStandalonePage(page, { pages, basePath, generated, allExamples }) {
+  const examples = [];
+  const guidance = await expandStandaloneMarkdown(page.guidance, {
+    route: page.route,
+    pages,
+    basePath,
+    generated,
+    fence: codeFence,
+    sourceFile: `apps/docsite/${page.guidanceSource}`,
+    renderExample(id) {
+      const example = allExamples.get(id);
+      if (!example) throw new Error(`${page.route}: unknown embedded example ${id}`);
+      if (examples.some((item) => item.id === id))
+        throw new Error(`${page.route}: duplicate embedded example ${id}`);
+      examples.push(example);
+      return `${exampleHeading(example)}\n\n<!-- live-example:${id} -->\n\n[Download source](/${example.sourcePath})\n\n${codeFence(example.source)}`;
+    },
+  });
+  return { guidance, examples };
+}
+
+export function standalonePageHtml(page, metadata) {
+  return `<article class="standalone-guidance">${tokenSwatches(
+    renderGuidance(
+      rewriteDocumentationLinks(page.guidance, {
+        route: page.route,
+        pages: metadata.pages,
+        basePath: metadata.basePath,
+        html: true,
+      }),
+      { examples: Object.fromEntries(page.examples.map((example) => [example.id, example])) },
+    ).html,
+  )}</article>`;
 }
 
 function shell(title, body, metadata, assets, navigation, currentPath = '') {
@@ -407,9 +449,12 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
   ]);
 
   for (const scope of pageScope) {
-    const component = inventory.components.find((component) => component.id === scope.component);
-    if (!component) throw new Error(`Missing proof component: ${scope.component}`);
-    coverage.push(...accountForStories(component, scope.examples, scope.exclude));
+    const component = scope.component
+      ? inventory.components.find((component) => component.id === scope.component)
+      : undefined;
+    if (scope.component && !component)
+      throw new Error(`Missing proof component: ${scope.component}`);
+    if (component) coverage.push(...accountForStories(component, scope.examples, scope.exclude));
     const guidancePath = path.join(appRoot, 'content', scope.guidance);
     const { data, content } = matter(await fs.readFile(guidancePath, 'utf8'));
     const page = {
@@ -417,6 +462,15 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
       title: data.title,
       summary: data.summary,
       kind: scope.kind ?? 'components',
+      route: scope.route,
+      label: scope.label ?? data.title,
+      standalone: !scope.component,
+      aliases: scope.aliases ?? [],
+      legacyIds: [
+        ...(scope.legacyIds ?? []),
+        ...(scope.kind === 'templates' ? [`${scope.component}--source-code`] : []),
+      ],
+      migratedFrom: scope.migratedFrom ?? [],
       guidanceSource: `content/${scope.guidance}`,
       guidance: guidanceMarkdown({ ...data, body: content.trim() }),
       examples: [],
@@ -432,7 +486,7 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
     };
     const pageImports = [];
     const pageBindings = [];
-    for (const story of component.stories) {
+    for (const story of component?.stories ?? []) {
       if (scope.examples && !scope.examples.includes(story.exportName)) continue;
       if (scope.exclude?.[story.exportName]) continue;
       const implementationFile = path.join(storyRoot, story.implementationFile);
@@ -476,11 +530,15 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
     }
     const pageModuleDirectory = path.join(cacheDirectory, 'pages');
     await fs.mkdir(pageModuleDirectory, { recursive: true });
-    await fs.writeFile(
-      path.join(pageModuleDirectory, `${scope.component}.ts`),
-      `import type { ComponentType } from 'react';\n${pageImports.join('\n')}\nexport const examples = {${pageBindings.join(',')}} satisfies Record<string, ComponentType>;\n`,
-    );
-    loaders.push(`${JSON.stringify(scope.component)}: () => import('./pages/${scope.component}')`);
+    if (component)
+      await fs.writeFile(
+        path.join(pageModuleDirectory, `${scope.component}.ts`),
+        `import type { ComponentType } from 'react';\n${pageImports.join('\n')}\nexport const examples = {${pageBindings.join(',')}} satisfies Record<string, ComponentType>;\n`,
+      );
+    if (component)
+      loaders.push(
+        `${JSON.stringify(scope.component)}: () => import('./pages/${scope.component}')`,
+      );
     for (const source of scope.sources ?? []) {
       const name = path.basename(source);
       page.templateSources.push({
@@ -506,10 +564,26 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
     fluentSource: { repository: 'https://github.com/microsoft/fluentui', ref: fluentRef },
     coreaiSourceRef: git(['rev-parse', 'HEAD'], repositoryRoot),
     runtimePackages: {},
-    scope: pageScope.map((page) => page.component),
+    scope: pageScope.map((page) => page.component).filter(Boolean),
     excludedFluentPackages: inventory.scope.excludedFluentPackages,
     coverage,
   };
+  const allExamples = new Map(
+    pages.flatMap((page) => page.examples).map((example) => [example.id, example]),
+  );
+  const generated = await standaloneSections({
+    appRoot,
+    pages,
+    versions: metadata.versions,
+    providerSource,
+    fence: codeFence,
+  });
+  for (const page of pages.filter((page) => page.standalone)) {
+    Object.assign(
+      page,
+      await resolveStandalonePage(page, { pages, basePath, generated, allExamples }),
+    );
+  }
   await build({
     configFile: false,
     root: appRoot,
@@ -578,29 +652,38 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
     await fs.mkdir(path.dirname(target), { recursive: true });
     await fs.writeFile(target, content);
   };
-  const navigation =
-    `<a class="reference-nav-link" href="${basePath}">Overview</a><a class="reference-nav-link" href="${basePath}guides/setup/">Get started</a>` +
-    ['components', 'templates']
-      .map(
-        (kind) =>
-          `<details open class="reference-nav-group"><summary>${kind === 'components' ? 'Components' : 'Templates'}</summary>` +
-          pages
-            .filter((page) => page.kind === kind)
-            .map(
-              (page) =>
-                `<a class="reference-nav-link" data-navigation-entry href="${basePath}${page.kind}/${page.id}/">${escapeHtml(page.id.startsWith('react-router-') ? `React Router / ${page.title}` : page.title)}</a>`,
-            )
-            .join('') +
-          '</details>',
-      )
-      .join('');
+  const labels = {
+    overview: 'Overview',
+    guides: 'Guides',
+    foundations: 'Foundations',
+    patterns: 'Patterns',
+    components: 'Components',
+    templates: 'Templates',
+  };
+  const navigation = ['overview', 'guides', 'foundations', 'patterns', 'components', 'templates']
+    .map(
+      (kind) =>
+        `<details open class="reference-nav-group"><summary>${labels[kind]}</summary>` +
+        pages
+          .filter((page) => page.kind === kind)
+          .map(
+            (page) =>
+              `<a class="reference-nav-link" data-navigation-entry href="${basePath}${page.route}${page.route ? '/' : ''}">${escapeHtml(page.id.startsWith('react-router-') ? `React Router / ${page.label}` : page.label)}</a>`,
+          )
+          .join('') +
+        '</details>',
+    )
+    .join('');
   const indexPages = [];
   for (const page of pages) {
     const markdown = pageMarkdown(page, metadata);
-    let body = `${page.singlePreview ? '<div data-single-preview></div>' : ''}<a href="${basePath}${page.kind}/${page.id}.md">View as Markdown</a>
-${renderGuidance(page.guidance).html}
-${renderGuidance(implementationMarkdown(page, metadata, '/')).html}`;
-    for (const example of page.examples) {
+    const markdownPath = page.route ? `${page.route}.md` : 'index.md';
+    const htmlPath = page.route ? `${page.route}/` : '';
+    let body = `${page.singlePreview ? '<div data-single-preview></div>' : ''}<a href="${basePath}${markdownPath}">View as Markdown</a>\n`;
+    body += page.standalone
+      ? standalonePageHtml(page, { ...metadata, pages })
+      : `${renderGuidance(page.guidance).html}\n${renderGuidance(implementationMarkdown(page, metadata, '/')).html}`;
+    for (const example of page.standalone ? [] : page.examples) {
       body += `<section class="example" id="${example.id}">${exampleHeadingHtml(example)}
 <div class="preview" data-example-id="${example.id}" aria-label="${escapeHtml(example.name)} preview">
 <p>Loading interactive example. Full source is available below.</p></div>
@@ -613,52 +696,47 @@ ${sourceHtml(example.source, `source-${example.id}`, example.sourcePath, basePat
 ${sourceHtml(source.source, `template-${page.id}-${index}`, source.path, basePath)}</section>`;
       await write(source.path, source.source);
     }
-    await write(`${page.kind}/${page.id}.md`, markdown);
+    await write(markdownPath, markdown);
     await write(
-      `${page.kind}/${page.id}/index.html`,
-      shell(page.title, body, metadata, assets, navigation, `${page.kind}/${page.id}/`),
+      `${htmlPath}index.html`,
+      shell(page.title, body, metadata, assets, navigation, htmlPath),
     );
+    for (const alias of page.aliases) {
+      const destination = `${basePath}${htmlPath}`;
+      await write(
+        `${alias.slice(1)}index.html`,
+        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${destination}"><link rel="canonical" href="${destination}"><title>${escapeHtml(page.title)}</title></head><body><a href="${destination}">Continue to ${escapeHtml(page.title)}</a></body></html>`,
+      );
+      await write(`${alias.slice(1, -1)}.md`, markdown);
+    }
+    for (const id of page.legacyIds) await write(`llms/${id}.md`, markdown);
     indexPages.push({
       ...page,
       guidance: undefined,
-      htmlPath: `${page.kind}/${page.id}/`,
-      markdownPath: `${page.kind}/${page.id}.md`,
+      htmlPath,
+      markdownPath,
       examples: page.examples.map((example) => ({ ...example, source: undefined })),
       templateSources: page.templateSources.map((source) => ({ ...source, source: undefined })),
     });
   }
-  const install = `npm install ${Object.entries(metadata.versions)
-    .map(([name, version]) => `${name}@${version}`)
-    .join(' ')}`;
-  const setup = `${await fs.readFile(path.join(appRoot, 'content/guides/setup.md'), 'utf8')}\n\n## Packages used by this build\n\n${codeFence(install, 'sh')}\n\nFluent source revision: \`${fluentRef}\`.\n\n## Provider setup: App.tsx\n\n${codeFence(providerSource)}\n`;
-  await write('guides/setup.md', setup);
   await write('source/setup/App.tsx', providerSource);
   await write(
-    'guides/setup/index.html',
-    shell(
-      'Setup',
-      `<a href="${basePath}guides/setup.md">View as Markdown</a>${renderGuidance(setup).html}`,
-      metadata,
-      assets,
-      navigation,
-      'guides/setup/',
-    ),
+    'source/package/SKILL.md',
+    await fs.readFile(path.join(repositoryRoot, 'packages/react-components/agent/SKILL.md')),
   );
+  for (const mode of ['light', 'dark']) {
+    await write(
+      `assets/material-1-${mode}.png`,
+      await fs.readFile(path.join(appRoot, `public/assets/material-1-${mode}.png`)),
+    );
+  }
   const listing = pages
-    .map((page) => `- [${page.title}](${basePath}${page.kind}/${page.id}.md): ${page.summary}`)
+    .map(
+      (page) =>
+        `- [${page.title}](${basePath}${page.route ? `${page.route}.md` : 'index.md'}): ${page.summary}`,
+    )
     .join('\n');
   const introduction = `# CoreAI design system\n\nHelp designers code and help engineers design.\n\nExplore component guidance, working examples, and copy-and-adapt templates. This staged reference catalog contains ${pages.length} pages and ${imports.length} examples. Pages marked under construction still need CoreAI UX guidance review.\n\n[Get started](${basePath}guides/setup.md)\n\n${listing}\n`;
-  await write('index.md', introduction);
-  await write(
-    'index.html',
-    shell(
-      'Documentation',
-      renderGuidance(introduction.replaceAll('.md)', '/)')).html,
-      metadata,
-      assets,
-      navigation,
-    ),
-  );
   await write(
     'llms.txt',
     `${introduction}\n## Build versions\n\n${Object.entries(metadata.versions)

@@ -19,14 +19,22 @@ import {
   escapeHtml,
   normalizeSource,
   providerSource,
+  resolveStandalonePage,
+  standalonePageHtml,
+  pageMarkdown,
 } from './build-reference-proof.mjs';
+import { standaloneSections } from './standalone-sections.mjs';
 import { serveReferenceProof } from './serve-reference-proof.mjs';
 
 const require = createRequire(import.meta.url);
 const metadata = JSON.parse(
   await fs.readFile(path.join(outputDirectory, 'llms/index.json'), 'utf8'),
 );
-const allExamples = metadata.pages.flatMap((page) => page.examples);
+const allExamples = [
+  ...new Map(
+    metadata.pages.flatMap((page) => page.examples).map((example) => [example.id, example]),
+  ).values(),
+];
 
 async function installedPackageDirectory(name) {
   let filename;
@@ -153,6 +161,24 @@ async function verifyConsumerPackage() {
 }
 
 await verifyConsumerPackage();
+const sourceExamples = new Map(
+  await Promise.all(
+    allExamples.map(async (example) => [
+      example.id,
+      {
+        ...example,
+        source: await fs.readFile(path.join(outputDirectory, example.sourcePath), 'utf8'),
+      },
+    ]),
+  ),
+);
+const generatedSections = await standaloneSections({
+  appRoot,
+  pages: metadata.pages,
+  versions: metadata.versions,
+  providerSource,
+  fence: codeFence,
+});
 const server = await serveReferenceProof({ port: 0 });
 const address = server.httpServer.address();
 assert.ok(address && typeof address !== 'string');
@@ -173,6 +199,13 @@ try {
     new RegExp(metadata.versions['@fluentui/react-components'].replaceAll('.', '\\.')),
   );
   assert.match(await get('THIRD-PARTY-NOTICES.txt'), /Permission is hereby granted/);
+  assert.equal(
+    await get('source/package/SKILL.md'),
+    await fs.readFile(
+      path.resolve(appRoot, '../../packages/react-components/agent/SKILL.md'),
+      'utf8',
+    ),
+  );
   assert.equal((await fetch(`${root}components/not-a-page/`)).status, 404);
   assert.equal((await fetch(`${root}components/not-a-page.md`)).status, 404);
   await fs.access(path.join(outputDirectory, '.nojekyll'));
@@ -195,16 +228,47 @@ try {
     const markdown = await get(page.markdownPath);
     const authored = matter(await fs.readFile(path.join(appRoot, page.guidanceSource), 'utf8'));
     const guidance = guidanceMarkdown({ ...authored.data, body: authored.content.trim() });
-    assert.ok(markdown.includes(guidance), `${page.id}: authored guidance in Markdown`);
-    assert.ok(
-      html.includes(renderGuidance(guidance).html),
-      `${page.id}: authored guidance in HTML`,
-    );
+    if (page.standalone) {
+      const expected = {
+        ...page,
+        ...(await resolveStandalonePage(
+          { ...page, guidance },
+          {
+            pages: metadata.pages,
+            basePath: metadata.basePath,
+            generated: generatedSections,
+            allExamples: sourceExamples,
+          },
+        )),
+      };
+      assert.equal(
+        markdown,
+        pageMarkdown(expected, metadata),
+        `${page.id}: complete authored/resolved Markdown`,
+      );
+      assert.ok(
+        html.includes(standalonePageHtml(expected, metadata)),
+        `${page.id}: complete HTML counterpart`,
+      );
+    } else {
+      assert.ok(markdown.includes(guidance), `${page.id}: authored guidance in Markdown`);
+      assert.ok(
+        html.includes(renderGuidance(guidance).html),
+        `${page.id}: authored guidance in HTML`,
+      );
+    }
+    assert.doesNotMatch(markdown, /<!--\s*(?:include|generated|example|live-example):/);
+    for (const alias of page.aliases) {
+      assert.ok((await get(alias.slice(1))).includes(`${metadata.basePath}${page.htmlPath}`));
+      assert.equal(await get(`${alias.slice(1, -1)}.md`), markdown);
+    }
+    for (const id of page.legacyIds) assert.equal(await get(`llms/${id}.md`), markdown);
     for (const example of page.examples) {
       const source = await get(example.sourcePath);
       assert.equal(createHash('sha256').update(source).digest('hex'), example.sha256);
       assert.ok(markdown.includes(codeFence(source)), `${example.id}: Markdown source parity`);
-      assert.ok(html.includes(escapeHtml(source)), `${example.id}: HTML source parity`);
+      if (!page.standalone)
+        assert.ok(html.includes(escapeHtml(source)), `${example.id}: HTML source parity`);
       assert.doesNotMatch(source, /from\s+['"](?:@storybook\/|storybook|\.{1,2}\/)/);
       assert.doesNotMatch(source, /from\s+['"]@fluentui\/react-components['"]/);
     }
@@ -225,6 +289,7 @@ try {
   const errors = [];
   const pageProblems = [];
   const expectedNavigationErrors = [];
+  const checkedDocumentLinks = new Set();
   let simulatingNavigationFailure = false;
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
@@ -283,13 +348,85 @@ try {
     if (duplicateIds.length)
       pageProblems.push(`${record.id}: duplicate IDs ${duplicateIds.join(', ')}`);
     for (const example of record.examples) {
-      assert.equal(
-        await page.locator(`[id="source-${example.id}"]`).textContent(),
-        await get(example.sourcePath),
-      );
+      if (record.standalone)
+        assert.ok(
+          (await page.locator('pre code').allTextContents()).includes(
+            await get(example.sourcePath),
+          ),
+          `${record.id}: embedded source parity`,
+        );
+      else
+        assert.equal(
+          await page.locator(`[id="source-${example.id}"]`).textContent(),
+          await get(example.sourcePath),
+        );
+    }
+    if (record.standalone) {
+      const links = await page
+        .locator('.standalone-guidance a[href], .standalone-guidance img[src]')
+        .evaluateAll((elements) =>
+          elements
+            .filter((element) => !element.closest('[data-example-id]'))
+            .map((element) => (element.tagName === 'IMG' ? element.src : element.href)),
+        );
+      for (const href of links) {
+        const url = new URL(href);
+        if (url.origin !== origin || checkedDocumentLinks.has(href)) continue;
+        checkedDocumentLinks.add(href);
+        const response = await fetch(href);
+        assert.equal(response.status, 200, `${record.id}: local documentation link ${href}`);
+        if (url.hash && response.headers.get('content-type')?.includes('text/html')) {
+          assert.ok(
+            (await response.text()).includes(`id="${decodeURIComponent(url.hash.slice(1))}"`),
+            `${record.id}: target fragment ${href}`,
+          );
+        }
+      }
     }
     assert.deepEqual(pageProblems, [], 'Whole-catalog page checks');
   }
+
+  await page.goto(`${root}colors/`);
+  await page.waitForURL(`${root}foundations/colors/`);
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  const themes = await import('@coreai-ds/react-components');
+  const background = page
+    .locator('.standalone-guidance tr')
+    .filter({ has: page.getByRole('cell', { name: 'colorNeutralBackground1', exact: true }) });
+  for (const [index, theme] of [
+    'coreaiLightTheme',
+    'coreaiDarkTheme',
+    'azureLightTheme',
+    'azureDarkTheme',
+  ].entries()) {
+    assert.equal(
+      (
+        await background
+          .getByRole('cell')
+          .nth(index + 3)
+          .innerText()
+      ).trim(),
+      themes[theme].colorNeutralBackground1,
+    );
+  }
+  assert.ok((await page.locator('.reference-color-swatch').count()) >= 64);
+  const foundationOrigin = await page.evaluate(() => globalThis.performance.timeOrigin);
+  await page
+    .getByRole('navigation', { name: 'Documentation', exact: true })
+    .getByRole('link', { name: 'Typography', exact: true })
+    .click();
+  await page.getByRole('heading', { name: 'Typography', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  await page.locator('[data-example-id="components-text--presets"] .fui-Text').first().waitFor();
+  assert.equal(await page.evaluate(() => globalThis.performance.timeOrigin), foundationOrigin);
+  await page
+    .getByRole('navigation', { name: 'Documentation', exact: true })
+    .getByRole('link', { name: 'Theming', exact: true })
+    .click();
+  await page.getByRole('heading', { name: 'Theming', exact: true }).waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  assert.equal(await page.locator('[data-example-id]').count(), 3);
+  assert.equal(await page.evaluate(() => globalThis.performance.timeOrigin), foundationOrigin);
 
   await page.goto(`${root}components/button/`);
   const defaultButton = page.locator('[data-example-id="components-button-button--default"]');

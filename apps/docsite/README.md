@@ -74,13 +74,15 @@ for generation and validation details.
 ## Static reference catalog (staged)
 
 The static reference app now covers **75 component groups and 11 template
-groups**, with **709 working examples**. It uses the existing CoreAI site layout
+groups**, with **709 working examples**, plus **21 standalone Markdown pages**
+(107 pages total). It uses the existing CoreAI site layout
 styles, grouped sidebar navigation, logo, mobile navigation header, and shared
 theme provider. It does **not** require a Storybook build or server. The source
 checkout and extraction tools are build-time inputs only.
 
-It remains staged while foundations, patterns, and production hosting are
-migrated. The normal site build and Azure deployment are unchanged.
+Foundations, patterns, setup, and standalone guidance now use the same pipeline.
+The app remains staged until the normal build and hosting cutover. Azure
+deployment is unchanged.
 
 From the repository root:
 
@@ -100,10 +102,17 @@ No static-site framework was added. The docsite explicitly declares the support
 packages already used by the example catalog, including React Router, react-window
 and its types, Fluent's JSX runtime, and drag-and-drop utilities.
 
-| Catalog                  | Groups | Executable examples |
-| ------------------------ | -----: | ------------------: |
-| Core components          |     75 |                 689 |
-| Copy-and-adapt templates |     11 |                  20 |
+| Catalog                  | Groups |                   Executable examples |
+| ------------------------ | -----: | ------------------------------------: |
+| Core components          |     75 |                                   689 |
+| Copy-and-adapt templates |     11 |                                    20 |
+| Standalone content       |     21 | Shared examples embedded where useful |
+
+Standalone content includes Colors, Typography, Content, Materials, Theming,
+Web UI guidelines, Forms, package/setup/agent guidance, React Grab, CSS Modules,
+Variations from Fluent, resources, FAQs, release history, and the Markdown-owned
+homepage. Prototyping remains explicitly under construction because the old site
+reserved that page without authoring a guide.
 
 CoreAI replacements win 70 matching upstream story IDs. The published catalog
 includes every selected story in the existing supported scope. Fluent packages
@@ -122,6 +131,8 @@ and source without requiring JavaScript. Other outputs include:
 - `llms/index.json`: page/source URLs, hashes, included/replaced/excluded examples,
   pinned Fluent revision, and verified runtime peer versions.
 - `.nojekyll` and `THIRD-PARTY-NOTICES.txt`: static publishing and source attribution.
+- Previous standalone directory URLs have static HTML redirects and raw Markdown
+  aliases. All 19 standalone Storybook `llms/{id}.md` endpoints remain readable.
 
 The output is suitable for an artifact-based GitHub Pages deployment. No Pages
 workflow is changed or deployed by these commands.
@@ -134,6 +145,56 @@ The upstream checkout and authored story files retain their existing locations
 under Storybook for now; moving them is not required to change tool ownership.
 
 ### Implementation and concrete source findings
+
+#### Standalone authoring
+
+Add a Markdown file under `content/foundations/`, `content/patterns/`,
+`content/guides/`, or `content/overview/`, with `id`, `title`, `summary`,
+`resources: []`, and `reference: {}` frontmatter. Its path determines its URL.
+`content/index.md` owns the homepage through `reference.route: index`.
+`reference.label` can shorten a navigation label. `aliases` preserves old
+directory URLs, `legacyIds` preserves exported Markdown IDs, and `migratedFrom`
+records source provenance.
+
+The supported build-time directives are deliberately small:
+
+```markdown
+<!-- generated: colors -->
+<!-- generated: typography -->
+<!-- generated: data-visualization -->
+<!-- generated: catalog -->
+<!-- generated: install -->
+<!-- generated: provider -->
+<!-- generated: release-summaries -->
+<!-- include: package-readme -->
+<!-- include: package-changelog -->
+<!-- include: package-skill -->
+<!-- include: router-link-slots -->
+<!-- example: components-text--presets -->
+```
+
+Only standalone comment nodes are expanded. Fenced examples are never evaluated.
+Includes use a fixed repository-source allowlist. Unknown or malformed directives
+fail the build. Relative documentation links, old Storybook documentation links,
+base paths, and cross-page heading anchors are resolved for each presentation.
+
+Color-role, typography, and visualization data are authored in Markdown tables
+under `content/data/`. Color values come from the built CoreAI/Azure theme exports,
+not a second hand-maintained palette. Human tables add swatches; raw Markdown
+contains every value for both themes. The Typography, Theming, and Forms guides
+embed the same compiled examples and source as the component catalog.
+
+The package README, changelog, skill, and router helper remain their canonical
+sources and are included at build time. The five authored Storybook MDX guides
+are replaced by ignored snapshots generated from canonical Markdown during
+Storybook preparation. This embeds the text for manifest-only MCP readers rather
+than leaving imports that require source files on the host. The old
+React page renderers remain until the app cutover, but staged content edits
+belong in Markdown, not those legacy views.
+
+MCP and the distributed MCP-first skill are clearly labeled optional compatibility
+references. HTTP documentation does not require them. Their hosting and package
+instructions are not silently changed by this content migration.
 
 [`build-reference-proof.mjs`](scripts/build-reference-proof.mjs) uses the shared
 story inventory to select examples and apply local-over-Fluent ownership.
@@ -264,14 +325,21 @@ checks the packed CoreAI artifact against that consumer version.
 - Asserts exactly one provider per document and checks live theme inheritance,
   selection-state preservation, and theme persistence after navigation.
 - Confirms that human guidance and source remain readable without JavaScript.
+- Resolves every authored standalone include from its canonical source and checks
+  all local article links, fragments, images, legacy aliases, and Markdown IDs.
 - Cleans up its temporary packed consumer, browser, and test server.
 
-This staged app still omits standalone foundation/pattern migration, API tables,
-an editable playground, full-text search, archived releases, and the existing
+This staged app still omits generated API tables, an editable playground,
+full-text search, archived releases, and the existing
 animated homepage. Some inherited guidance and new reference pages need UX review.
 Examples demonstrate APIs and are explicitly subordinate to CoreAI design
 guidance. Task-based evaluation of designer/agent decision quality is still
 needed before replacing the public site.
+
+The old Colors page's brand tabs and the Content page's hidden panels are
+intentionally simplified into visible tables/text. Both theme values and all
+principles, examples, workflow steps, and support details are readable in both
+outputs. Live component demonstrations remain interactive.
 
 The build splits examples by page and shares common dependencies. Some common
 chunks still trigger Vite's large-chunk warning. GitHub Pages response headers and

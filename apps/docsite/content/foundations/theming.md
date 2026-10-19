@@ -1,12 +1,16 @@
-import { Meta, Canvas } from '@storybook/addon-docs/blocks';
-import * as CoreAIFluentProviderStories from '../components/CoreAIFluentProvider.stories';
-
-<Meta
-  title="Docs/Theming"
-  summary="Wrap your app in CoreAIFluentProvider to apply the CoreAI theme, tokens, and component defaults."
-/>
-
-# CoreAIFluentProvider
+---
+id: theming
+title: Theming
+summary: 'Apply CoreAI themes, fonts, defaults, and custom brand colors.'
+resources: []
+reference:
+  legacyIds: [docs-theming--docs]
+  route: foundations/theming
+  aliases:
+    - /theming/
+  migratedFrom:
+    - apps/storybook/src/stories/docs/Theming.mdx
+---
 
 `CoreAIFluentProvider` is the entry point to the CoreAI Design System. It wraps
 Fluent UI's `FluentProvider`, applies the CoreAI theme (brand ramp, light/dark
@@ -42,9 +46,7 @@ export function App() {
 }
 ```
 
-{/* <Canvas of={CoreAIFluentProviderStories.Basic} /> */}
-
-<Canvas of={CoreAIFluentProviderStories.DefaultTheme} />
+<!-- example: components-coreaifluentprovider--default-theme -->
 
 - **Import from `@coreai-ds/react-components`**, not `@fluentui/react-components`.
   The barrel re-exports every Fluent name; CoreAI-customized components shadow
@@ -110,56 +112,11 @@ repository's builds.
 
 `CoreAIFluentProvider` accepts everything `FluentProvider` does, plus:
 
-<table className="coreai-props-table">
-  <thead>
-    <tr>
-      <th>Prop</th>
-      <th>Type</th>
-      <th>Default</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <code>theme</code>
-      </td>
-      <td>
-        <code>Theme</code>
-      </td>
-      <td>
-        <code>coreaiLightTheme</code>
-      </td>
-      <td>The theme tokens to apply. Use a CoreAI theme or one built from the factories below.</td>
-    </tr>
-    <tr>
-      <td>
-        <code>withComponentDefaults</code>
-      </td>
-      <td>
-        <code>boolean</code>
-      </td>
-      <td>
-        <code>true</code>
-      </td>
-      <td>
-        When <code>true</code>, wrapped components apply CoreAI's default props. Set{' '}
-        <code>false</code> to keep CoreAI colors/tokens but use stock Fluent prop defaults — e.g.
-        when nesting a non-CoreAI subtree.
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <code>customStyleHooks_unstable</code>
-      </td>
-      <td>
-        <code>FluentProviderProps["customStyleHooks_unstable"]</code>
-      </td>
-      <td>CoreAI hooks</td>
-      <td>Merged on top of CoreAI's hooks, so you can override or extend per call site.</td>
-    </tr>
-  </tbody>
-</table>
+| Prop                        | Type                                               | Default            | Description                                                                                                                                                                         |
+| --------------------------- | -------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `theme`                     | `Theme`                                            | `coreaiLightTheme` | The theme tokens to apply. Use a CoreAI theme or one built from the factories below.                                                                                                |
+| `withComponentDefaults`     | `boolean`                                          | `true`             | When `true`, wrapped components apply CoreAI's default props. Set `false` to keep CoreAI colors/tokens but use stock Fluent prop defaults — e.g. when nesting a non-CoreAI subtree. |
+| `customStyleHooks_unstable` | `FluentProviderProps["customStyleHooks_unstable"]` | CoreAI hooks       | Merged on top of CoreAI's hooks, so you can override or extend per call site.                                                                                                       |
 
 All other `FluentProviderProps` (`className`, `style`, `dir`, `targetDocument`,
 …) are forwarded to the underlying `FluentProvider`.
@@ -186,7 +143,7 @@ export function App() {
 }
 ```
 
-<Canvas of={CoreAIFluentProviderStories.AzureBrandTheme} />
+<!-- example: components-coreaifluentprovider--azure-brand-theme -->
 
 ---
 
@@ -203,4 +160,4 @@ adjustment):
 > Fluent's [Theme Designer](https://storybooks.fluentui.dev/react/?path=/docs/theme-theme-designer--docs).
 > Paste the output straight into `createCoreAILightTheme` / `createCoreAIDarkTheme`.
 
-<Canvas of={CoreAIFluentProviderStories.CustomBrandTheme} />
+<!-- example: components-coreaifluentprovider--custom-brand-theme -->

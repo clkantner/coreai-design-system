@@ -1,4 +1,10 @@
-# Use these examples
+---
+id: setup
+title: Use these examples
+summary: Provider setup, dependencies, source downloads, and template usage.
+resources: []
+reference: {}
+---
 
 This staged static documentation site combines existing CoreAI guidance with
 the supported Fluent and CoreAI example catalog. Foundations and standalone
@@ -45,3 +51,14 @@ their examples together.
 The component pages retain existing authored guidance. Some upstream examples
 illustrate API capabilities rather than recommended product design. CoreAI
 guidance takes precedence; an example is not permission to ignore that guidance.
+
+## Packages used by this build
+
+This is the union of dependencies used by the catalog. A consuming app only
+needs the dependencies required by its selected examples and package peers.
+
+<!-- generated: install -->
+
+## Provider setup: App.tsx
+
+<!-- generated: provider -->

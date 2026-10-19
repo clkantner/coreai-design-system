@@ -1,11 +1,18 @@
-import { Meta } from '@storybook/addon-docs/blocks';
-
-<Meta
-  title="Docs/Variations from Fluent"
-  summary="Full inventory of how @coreai-ds/react-components differs from stock Fluent UI v9, by component."
-/>
-
-# Variations from stock Fluent UI v9
+---
+id: variations-from-fluent
+title: Variations from Fluent
+summary: >-
+  Full inventory of how @coreai-ds/react-components differs from stock Fluent UI
+  v9, by component.
+resources: []
+reference:
+  legacyIds: [docs-variations-from-fluent--docs]
+  route: guides/variations-from-fluent
+  aliases:
+    - /variations-from-fluent/
+  migratedFrom:
+    - apps/storybook/src/stories/docs/VariationsFromFluent.mdx
+---
 
 This document inventories how `@coreai-ds/react-components` differs from using Fluent UI v9 directly, organized by component or component family.
 

@@ -1,11 +1,18 @@
-import { Meta } from '@storybook/addon-docs/blocks';
-
-<Meta
-  title="Docs/Styling with CSS Modules"
-  summary="Use RendererProvider to scope Griffel/Fluent styles into a CSS cascade `@layer`s so plain CSS/CSS Modules can override CoreAI component styles."
-/>
-
-# Styling with CSS Modules
+---
+id: styling-with-css-modules
+title: Styling with CSS Modules
+summary: >-
+  Use RendererProvider to scope Griffel/Fluent styles into a CSS cascade
+  `@layer`s so plain CSS/CSS Modules can override CoreAI component styles.
+resources: []
+reference:
+  legacyIds: [docs-styling-with-css-modules--docs]
+  route: guides/styling-with-css-modules
+  aliases:
+    - /styling-with-css-modules/
+  migratedFrom:
+    - apps/storybook/src/stories/docs/StylingWithCssModules.mdx
+---
 
 Fluent UI generates component styles with
 [Griffel](https://github.com/microsoft/griffel) and inserts CSS rules at runtime.
@@ -106,7 +113,7 @@ The original renderer still manages stylesheets, query ordering, and insertion
 deduplication. Do not flatten the buckets or drop media/container metadata.
 
 The prototype's implementation is
-[`createLayeredRenderer.ts`](../../../../prototype/app/theme/createLayeredRenderer.ts).
+[`createLayeredRenderer.ts`](../../../prototype/app/theme/createLayeredRenderer.ts).
 
 ### 3. Supply the renderer above the theme provider
 

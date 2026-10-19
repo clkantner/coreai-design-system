@@ -24,7 +24,10 @@ test('the staged Markdown catalog covers every selected core and template group'
   const pages = await readReferencePages(path.resolve(storyRoot, '..', 'docsite', 'content'));
   const catalog = await readSourceCatalog();
   assert.deepEqual(
-    pages.map((page) => page.component).sort(),
+    pages
+      .map((page) => page.component)
+      .filter(Boolean)
+      .sort(),
     catalog.components.map((component) => component.id).sort(),
   );
   assert.ok(!pages.some((page) => page.component === 'components-nav'));

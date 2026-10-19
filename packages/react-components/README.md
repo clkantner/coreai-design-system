@@ -103,7 +103,7 @@ see the [font setup and licensing guide](src/fonts/README.md).
 
 ### Overriding styles with CSS Modules or other style systems
 
-> **Note:** An **opt-in, app-owned Griffel renderer** can wrap runtime-generated component rules in `@layer griffel`, so normal unlayered CSS Modules override them without specificity hacks. Supply it through `RendererProvider` above `CoreAIFluentProvider`; do not patch shared dependencies. Layering is not enabled by this package automatically. The adapter uses Griffel's internal insertion method and needs upgrade checks; extracted static CSS requires separate layering. See [Styling with CSS Modules](../../apps/storybook/src/stories/docs/StylingWithCssModules.mdx) for the implementation, scope, and limits.
+> **Note:** An **opt-in, app-owned Griffel renderer** can wrap runtime-generated component rules in `@layer griffel`, so normal unlayered CSS Modules override them without specificity hacks. Supply it through `RendererProvider` above `CoreAIFluentProvider`; do not patch shared dependencies. Layering is not enabled by this package automatically. The adapter uses Griffel's internal insertion method and needs upgrade checks; extracted static CSS requires separate layering. See [Styling with CSS Modules](../../apps/docsite/content/guides/styling-with-css-modules.md) for the implementation, scope, and limits.
 
 ## Agent guide
 
@@ -143,7 +143,7 @@ configuration after the user confirms. Common locations are `.vscode/mcp.json` f
 
 The MCP returns read-only documentation, including selected Fluent examples and CoreAI
 overrides. It does not access your project or execute the returned code. See
-[MCP scope, safety, and data handling](../../apps/storybook/src/stories/docs/MCPSetup.mdx#scope-safety-and-data-handling)
+[MCP scope, safety, and data handling](../../apps/docsite/content/guides/mcp-setup.md#scope-safety-and-data-handling)
 before connecting. Review and test examples before using them in your application.
 
 ## eslint
@@ -200,7 +200,7 @@ files that anchor each pattern.
 - **`customStyleHooks_unstable` registry** — see [src/contexts/styleHooks.ts](src/contexts/styleHooks.ts) and [src/components/Card.styles.ts](src/components/Card.styles.ts).
 - **Custom prop-widening wrapper** — see [src/components/TabList.tsx](src/components/TabList.tsx).
 - **Webpack `NormalModuleReplacementPlugin` rewrite** — Storybook (the playground app) routes Fluent's canonical story imports through this barrel so they pick up CoreAI defaults. See [apps/storybook/.storybook/main.ts](../../apps/storybook/.storybook/main.ts) at the monorepo root.
-- **Complete variation inventory vs stock Fluent** — see [VariationsFromFluent.mdx](../../apps/storybook/src/stories/docs/VariationsFromFluent.mdx).
+- **Complete variation inventory vs stock Fluent** — see [Variations from Fluent](../../apps/docsite/content/guides/variations-from-fluent.md).
 
 ## Extending CoreAI
 

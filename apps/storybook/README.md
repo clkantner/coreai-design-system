@@ -2,6 +2,14 @@
 
 Storybook playground that previews [`@coreai-ds/react-components`](../../packages/react-components) against the canonical Fluent UI v9 stories.
 
+Theming, Variations from Fluent, CSS Modules, React Grab, and MCP setup prose is
+now authored in [`apps/docsite/content/`](../docsite/content/).
+`docs:standalone` generates ignored MDX snapshots under
+`.storybook/.cache/standalone-docs/` during preparation and on source saves.
+These embed the canonical text so manifest-only MCP readers do not need source
+files on the host. Their historical document IDs are preserved. Edit Markdown,
+not the generated MDX. The static Markdown exporter reads the same snapshots.
+
 ## Quickstart
 
 From the repo root:
@@ -87,7 +95,7 @@ CoreAI-specific component knowledge (props, example stories, templates) instead 
 names or pulling raw upstream Fluent APIs. This section documents how the MCP **content** is
 authored. For how the hosted server is **deployed**, see
 [docs/CI-CD-SETUP.md](../../docs/CI-CD-SETUP.md#app--mcp-hosting-public-storybook-authenticated-docsite). For
-**connection setup** (`mcp.json`, server URLs), see [Docs/MCP Setup](src/stories/docs/MCPSetup.mdx).
+**connection setup** (`mcp.json`, server URLs), see [MCP setup](../docsite/content/guides/mcp-setup.md).
 For the **behavioral rules** an agent should follow (which server to prefer, component-ID quirks,
 offline fallback), see the distributable
 [`agent/SKILL.md`](../../packages/react-components/agent/SKILL.md), mirrored to the hosted
@@ -114,7 +122,7 @@ The Storybook runtime, local addon, and standalone host are pinned to the same `
 both MCP surfaces use Storybook's shared docs toolset and manifest schema.
 
 Both servers return read-only design-system content, including selected upstream stories. See
-[MCP scope, safety, and data handling](src/stories/docs/MCPSetup.mdx#scope-safety-and-data-handling)
+[MCP scope, safety, and data handling](../docsite/content/guides/mcp-setup.md#scope-safety-and-data-handling)
 for capabilities, limitations, client precautions, privacy, and licensing information.
 
 **Toolsets:**

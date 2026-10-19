@@ -1067,7 +1067,20 @@ test('cleans current built Agent Skill, Theming and template MDX snapshots read-
   }
   await withFixture(async (root, data) => {
     data.components = { v: 0, components: {} };
-    data.docs = { v: 0, docs };
+    data.docs = {
+      v: 0,
+      docs: Object.fromEntries(
+        Object.entries(docs).map(([id, doc]) => [
+          id,
+          {
+            ...doc,
+            path: doc.path
+              ? path.relative(path.dirname(root), path.resolve(path.dirname(build), doc.path))
+              : doc.path,
+          },
+        ]),
+      ),
+    };
     data.index.entries = {};
     await writeFixture(root, data);
     await generateMarkdown({ buildDirectory: root });
@@ -1090,9 +1103,15 @@ test('cleans current built Agent Skill, Theming and template MDX snapshots read-
         assert.ok(code.includes(original.value), `Missing complete authored code in ${doc.id}`);
       }
       if (doc.id === 'docs-theming--docs') {
-        assert.ok(markdown.includes('CoreAIFluentProviderStories.DefaultTheme'));
-        assert.ok(markdown.includes('CoreAIFluentProviderStories.CustomBrandTheme'));
+        assert.ok(markdown.includes('components-coreaifluentprovider--default-theme'));
+        assert.ok(markdown.includes('components-coreaifluentprovider--custom-brand-theme'));
         assert.ok(markdown.includes('The theme tokens to apply.'));
+        const canonical = await fs.readFile(
+          new URL('../../docsite/content/foundations/theming.md', import.meta.url),
+          'utf8',
+        );
+        for (const original of codeBlocks(canonical))
+          assert.ok(code.includes(original.value), `Missing canonical Theming code in ${doc.id}`);
       }
       if (doc.id === 'docs-agent-skill--docs') {
         assert.ok(markdown.includes('Required MCP workflow'));

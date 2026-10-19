@@ -56,14 +56,21 @@ export function PageContent({
     const containers = [
       ...(contentRef.current?.querySelectorAll<HTMLElement>('[data-example-id]') ?? []),
     ];
-    const component = containers[0]?.dataset.exampleId?.split('--')[0];
-    const load = component ? loadExamples[component] : undefined;
-    if (component && !load) throw new Error(`Missing component example bundle: ${component}`);
-    (load ? load() : Promise.resolve({ examples: {} }))
+    const components = [
+      ...new Set(containers.map((container) => container.dataset.exampleId?.split('--')[0])),
+    ];
+    const loaders = components.map((component) => {
+      const load = component ? loadExamples[component] : undefined;
+      if (!load) throw new Error(`Missing component example bundle: ${component}`);
+      return load();
+    });
+    Promise.all(loaders)
       .then((loaded) => {
         if (!active) return;
         for (const container of containers) container.replaceChildren();
-        setExamples(loaded.examples);
+        setExamples(
+          Object.fromEntries(loaded.flatMap((module) => Object.entries(module.examples))),
+        );
         if (contentRef.current?.querySelector('[data-single-preview]')) {
           setActiveExample(
             (

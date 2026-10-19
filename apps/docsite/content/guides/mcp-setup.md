@@ -1,11 +1,19 @@
-import { Meta } from '@storybook/addon-docs/blocks';
+---
+id: mcp-setup
+title: MCP setup (optional compatibility)
+summary: Client setup for the hosted CoreAI component-docs MCP server.
+resources: []
+reference:
+  legacyIds: [docs-mcp-setup--docs]
+  route: guides/mcp-setup
+  aliases:
+    - /mcp-server/
+  migratedFrom:
+    - apps/docsite/src/pages/McpServer.tsx
+    - apps/storybook/src/stories/docs/MCPSetup.mdx
+---
 
-<Meta
-  title="Docs/MCP Setup"
-  summary="Client setup for the hosted CoreAI component-docs MCP server."
-/>
-
-# MCP setup for AI agents
+> This optional guide preserves the existing MCP integration. Reading this documentation site does not require MCP. Start with the [HTTP agent workflow](/guides/agent-workflow.md). Hosting retirement is a separate step; this migration does not verify or change the legacy endpoint.
 
 CoreAI ships a **Model Context Protocol (MCP)** server so AI agents (VS Code Copilot, Copilot
 CLI, and other MCP-aware clients) read accurate, CoreAI-specific component knowledge — props,
@@ -15,7 +23,7 @@ example stories, templates — instead of guessing prop names or reaching for th
 ## Servers
 
 - **`coreai-ds-docs`** — `https://coreai-ds-storybook.azurewebsites.net/mcp` — **Primary.**
-  Hosted, always-on CoreAI component docs (props, stories, templates).
+  Existing hosted CoreAI component docs (props, stories, templates).
 
 Connect using an `http`-type MCP client. Authentication: none.
 The catalog combines selected Fluent stories with CoreAI stories and overrides.
@@ -44,6 +52,19 @@ Add the server to your MCP client config (VS Code: `.vscode/mcp.json`; Copilot C
 Just the `url` — no headers, secrets, or token setup.
 
 ## Toolsets
+
+### Client setup surfaces
+
+- **VS Code:** create or update `.vscode/mcp.json` with the configuration above.
+  Start the configured server and confirm the documentation tools are available.
+- **Copilot CLI:** run `/mcp add`, choose HTTP, and enter the server name and URL
+  above. Run `/mcp show` to confirm the connection.
+- **Copilot App:** open **Customize > Add > MCP Server**, choose HTTP, enter the
+  server name and URL, and select **Add Server**. Start an agent session and
+  confirm the documentation tools are available.
+
+Review the configuration and its destination before asking an agent to change
+client settings. Do not add headers, API keys, or bearer tokens.
 
 `coreai-ds-docs` exposes:
 

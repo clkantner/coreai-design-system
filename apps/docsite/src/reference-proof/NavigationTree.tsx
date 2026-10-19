@@ -15,7 +15,19 @@ export function NavigationTree({ entries, query }: { entries: NavigationEntry[];
   const location = useLocation();
   const navigate = useNavigate();
   const activePath = normalizeReferencePath(location.pathname);
+  const groups = [
+    { value: 'overview', label: 'Overview' },
+    { value: 'guides', label: 'Guides' },
+    { value: 'foundations', label: 'Foundations' },
+    { value: 'patterns', label: 'Patterns' },
+    { value: 'components', label: 'Components' },
+    { value: 'templates', label: 'Templates' },
+  ];
   const [openItems, setOpenItems] = React.useState<TreeItemValue[]>([
+    'overview',
+    'guides',
+    'foundations',
+    'patterns',
     'components',
     'templates',
     'react-router',
@@ -24,13 +36,8 @@ export function NavigationTree({ entries, query }: { entries: NavigationEntry[];
   const visible = entries.filter((entry) => !needle || entry.title.toLowerCase().includes(needle));
 
   React.useEffect(() => {
-    const parents = activePath.startsWith('/components/')
-      ? ['components']
-      : activePath.startsWith('/templates/react-router-')
-        ? ['templates', 'react-router']
-        : activePath.startsWith('/templates/')
-          ? ['templates']
-          : [];
+    const parents = [activePath.split('/')[1] || 'overview'];
+    if (activePath.startsWith('/templates/react-router-')) parents.push('react-router');
     setOpenItems((current) => [...new Set([...current, ...parents])]);
   }, [activePath]);
 
@@ -60,11 +67,7 @@ export function NavigationTree({ entries, query }: { entries: NavigationEntry[];
         <TreeItemLayout>
           <Link
             className="reference-tree-link"
-            data-navigation-entry={
-              entry.path.startsWith('/components/') || entry.path.startsWith('/templates/')
-                ? ''
-                : undefined
-            }
+            data-navigation-entry=""
             to={entry.path}
             tabIndex={-1}
             aria-current={active ? 'page' : undefined}
@@ -76,52 +79,48 @@ export function NavigationTree({ entries, query }: { entries: NavigationEntry[];
     );
   }
 
-  const components = visible.filter((entry) => entry.path.startsWith('/components/'));
-  const templates = visible.filter((entry) => entry.path.startsWith('/templates/'));
-  const routerTemplates = templates.filter((entry) =>
-    entry.path.startsWith('/templates/react-router-'),
-  );
   return (
     <>
       {needle && !visible.length ? <p role="status">No pages match your filter.</p> : null}
       <Tree
         aria-label="Documentation pages"
         className="reference-navigation-tree"
-        openItems={needle ? ['components', 'templates', 'react-router'] : openItems}
+        openItems={needle ? [...groups.map((group) => group.value), 'react-router'] : openItems}
         onOpenChange={(_event, data) => setOpenItems([...data.openItems])}
       >
-        {visible
-          .filter(
-            (entry) =>
-              !entry.path.startsWith('/components/') && !entry.path.startsWith('/templates/'),
-          )
-          .map((entry) => leaf(entry))}
-        {components.length ? (
-          <TreeItem itemType="branch" value="components" aria-label="Components">
-            <TreeItemLayout>Components</TreeItemLayout>
-            <Tree>{components.map((entry) => leaf(entry))}</Tree>
-          </TreeItem>
-        ) : null}
-        {templates.length ? (
-          <TreeItem itemType="branch" value="templates" aria-label="Templates">
-            <TreeItemLayout>Templates</TreeItemLayout>
-            <Tree>
-              {templates
-                .filter((entry) => !entry.path.startsWith('/templates/react-router-'))
-                .map((entry) => leaf(entry))}
-              {routerTemplates.length ? (
-                <TreeItem itemType="branch" value="react-router" aria-label="React Router">
-                  <TreeItemLayout>React Router</TreeItemLayout>
-                  <Tree>
-                    {routerTemplates.map((entry) =>
-                      leaf(entry, entry.title.replace(/^React Router \/ /, '')),
-                    )}
-                  </Tree>
-                </TreeItem>
-              ) : null}
-            </Tree>
-          </TreeItem>
-        ) : null}
+        {groups.map((group) => {
+          const items = visible.filter(
+            (entry) => (entry.path.split('/')[1] || 'overview') === group.value,
+          );
+          const routerTemplates = items.filter((entry) =>
+            entry.path.startsWith('/templates/react-router-'),
+          );
+          return items.length ? (
+            <TreeItem
+              key={group.value}
+              itemType="branch"
+              value={group.value}
+              aria-label={group.label}
+            >
+              <TreeItemLayout>{group.label}</TreeItemLayout>
+              <Tree>
+                {items
+                  .filter((entry) => !entry.path.startsWith('/templates/react-router-'))
+                  .map((entry) => leaf(entry))}
+                {routerTemplates.length ? (
+                  <TreeItem itemType="branch" value="react-router" aria-label="React Router">
+                    <TreeItemLayout>React Router</TreeItemLayout>
+                    <Tree>
+                      {routerTemplates.map((entry) =>
+                        leaf(entry, entry.title.replace(/^React Router \/ /, '')),
+                      )}
+                    </Tree>
+                  </TreeItem>
+                ) : null}
+              </Tree>
+            </TreeItem>
+          ) : null;
+        })}
       </Tree>
     </>
   );

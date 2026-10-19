@@ -105,7 +105,7 @@ test('docsite destinations follow the repository README', async () => {
   assert.match(homePage, /<span>npm<\/span>/);
   assert.match(
     packageReadme,
-    /\.\.\/\.\.\/apps\/storybook\/src\/stories\/docs\/StylingWithCssModules\.mdx/,
+    /\.\.\/\.\.\/apps\/docsite\/content\/guides\/styling-with-css-modules\.md/,
   );
   assert.doesNotMatch(
     packageReadme,
@@ -114,7 +114,7 @@ test('docsite destinations follow the repository README', async () => {
 });
 
 test('MCP documentation explains capabilities, safety, data handling, and reporting', async () => {
-  const setup = await read('apps/storybook/src/stories/docs/MCPSetup.mdx');
+  const setup = await read('apps/docsite/content/guides/mcp-setup.md');
   assert.match(setup, /Authentication: none/);
   for (const name of ['docs-list', 'docs-show', 'docs-show-story']) {
     assert.ok(setup.includes(`\`${name}\``));

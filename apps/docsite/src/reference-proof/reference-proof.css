@@ -185,6 +185,27 @@
   padding: 8px;
 }
 
+.reference-color-swatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-inline-end: 8px;
+  border: 1px solid var(--colorNeutralStroke2, #ddd);
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.reference-shell img {
+  max-width: 100%;
+  height: auto;
+}
+
+.standalone-guidance > table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .reference-close {
   display: none;
 }
