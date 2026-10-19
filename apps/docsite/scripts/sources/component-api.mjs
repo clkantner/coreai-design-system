@@ -101,6 +101,7 @@ export function createComponentApiReader({
       shouldIncludePropTagMap: true,
       skipChildrenPropWithoutDoc: false,
       shouldRemoveUndefinedFromOptional: true,
+      shouldExtractLiteralValuesFromEnum: true,
       propFilter: includeProp,
     });
     const doc = parser.getComponentInfo(symbol, source, () => name);
@@ -119,7 +120,11 @@ export function createComponentApiReader({
           prop.required && propsType && !checker.getPropertyOfType(propsType, prop.name);
         return {
           name: prop.name,
-          type: portable(prop.type.name),
+          type: portable(
+            prop.type.name === 'enum'
+              ? prop.type.value.map((option) => option.value).join(' | ')
+              : prop.type.name,
+          ),
           required: prop.required && !conditional,
           conditional: conditional ? true : undefined,
           description: [prop.description, defaultNote?.[2]].filter(Boolean).join('\n\n'),

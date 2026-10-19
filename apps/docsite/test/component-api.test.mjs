@@ -35,6 +35,8 @@ test('docgen reads CoreAI defaults, inherited props, required slots and componen
   assert.equal(shape.defaultValue, "'circular'");
   assert.match(shape.type, /rounded.*square|square.*rounded/);
   assert.match(shape.description, /rounded, circular, or square/);
+  const size = reader.read('Button').props.find((prop) => prop.name === 'size').type;
+  for (const value of ['"small"', '"medium"', '"large"']) assert.ok(size.includes(value));
   assert.equal(
     reader.read('Input').props.find((prop) => prop.name === 'appearance').defaultValue,
     "'outline'",
