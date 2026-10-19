@@ -134,8 +134,10 @@ and source without requiring JavaScript. Other outputs include:
 - Previous standalone directory URLs have static HTML redirects and raw Markdown
   aliases. All 19 standalone Storybook `llms/{id}.md` endpoints remain readable.
 
-The output is suitable for an artifact-based GitHub Pages deployment. No Pages
-workflow is changed or deployed by these commands.
+The output is published by the separate
+[feature-branch Pages workflow](../../.github/workflows/docs-preview.yml).
+See [preview setup and isolation](../../docs/GITHUB-ACTIONS.md#feature-branch-documentation-preview).
+Local build commands do not deploy anything.
 
 Reusable acquisition, inventory, source extraction, descriptions, and Markdown
 sanitization now live in [`scripts/sources/`](scripts/sources/). Local Storybook

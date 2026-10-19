@@ -7,6 +7,7 @@ Source, pull requests, and automation live in
 | ----------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | CI / Validate           | [ci.yml](../.github/workflows/ci.yml)                                     | Pull requests and pushes to `main`; manual; reusable               |
 | Deploy Azure apps       | [deploy.yml](../.github/workflows/deploy.yml)                             | Every push to `main`; manual; disabled until enabled               |
+| Documentation preview   | [docs-preview.yml](../.github/workflows/docs-preview.yml)                 | Pushes to `feat/static-storybook-markdown`; manual on that branch  |
 | Check Fluent UI updates | [check-fluent-updates.yml](../.github/workflows/check-fluent-updates.yml) | Monday 09:00 UTC; manual; disabled until enabled                   |
 | Publish package         | [publish-package.yml](../.github/workflows/publish-package.yml)           | See the [release guide](../packages/react-components/RELEASING.md) |
 
@@ -16,8 +17,9 @@ the sites; it does not publish a package.
 ## Running and troubleshooting workflows
 
 Open [Actions](https://github.com/microsoft/coreai-design-system/actions), select
-the workflow, and inspect the failed job and step. For a manual run, select
-**Run workflow** and choose `main`; deployment and publishing reject other branches.
+the workflow, and inspect the failed job and step. For Azure or npm manual runs,
+choose `main`; those workflows reject other branches.
+The documentation preview instead accepts only `feat/static-storybook-markdown`.
 Disabled workflows must be enabled before they can run. Enabling a workflow alone
 does not satisfy its repository-variable gates.
 
@@ -46,6 +48,42 @@ guidance-generation tests, Storybook build/content verification, docsite tests
 against the same built Storybook index, anonymous MCP host tests, Chromium installation,
 and browser component tests.
 Fork contributions use `pull_request`, not privileged `pull_request_target`.
+
+## Feature-branch documentation preview
+
+The new Markdown-owned site is published separately at
+<https://microsoft.github.io/coreai-design-system/>. The existing Azure site
+continues to deploy from `main`; preview publication does not merge or modify it.
+
+The [preview workflow](../.github/workflows/docs-preview.yml) builds and verifies
+the feature branch, then uploads only its static output to GitHub Pages.
+API/Markdown tests, packed-package consumer compilation, page/source parity, and
+Chromium checks must pass before deployment. It does not build hosted Storybook
+or use Azure credentials. The final step checks public HTML, raw Markdown, and
+the exact deployed source revision.
+
+Repository setup:
+
+1. Set **Settings > Pages > Build and deployment > Source** to **GitHub Actions**.
+2. Create the `github-pages` environment and allow only the deployment branch
+   `feat/static-storybook-markdown`. Do not change `azure-production`.
+3. Allow the pinned `actions/upload-pages-artifact` and `actions/deploy-pages`
+   actions. The deployment job needs `pages: write` and `id-token: write`.
+4. Push the feature branch. The push trigger works without merging the workflow
+   into `main`. GitHub's manual workflow-dispatch UI may not list a new workflow
+   until it exists on the default branch; another push or a run rerun is sufficient.
+
+This is one shared **public** preview, not a separate deployment for every PR.
+A PR can link to it, but opening a PR is not required. Only this trusted branch
+deploys: untrusted PR code never gets Pages deployment permissions.
+Each successful branch push replaces the preview at the same URL.
+GitHub Pages supports one site per repository, so future independent PR previews
+would need subdirectories and a different publication strategy.
+
+Disable **Deploy documentation preview** to stop new preview deployments.
+To roll back, rerun a previously successful preview run; its smoke test checks
+that run's source revision. Before promoting the new site, separately decide its
+production URL, normal build entry point, branch gates, and legacy retirement.
 
 Before dependency installation, CI runs `npm run check:public-source` and the
 public-source check's Node tests. Deployment repeats the source check before
