@@ -252,9 +252,29 @@ than leaving imports that require source files on the host. The old
 React page renderers remain until the app cutover, but staged content edits
 belong in Markdown, not those legacy views.
 
-MCP and the distributed MCP-first skill are clearly labeled optional compatibility
-references. HTTP documentation does not require them. Their hosting and package
-instructions are not silently changed by this content migration.
+### Agent discovery
+
+The homepage promotes **Build with your agent**, with a **Copy starter prompt**
+button, prompt preview, onboarding guide, optional reusable skill, and index link.
+The prompt is authored once in
+[`agent-prompt.md`](content/data/agent-prompt.md), published as `agent-prompt.txt`,
+and included in the human/Markdown onboarding guide. The homepage copies the
+same text; no separate prompt is maintained in React.
+
+`llms.txt` begins with targeted-retrieval instructions and direct links to the
+workflow, starter prompt, skill, and exact-route JSON index. The skill remains
+canonical in the package's [`agent/SKILL.md`](../../packages/react-components/agent/SKILL.md)
+and is published unchanged at `source/package/SKILL.md`. Installing it in a
+consuming repository is optional and requires review/approval before writing.
+Old npm versions are not republished by this documentation change.
+
+The staged site no longer publishes server-connection setup instructions.
+Old setup URLs redirect to the HTTP onboarding guide; their legacy document ID
+returns the replacement guide. Historical package changelog bullets about the
+retired integration are omitted from the site through the explicit
+`package-release-notes` include. The source changelog remains unchanged and
+linked for historical reference. Legacy server hosting and production main are
+not changed by this content cleanup.
 
 [`build-reference-proof.mjs`](scripts/build-reference-proof.mjs) uses the shared
 story inventory to select examples and apply local-over-Fluent ownership.

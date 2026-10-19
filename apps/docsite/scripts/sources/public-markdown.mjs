@@ -13,6 +13,10 @@ export function publicMarkdown(content, file) {
         /<!-- example: ([\w-]+) -->/g,
         (_match, id) => `[Open live example](?path=/story/${id})`,
       )
+      .replace(
+        /<!-- include: agent-prompt -->/g,
+        '[Read the starter prompt](https://microsoft.github.io/coreai-design-system/agent-prompt.txt)',
+      )
       .replace(/\]\((\.\.?\/[^)]+)\)/g, (_match, target) => {
         const filename = path
           .relative(root, path.resolve(path.dirname(file), target))

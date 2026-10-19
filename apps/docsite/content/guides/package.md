@@ -30,7 +30,7 @@ rather than publishing Aptos files.
 ## Full package reference
 
 The following content is included from the package README during the build,
-not copied into a second maintained guide. Some sections describe existing
-MCP-based integrations; [HTTP documentation](./agent-workflow.md) does not require them.
+not copied into a second maintained guide. Start with the
+[agent workflow](./agent-workflow.md) for targeted Markdown documentation lookup.
 
 <!-- include: package-readme -->

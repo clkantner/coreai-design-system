@@ -1,8 +1,10 @@
 ---
 id: package-skill
-title: Packaged agent skill
-summary: The current distributed package skill, preserved as a compatibility reference.
-resources: []
+title: Reusable agent skill
+summary: Teach your agent to find CoreAI Markdown guidance quickly in any consuming repository.
+resources:
+  - label: Download SKILL.md
+    url: /source/package/SKILL.md
 reference:
   legacyIds: [docs-agent-skill--docs]
   aliases: [/coreai-skill/, /agent-skill/, /foundational-skill/, /design-md/]
@@ -12,21 +14,35 @@ reference:
     - packages/react-components/agent/SKILL.md
 ---
 
-## Compatibility status
+## What it does
 
-The package currently distributes an MCP-first skill. This page preserves that
-artifact without changing its instructions or claiming it is required for the
-new site. For read-only documentation, use the [HTTP agent workflow](./agent-workflow.md).
+The skill tells an agent when to use CoreAI documentation, where to find the
+index, how to fetch only the relevant Markdown, and how to check versions and
+package imports. Detailed component guidance stays on this site instead of being
+duplicated in repository instructions.
 
-Download [the packaged SKILL.md](/source/package/SKILL.md). Clients that support
-workspace skills can install it at
-`.github/skills/coreai-ds-fluentui-react/SKILL.md`; other clients use their
-equivalent skills directory.
+You can [start with a prompt](./use-with-agents.md) without installing anything.
+Skills are useful for repeated work in repositories that consume CoreAI.
 
-## Exact packaged source
+## Install in a consuming repository
 
-This is a fenced copy of the distributed artifact, not an additional set of
-instructions for reading this site. It is included from its canonical package
-source at build time.
+1. Download and review [SKILL.md](/source/package/SKILL.md).
+2. For clients that support GitHub workspace skills, save it at
+   `.github/skills/coreai-ds-fluentui-react/SKILL.md`. Other clients can use their
+   equivalent supported skill directory, such as
+   `.agents/skills/coreai-ds-fluentui-react/SKILL.md` or
+   `.claude/skills/coreai-ds-fluentui-react/SKILL.md`.
+3. If a skill already exists, merge the retrieval instructions with local rules;
+   do not overwrite repository-specific adapters or conventions.
+4. Review and commit the file. Follow your client's instructions to enable or
+   reload skills, then ask it to fetch the index and one relevant Markdown page.
+
+If an agent installs the skill, it should first show the proposed destination and
+changes and ask for approval. No client configuration or executable installer is
+needed. The same canonical skill source is included in future package builds;
+already published npm versions may contain older instructions. Use this download
+for the current workflow.
+
+## Skill source
 
 <!-- include: package-skill -->

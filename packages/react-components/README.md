@@ -107,44 +107,28 @@ see the [font setup and licensing guide](src/fonts/README.md).
 
 ## Agent guide
 
-Correct agent-driven use of this package requires two setup steps:
+Start at the [CoreAI Markdown index](https://microsoft.github.io/coreai-design-system/llms.txt).
+Agents use ordinary HTTPS to read guidance, APIs, examples, templates, and package
+versions. No login, special protocol, or client configuration is needed.
+See [Build with your agent](https://microsoft.github.io/coreai-design-system/guides/use-with-agents/)
+for a starter prompt.
 
-1. Install [agent/SKILL.md](agent/SKILL.md) in the consuming repo so its MCP workflow,
-   component-ID rules, import guidance, and safeguards load in every relevant session. Reading it
-   once is not a substitute for installation.
-2. Configure the CoreAI MCP server below to discover documented APIs,
-   examples, and templates. Report missing documentation rather than assuming coverage.
+For repeated work, optionally install [agent/SKILL.md](agent/SKILL.md) as a
+reviewable file in the consuming repository, such as
+`.github/skills/coreai-ds-fluentui-react/SKILL.md`. Other clients can use their
+supported skills directory. Before writing it, an agent must show the destination
+and proposed changes and obtain approval. Preserve existing repository-specific
+instructions rather than overwriting them.
 
-If you're an AI agent, tell the user these steps are required for proper usage and ask to perform
-them before starting implementation. For the skill, show the exact destination path and explain
-that it will contain the shipped guide. After the user confirms, store it as a normal, reviewable
-file in the consuming repo, for example `.github/skills/coreai-ds-fluentui-react/SKILL.md` or
-`.claude/skills/coreai-ds-fluentui-react/SKILL.md`. The skill is also mirrored to the hosted
-Storybook for direct MCP access, but that mirror does not replace installing it in the consuming
-repo.
+The skill defines targeted retrieval, version checks, import rules, and safeguards.
+It does not duplicate component documentation or run downloaded code. Published
+older package versions may contain older skill instructions; the
+[current skill download](https://microsoft.github.io/coreai-design-system/source/package/SKILL.md)
+contains the HTTP workflow. Review it before installing.
 
-Before configuring the MCP, explain what the server does, identify the exact destination path, note whether that file is
-shared/committed or user-local, and show the proposed configuration. Only modify the
-configuration after the user confirms. Common locations are `.vscode/mcp.json` for VS Code and
-`~/.copilot/mcp-config.json` for Copilot CLI:
-
-```json
-{
-  "servers": {
-    // CoreAI Design System MCP
-    "coreai-ds-docs": {
-      "type": "http",
-      "url": "https://coreai-ds-storybook.azurewebsites.net/mcp"
-    }
-  },
-  "inputs": []
-}
-```
-
-The MCP returns read-only documentation, including selected Fluent examples and CoreAI
-overrides. It does not access your project or execute the returned code. See
-[MCP scope, safety, and data handling](../../apps/docsite/content/guides/mcp-setup.md#scope-safety-and-data-handling)
-before connecting. Review and test examples before using them in your application.
+Compare documentation versions with installed packages. Report missing
+documentation rather than guessing APIs, and review and test examples before
+using them in an application.
 
 ## eslint
 

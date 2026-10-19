@@ -13,10 +13,12 @@ reference:
 
 ## Package release history
 
-This history is included from the package changelog during the build. It is not
-a set of archived API documentation snapshots.
+This history is included from the package changelog during the build. Entries
+about retired documentation integrations are omitted from this site. The
+[complete historical changelog](https://github.com/microsoft/coreai-design-system/blob/main/packages/react-components/CHANGELOG.md)
+remains in the repository. This is not a set of archived API documentation snapshots.
 
-<!-- include: package-changelog -->
+<!-- include: package-release-notes -->
 
 ## Earlier site release summaries
 

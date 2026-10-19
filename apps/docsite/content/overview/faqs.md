@@ -68,9 +68,9 @@ For individual components, start with documented props and design tokens. Preser
 
 ### What does my coding agent need to use CoreAI?
 
-Install the package to build an application. Agents can read the same UX guidance and complete examples as people through this site’s Markdown endpoints. MCP is not required for read-only documentation.
+Install the package to build an application. Agents can read the same UX guidance and complete examples as people through this site's Markdown endpoints with ordinary HTTPS.
 
-Start with the remote discovery index, check package versions, and follow the agent workflow. The packaged skill and MCP setup remain optional compatibility resources during this migration.
+Use [Build with your agent](/guides/use-with-agents.md) for a starter prompt. The optional reusable skill makes this workflow available for repeated work in a consuming repository.
 
 - [Agent workflow](/guides/agent-workflow.md)
 
@@ -78,13 +78,13 @@ Start with the remote discovery index, check package versions, and follow the ag
 
 Use View as Markdown on a page, or replace its trailing slash with .md. Preserve the deployment base path. Share that URL with the agent; it contains the same guidance and example source as the human page.
 
-### What if the documentation server will not connect?
+### What if the agent cannot fetch documentation?
 
-Check the endpoint URL and your network connection against the MCP setup guide.
+Check the page URL, network connection, and whether your agent has a web-fetch or HTTP tool. Start at [llms.txt](/llms.txt).
 
 If the server is unavailable, have your agent use the installed package README, changelog, and skill, and state that it cannot access live docs. Report persistent connection problems through GitHub issues.
 
-- [MCP setup](https://coreai-ds-storybook.azurewebsites.net/?path=/docs/docs-mcp-setup--docs)
+- [Agent workflow](/guides/agent-workflow.md)
 
 ## Help and feedback
 

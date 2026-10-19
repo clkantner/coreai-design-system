@@ -37,7 +37,7 @@ responsibility.
 Each human page has a matching Markdown file. For example, replace
 `components/button/` with `components/button.md`, preserving the site's base path.
 Start at `llms.txt` to find pages and version information. Reading the Markdown
-does not require JavaScript, Storybook, or MCP.
+uses ordinary HTTPS and does not require JavaScript or a running Storybook.
 
 ## Reference boundaries
 

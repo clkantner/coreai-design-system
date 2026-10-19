@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
+import matter from 'gray-matter';
 import ts from 'typescript';
 import { readReferencePages } from '../scripts/read-reference-pages.mjs';
 import {
@@ -12,6 +13,7 @@ import {
   rewriteDocumentationLinks,
   tokenSwatches,
   stripPresentationMarkers,
+  currentReleaseNotes,
 } from '../scripts/standalone-markdown.mjs';
 import { appRoot, codeFence } from '../scripts/build-reference-proof.mjs';
 import {
@@ -91,6 +93,49 @@ test('Markdown includes and generated sections expand without evaluating code fe
   await assert.rejects(expandStandaloneMarkdown('<!-- include: ../outside -->', {}), /Malformed/);
 });
 
+test('agent handoff and skill use HTTP discovery without requiring installation', async () => {
+  const skillPath = path.resolve(appRoot, '../../packages/react-components/agent/SKILL.md');
+  const source = await fs.readFile(skillPath, 'utf8');
+  const skill = matter(source);
+  assert.equal(skill.data.name, 'coreai-ds-fluentui-react');
+  assert.ok(skill.data.description.length > 0 && skill.data.description.length <= 1024);
+  assert.match(skill.data.description, /HTTPS/);
+  assert.match(source, /llms\.txt/);
+  assert.match(source, /llms\/index\.json/);
+  assert.match(source, /once per task/);
+  assert.match(source, /Get the user's\s+approval/);
+  assert.doesNotMatch(source, /\bMCP\b|docs-list|docs-show|azurewebsites/i);
+  const prompt = (
+    await fs.readFile(path.join(appRoot, 'content/data/agent-prompt.md'), 'utf8')
+  ).trim();
+  assert.match(prompt, /No installation is needed/);
+  assert.match(prompt, /without overwriting existing instructions/);
+  const expanded = await expandStandaloneMarkdown('<!-- include: agent-prompt -->', {
+    route: 'guides/use-with-agents',
+    pages: [],
+    basePath: '/repo/',
+    fence: codeFence,
+  });
+  assert.ok(expanded.includes(prompt));
+  const pages = await readReferencePages(path.join(appRoot, 'content'));
+  assert.equal(
+    pages.find((page) => page.route === 'guides/mcp-setup'),
+    undefined,
+  );
+  const entry = pages.find((page) => page.route === 'guides/use-with-agents');
+  assert.ok(entry.aliases.includes('/mcp-server/'));
+  assert.ok(entry.aliases.includes('/guides/mcp-setup/'));
+});
+
+test('site release notes omit retired integration entries without changing package history', () => {
+  const source =
+    '# History\n\n## 1.0\n\n### Changed\n\n- Keep component behavior.\n- MCP client setup changed.\n- Keep package install.\n\n### Added\n\n- MCP endpoint.\n';
+  const filtered = currentReleaseNotes(source);
+  assert.match(filtered, /Keep component behavior/);
+  assert.match(filtered, /Keep package install/);
+  assert.doesNotMatch(filtered, /\bMCP\b/);
+  assert.match(source, /MCP client setup changed/);
+});
 test('links use canonical routes, base paths and HTML heading IDs without changing code samples', () => {
   const pages = [
     {

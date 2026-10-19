@@ -1,50 +1,73 @@
 ---
 id: agent-workflow
 title: Agent workflow
-summary: Read CoreAI UX guidance and implementation examples over ordinary HTTP.
+summary: Find the right CoreAI Markdown page, retrieve only what you need, and verify the result.
 resources: []
 reference: {}
 ---
 
-## Read the same content as people
+## Start here
 
-1. Start at the site's `llms.txt` discovery index.
-2. Check the documented CoreAI and Fluent versions against the consuming app.
-3. Select a page by its purpose, not only its component name.
-4. Replace the human page's trailing slash with `.md` to read its Markdown.
-   Preserve the site's deployment base path.
-5. Read the UX guidance and relevant examples before choosing props or patterns.
-6. Verify generated code in the consuming app.
+Base URL: https://microsoft.github.io/coreai-design-system/
 
-MCP, a running Storybook, and browser JavaScript are not required to read these
-documents. Do not invent undocumented APIs. Report missing guidance or APIs
-instead of presenting a guess as documented behavior.
+1. Read [llms.txt](/llms.txt) once per task. It lists page purposes and package
+   versions. Reuse it rather than fetching the entire catalog.
+2. Check the consuming app's manifest and lockfile. This site documents the
+   current release. If versions differ, inspect installed TypeScript declarations
+   and state the mismatch before relying on newer APIs.
+3. Choose only the pages needed for the user's task. Read their UX guidance as
+   well as the Default example, API summaries, and relevant additional examples.
+4. Use ordinary HTTPS GET with a web-fetch or HTTP tool. Check HTTP status and
+   reject HTML returned where Markdown was expected.
+5. Validate the implementation with the app's type checks, tests, and browser
+   checks. Report what you verified and any unavailable guidance.
 
-## Follow CoreAI guidance
+## Direct URL mapping
 
-CoreAI guidance takes precedence over upstream API demonstrations. An example
-shows a supported capability; it does not override the page's do's and don'ts.
-Use the CoreAI package for wrapped components and tokens. Preserve keyboard
-behavior, accessible names, focus visibility, responsive behavior, and both themes.
+- Human: `/coreai-design-system/components/button/`
+- Markdown: `/coreai-design-system/components/button.md`
+- Homepage Markdown: `/coreai-design-system/index.md`
+- Discovery index: `/coreai-design-system/llms.txt`
+- Exact routes and metadata: `/coreai-design-system/llms/index.json`
+- Reusable skill: `/coreai-design-system/source/package/SKILL.md`
 
-## Copy templates into the app
+Keep the deployment prefix. Do not guess routes from export names: groups such
+as Accordion contain several component APIs on one page. Follow the published
+index. To retrieve an individual example, use its published source download.
+The JSON index is useful for exact example paths, dependencies, and API members;
+it is not necessary to read every record before starting.
 
-Templates are not npm exports. Download every source file listed on the template
-page, install the listed dependencies, and adapt the component in the consuming
-repository. Inspect existing local adapters before adding another composition.
+## Prefer the right reference
 
-## Keep the local skill small
+- [Setup](./setup.md): dependencies and the app-root provider.
+- [Theming](../foundations/theming.md), [Colors](../foundations/colors.md), and
+  [Typography](../foundations/typography.md): shared visual decisions.
+- [Variations from Fluent](./variations-from-fluent.md): CoreAI-specific changes.
+- [CSS Modules](./styling-with-css-modules.md): style override boundaries.
 
-A local skill only needs to identify the documentation site, discovery index,
-URL convention, and version check. Keep component rules on the remotely updated
-site rather than copying them into agent configuration.
+CoreAI guidance takes precedence over upstream API demonstrations. Never invent
+props, defaults, or exports. API blocks are readable summaries; the installed
+exported types are authoritative.
 
-The [packaged skill](./package-skill.md) and [MCP setup](./mcp-setup.md) are
-compatibility references for existing clients. They are not prerequisites for
-this HTTP workflow.
+## Components and templates
 
-## When documentation is unavailable
+Import components, styling APIs, and tokens from `@coreai-ds/react-components`.
+Icons can come from `@fluentui/react-icons`. Inspect repository adapters and
+import rules before adding a new composition.
 
-State what could not be retrieved. Use the installed package README, TypeScript
-declarations, and changelog as explicit fallbacks. Do not claim that an API was
-verified against the live documentation when it was not.
+Templates are not npm exports. Download every source file listed on the chosen
+template page, review it, and copy it into the consuming repository before adapting
+it. Install the listed dependencies. Keep keyboard behavior, accessible names,
+focus visibility, responsive layouts, and both themes.
+
+## Optional skill
+
+The [reusable skill](./package-skill.md) stores this retrieval workflow in a
+consuming repository. It is optional, not a prerequisite for HTTP reading.
+Never install or overwrite instructions without the user's approval.
+
+## When a page is unavailable
+
+State the URL and error. Use the installed package README, TypeScript
+declarations, and changelog as explicit fallbacks. Do not claim a failed request
+succeeded or silently substitute stock Fluent behavior.

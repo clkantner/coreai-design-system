@@ -9,6 +9,7 @@ import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkStringify from 'remark-stringify';
+import { toString } from 'mdast-util-to-string';
 
 const repositoryRoot = fileURLToPath(new URL('../../../', import.meta.url));
 const parser = unified()
@@ -18,7 +19,9 @@ const parser = unified()
 export const includedSources = {
   'package-readme': 'packages/react-components/README.md',
   'package-changelog': 'packages/react-components/CHANGELOG.md',
+  'package-release-notes': 'packages/react-components/CHANGELOG.md',
   'package-skill': 'packages/react-components/agent/SKILL.md',
+  'agent-prompt': 'apps/docsite/content/data/agent-prompt.md',
   'router-link-slots': 'apps/storybook/src/stories/templates/react-router/RouterLinkSlots.tsx',
 };
 
@@ -105,15 +108,15 @@ export async function expandStandaloneMarkdown(
         throw new Error(`Unknown included Markdown source: ${key}`);
       const source = includedSources[key];
       const raw = await fs.readFile(path.join(repositoryRoot, source), 'utf8');
-      replacement =
-        key === 'router-link-slots' || key === 'package-skill'
-          ? fence(raw, key === 'package-skill' ? 'markdown' : 'tsx')
-          : rewriteDocumentationLinks(matter(raw).content.replace(/^# .+\r?\n/, ''), {
-              route,
-              pages,
-              basePath,
-              sourceFile: source,
-            });
+      const text = key === 'package-release-notes' ? currentReleaseNotes(raw) : raw;
+      replacement = ['router-link-slots', 'package-skill', 'agent-prompt'].includes(key)
+        ? fence(raw, key === 'package-skill' ? 'markdown' : key === 'agent-prompt' ? 'text' : 'tsx')
+        : rewriteDocumentationLinks(matter(text).content.replace(/^# .+\r?\n/, ''), {
+            route,
+            pages,
+            basePath,
+            sourceFile: source,
+          });
     } else if (kind === 'generated') {
       if (!Object.hasOwn(generated, key))
         throw new Error(`Unknown generated Markdown section: ${key}`);
@@ -131,6 +134,22 @@ export async function expandStandaloneMarkdown(
   for (const { start, end, replacement } of replacements.reverse())
     result = result.slice(0, start) + replacement + result.slice(end);
   return rewriteDocumentationLinks(result, { route, pages, basePath, sourceFile });
+}
+
+export function currentReleaseNotes(markdown) {
+  const tree = parser.parse(markdown);
+  function visit(node) {
+    if (!node.children) return;
+    node.children = node.children.filter(
+      (child) => child.type !== 'listItem' || !/\bMCP\b|\/mcp\b/i.test(toString(child)),
+    );
+    node.children.forEach(visit);
+    node.children = node.children.filter(
+      (child) => child.type !== 'list' || child.children.length > 0,
+    );
+  }
+  visit(tree);
+  return parser.stringify(tree);
 }
 
 export function tokenSwatches(html) {

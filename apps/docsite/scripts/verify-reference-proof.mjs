@@ -208,6 +208,15 @@ try {
       'utf8',
     ),
   );
+  const starter = (
+    await fs.readFile(path.join(appRoot, 'content/data/agent-prompt.md'), 'utf8')
+  ).trim();
+  assert.equal(await get('agent-prompt.txt'), starter);
+  assert.equal(metadata.agentPrompt, starter);
+  const agentIndex = await get('llms.txt');
+  assert.match(agentIndex, /Fetch this index once per task/);
+  assert.match(agentIndex, /guides\/use-with-agents\.md/);
+  assert.match(agentIndex, /source\/package\/SKILL\.md/);
   assert.equal((await fetch(`${root}components/not-a-page/`)).status, 404);
   assert.equal((await fetch(`${root}components/not-a-page.md`)).status, 404);
   await fs.access(path.join(outputDirectory, '.nojekyll'));
@@ -228,6 +237,11 @@ try {
   for (const page of metadata.pages) {
     const html = await get(page.htmlPath);
     const markdown = await get(page.markdownPath);
+    assert.doesNotMatch(
+      markdown,
+      /\bMCP\b|docs-list|docs-show|azurewebsites\.net\/mcp/i,
+      `${page.id}: no retired agent integration guidance`,
+    );
     const authored = matter(await fs.readFile(path.join(appRoot, page.guidanceSource), 'utf8'));
     assert.deepEqual(page.resources, authored.data.resources ?? []);
     assert.equal(page.renderer, authored.data.reference?.renderer);
@@ -913,6 +927,11 @@ try {
   await staticPage.goto(root);
   assert.equal(await staticPage.locator('.home-resource-links a').count(), 3);
   assert.ok(await staticPage.locator('.home-logo-fallback').isVisible());
+  assert.equal(
+    await staticPage.getByRole('heading', { name: 'Build with your agent', exact: true }).count(),
+    1,
+  );
+  assert.equal((await staticPage.locator('[data-agent-prompt]').textContent()).trim(), starter);
   await noJavaScript.close();
   await page.goto(`${root}components/button/`);
   await page.locator('[data-reference-ready="true"]').waitFor();
@@ -985,6 +1004,29 @@ try {
   await page.locator('[data-reference-ready="true"]').waitFor();
   assert.equal(await page.locator('.home-resource-links a').count(), 3);
   assert.ok((await page.locator('.home-heading p').innerText()).includes('Shared components'));
+  const promptButton = page.getByRole('button', { name: 'Copy starter prompt', exact: true });
+  await promptButton.click();
+  await page
+    .locator('.copy-toast')
+    .filter({ hasText: 'Copied starter prompt' })
+    .waitFor({ state: 'visible' });
+  assert.equal(
+    normalizeSource(await page.evaluate(() => navigator.clipboard.readText())),
+    normalizeSource(starter),
+  );
+  const starterOrigin = await page.evaluate(() => globalThis.performance.timeOrigin);
+  await page
+    .locator('.home-agent-entry')
+    .getByRole('link', { name: 'How it works', exact: true })
+    .click();
+  await page
+    .getByRole('heading', { level: 1, name: 'Build with your agent', exact: true })
+    .waitFor();
+  await page.locator('[data-reference-ready="true"]').waitFor();
+  assert.ok((await page.locator('.standalone-guidance').innerText()).includes(starter));
+  assert.equal(await page.evaluate(() => globalThis.performance.timeOrigin), starterOrigin);
+  await page.goto(root);
+  await page.locator('[data-reference-ready="true"]').waitFor();
   assert.equal(
     await page.evaluate(
       () => globalThis.document.documentElement.scrollWidth > globalThis.innerWidth,

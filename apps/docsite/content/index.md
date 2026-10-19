@@ -28,7 +28,15 @@ copy-and-adapt templates, and UX guidance.
 
 - [Set up the package](./guides/package.md).
 - [Use the examples](./guides/setup.md).
-- [Read the agent workflow](./guides/agent-workflow.md). Read-only documentation does not require MCP.
+- [Build with your agent](./guides/use-with-agents.md): copy a starter prompt or install the optional reusable skill.
+
+## Give your agent CoreAI guidance
+
+Start at [llms.txt](/llms.txt). Share the [starter prompt](./guides/use-with-agents.md)
+with your coding agent or add the [reusable skill](./guides/package-skill.md) to
+your repository. Agents read the same guidance, APIs, and example source as people
+over ordinary HTTPS.
+
 - [Open the Figma library](https://www.figma.com/design/eXfSQrRg3poHRgmr0ivN5V/CoreAI-DS?node-id=0-1).
 
 ## Foundations and patterns

@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 import * as React from 'react';
-import { Link, Text } from '@coreai-ds/react-components';
+import { Button, Link, Text } from '@coreai-ds/react-components';
 import { CoreAILogo, ExternalIcon } from '../components/Icons';
 import { ResourceIcon } from './PagePresentation';
 import type { PageWidgetProps } from './FoundationViews';
@@ -28,7 +28,15 @@ class GraphicBoundary extends React.Component<{ children: React.ReactNode }, { f
   }
 }
 
-export default function HomeView({ model }: PageWidgetProps) {
+export default function HomeView({ model, sourceHtml }: PageWidgetProps) {
+  const prompt = React.useMemo(
+    () =>
+      new DOMParser().parseFromString(sourceHtml, 'text/html').querySelector('[data-agent-prompt]')
+        ?.textContent,
+    [sourceHtml],
+  );
+  if (!prompt) throw new Error('Missing canonical agent starter prompt.');
+  const base = new URL('.', new URL(model.markdownUrl, window.location.href));
   return (
     <div className="home-landing">
       <div className="home-foreground">
@@ -62,6 +70,28 @@ export default function HomeView({ model }: PageWidgetProps) {
             );
           })}
         </nav>
+        <section className="home-agent-entry" aria-labelledby="home-agent-title">
+          <Text as="h2" id="home-agent-title" preset="heading3">
+            Build with your agent
+          </Text>
+          <Text as="p" foreground={2}>
+            Give your coding agent CoreAI guidance, APIs, and working examples. No setup needed.
+          </Text>
+          <div className="home-agent-actions">
+            <Button appearance="primary" data-copy={prompt} data-copy-label="starter prompt">
+              Copy starter prompt
+            </Button>
+            <Link href={new URL('guides/use-with-agents/', base).href}>How it works</Link>
+          </div>
+          <div className="home-agent-links">
+            <Link href={new URL('guides/package-skill/', base).href}>Reusable skill</Link>
+            <Link href={new URL('llms.txt', base).href}>Agent index</Link>
+          </div>
+          <details>
+            <summary>Preview the prompt</summary>
+            <pre data-agent-prompt>{prompt}</pre>
+          </details>
+        </section>
       </div>
       <div className="home-visual">
         <CoreAILogo className="home-logo-fallback" />

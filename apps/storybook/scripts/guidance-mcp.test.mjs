@@ -101,14 +101,12 @@ test('MCP publishes local examples and complete upstream variants under real com
   assert.match(reExportedStory, /Source: Fluent upstream/);
 });
 
-test('MCP publishes its scope, safety, and data-handling notice', async () => {
+test('legacy setup document points readers to the HTTP agent workflow', async () => {
   const documentation = await callTool(6, 'docs-show', { id: 'docs-mcp-setup--docs' });
-  assert.match(documentation, /All three tools return design-system documentation/);
-  assert.match(documentation, /Authentication: none/);
-  assert.match(documentation, /Do not include secrets, access tokens/);
-  assert.match(documentation, /privacy\.microsoft\.com\/privacystatement/);
-  assert.match(documentation, /security_best_practices/);
-  assert.match(documentation, /Report security vulnerabilities privately/);
+  assert.match(documentation, /Build with your agent/);
+  assert.match(documentation, /ordinary HTTPS|ordinary HTTP/);
+  assert.match(documentation, /llms\.txt/);
+  assert.doesNotMatch(documentation, /"servers"|azurewebsites\.net\/mcp/);
 });
 
 test('only explicitly known component extraction errors are allowed', () => {

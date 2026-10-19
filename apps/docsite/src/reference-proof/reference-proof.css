@@ -218,6 +218,38 @@
   max-width: 480px;
 }
 
+.home-agent-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--colorNeutralStroke2);
+  border-radius: var(--borderRadiusXLarge);
+  background: var(--colorNeutralBackground2);
+}
+
+.home-agent-entry h2,
+.home-agent-entry p {
+  margin: 0;
+}
+
+.home-agent-actions,
+.home-agent-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.home-agent-entry summary {
+  cursor: pointer;
+}
+
+.home-agent-entry pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .reference-shell .home-visual {
   position: absolute;
   inset: 0 0 0 50%;

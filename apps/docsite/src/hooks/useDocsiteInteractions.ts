@@ -117,7 +117,7 @@ export function useDocsiteInteractions({
       navigator.clipboard
         .writeText(value)
         .then(() => {
-          showToast(`Copied ${value}`);
+          showToast(`Copied ${row.dataset.copyLabel ?? value}`);
         })
         .catch((error: unknown) => {
           console.error('Could not copy the selected token or value.', error);

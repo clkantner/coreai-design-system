@@ -609,6 +609,9 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
   if (dependencies.has('react-window')) dependencies.add('@types/react-window');
   const metadata = {
     schemaVersion: 1,
+    agentPrompt: (
+      await fs.readFile(path.join(appRoot, 'content/data/agent-prompt.md'), 'utf8')
+    ).trim(),
     basePath,
     versions: Object.fromEntries(
       [...dependencies].sort().map((name) => [name, packageManifest(name).version]),
@@ -776,6 +779,7 @@ ${sourceHtml(source.source, `template-${page.id}-${index}`, source.path, basePat
     });
   }
   await write('source/setup/App.tsx', providerSource);
+  await write('agent-prompt.txt', metadata.agentPrompt);
   await write(
     'source/package/SKILL.md',
     await fs.readFile(path.join(repositoryRoot, 'packages/react-components/agent/SKILL.md')),
@@ -799,7 +803,9 @@ ${sourceHtml(source.source, `template-${page.id}-${index}`, source.path, basePat
   const introduction = `# CoreAI design system\n\nHelp designers code and help engineers design.\n\nExplore component guidance, working examples, and copy-and-adapt templates. This staged reference catalog contains ${pages.length} pages and ${imports.length} examples. Pages marked under construction still need CoreAI UX guidance review.\n\n[Get started](${basePath}guides/setup.md)\n\n${listing}\n`;
   await write(
     'llms.txt',
-    `${introduction}\n## Build versions\n\n${Object.entries(metadata.versions)
+    `# CoreAI documentation for agents\n\nUse ordinary HTTPS GET to read these static Markdown files. No installation or login is needed.\n\n## Start here\n\n- [Agent workflow](${basePath}guides/agent-workflow.md): targeted retrieval, version checks, imports, and fallbacks.\n- [Build with your agent](${basePath}guides/use-with-agents.md): starter prompt and optional setup.\n- [Reusable skill](${basePath}source/package/SKILL.md): review before saving in a consuming repository.\n- [Starter prompt](${basePath}agent-prompt.txt): add the user's task and paste into an agent.\n- [Exact routes and source metadata](${basePath}llms/index.json): use only when needed; do not fetch every page.\n\nFetch this index once per task. Choose the relevant pages below; reuse fetched documents. Human directory URLs map to .md files, preserving ${basePath}; the homepage maps to ${basePath}index.md. CoreAI UX guidance overrides upstream demonstrations. Check installed package versions before implementing. Templates are copy-and-adapt source, not package exports. Report retrieval failures; never invent APIs.\n\n${introduction}\n## Build versions\n\n${Object.entries(
+      metadata.versions,
+    )
       .map(([name, version]) => `- ${name}: ${version}`)
       .join(
         '\n',

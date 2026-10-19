@@ -86,6 +86,12 @@ jobs:
               assert.ok(!markdown.type.includes('text/html'));
               assert.ok(markdown.text.indexOf('## Default') < markdown.text.indexOf('## API'));
               assert.match(markdown.text, /interface AccordionPanelProps/);
+              assert.match((await read('llms.txt')).text, /Fetch this index once per task/);
+              assert.match((await read('agent-prompt.txt')).text, /My task:/);
+              const skill = (await read('source/package/SKILL.md')).text;
+              assert.match(skill, /name: coreai-ds-fluentui-react/);
+              assert.doesNotMatch(skill, /\bMCP\b|docs-list|docs-show/);
+              assert.match((await read('guides/use-with-agents/')).text, /Build with your agent/);
               console.log(`Verified public documentation preview: ${root}`);
               break;
             } catch (error) {
