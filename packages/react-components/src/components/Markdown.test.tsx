@@ -62,11 +62,24 @@ Panel content
     })
     .element();
   const trigger = screen.getByRole('button', { name: 'Accordion header name' }).element();
+  const chevron = trigger.querySelector('svg');
 
   expect(document.querySelector('details')).toBeNull();
   expect(document.querySelector('summary')).toBeNull();
   expect(trigger).toContainElement(heading);
   expect(heading.closest('.fui-AccordionHeader')).not.toBeNull();
+  expect(chevron).not.toBeNull();
+
+  if (!chevron) {
+    throw new Error('Expected AccordionHeader to render a chevron');
+  }
+
+  const headingBounds = heading.getBoundingClientRect();
+  const chevronBounds = chevron.getBoundingClientRect();
+  const headingCenter = (headingBounds.top + headingBounds.bottom) / 2;
+  const chevronCenter = (chevronBounds.top + chevronBounds.bottom) / 2;
+
+  expect(Math.abs(headingCenter - chevronCenter)).toBeLessThanOrEqual(1);
   expect(trigger).toHaveAttribute('aria-expanded', 'false');
   expect(document.querySelector('.fui-AccordionPanel')).toBeNull();
 
