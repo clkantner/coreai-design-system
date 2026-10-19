@@ -38,6 +38,7 @@ export async function readReferencePages(contentDirectory) {
               'migratedFrom',
               'legacyIds',
               'renderer',
+              'api',
             ].includes(key)
           ) {
             fail(`unknown reference field "${key}".`);
@@ -78,7 +79,7 @@ export async function readReferencePages(contentDirectory) {
         ) {
           fail('reference.component must be an inventory component ID.');
         }
-        for (const key of ['examples', 'sources', 'aliases', 'migratedFrom', 'legacyIds']) {
+        for (const key of ['examples', 'sources', 'aliases', 'migratedFrom', 'legacyIds', 'api']) {
           if (
             reference[key] !== undefined &&
             (!Array.isArray(reference[key]) ||
@@ -100,6 +101,12 @@ export async function readReferencePages(contentDirectory) {
           fail('reference route must be a supported category/name or index.');
         }
         const [kind, id] = route === 'index' ? ['overview', 'home'] : route.split('/');
+        if (
+          reference.api &&
+          (kind !== 'components' || reference.api.some((name) => !/^[$A-Z_a-z][$\w]*$/.test(name)))
+        ) {
+          fail('reference.api must name public exports on component pages.');
+        }
         if (['components', 'templates'].includes(kind) && !reference.component)
           fail('component and template pages require reference.component.');
         if (

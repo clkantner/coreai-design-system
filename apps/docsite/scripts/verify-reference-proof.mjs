@@ -254,9 +254,32 @@ try {
         `${page.id}: complete HTML counterpart`,
       );
     } else {
-      assert.ok(markdown.includes(guidance), `${page.id}: authored guidance in Markdown`);
+      const expected = {
+        ...page,
+        guidance,
+        examples: page.examples.map((example) => sourceExamples.get(example.id)),
+        templateSources: await Promise.all(
+          page.templateSources.map(async (source) => ({
+            ...source,
+            source: await get(source.path),
+          })),
+        ),
+      };
+      assert.equal(
+        markdown,
+        pageMarkdown(expected, metadata),
+        `${page.id}: complete Default/API/guidance/source Markdown`,
+      );
+      assert.equal(page.examples[0].id, page.defaultExampleId);
+      assert.equal(page.examples[0].exportName, 'Default');
+      if (page.kind === 'components')
+        assert.ok(page.api.length > 0, `${page.id}: public API coverage`);
+      assert.doesNotMatch(
+        JSON.stringify(page.api),
+        /import\(["'](?:[A-Z]:|\/)|[/\\]node_modules[/\\]/,
+      );
       assert.ok(
-        html.includes(componentPageGuidanceHtml({ ...page, guidance }, metadata)),
+        html.includes(componentPageGuidanceHtml(expected, metadata)),
         `${page.id}: templated guidance and resources in HTML`,
       );
     }
@@ -328,6 +351,42 @@ try {
         ),
     );
     assert.equal(await page.locator('[data-example-id]').count(), record.examples.length);
+    if (!record.standalone) {
+      assert.equal(
+        await page.locator('[data-example-id]').first().getAttribute('data-example-id'),
+        record.defaultExampleId,
+      );
+      const order = await page
+        .locator('.reference-page-introduction')
+        .evaluate((element) =>
+          [...element.children].map((child) =>
+            child.hasAttribute('data-page-header')
+              ? 'header'
+              : child.hasAttribute('data-basic-example')
+                ? 'default'
+                : child.classList.contains('reference-api')
+                  ? 'api'
+                  : child.classList.contains('component-markdown')
+                    ? 'guidance'
+                    : 'resources',
+          ),
+        );
+      assert.deepEqual(
+        order.slice(0, record.kind === 'components' ? 3 : 2),
+        record.kind === 'components' ? ['header', 'default', 'api'] : ['header', 'default'],
+      );
+      assert.ok(order.indexOf('guidance') > order.indexOf('default'));
+      assert.equal(await page.locator('.reference-basic-source[open]').count(), 0);
+      for (const member of record.api) {
+        assert.equal(
+          await page
+            .locator('.reference-api')
+            .getByRole('heading', { name: `${member.name} API`, exact: true })
+            .count(),
+          1,
+        );
+      }
+    }
     if (record.renderer !== 'home') {
       assert.equal(
         await page.locator('.page-header h1.fui-Text').count(),
@@ -497,6 +556,11 @@ try {
   );
   const defaultButton = page.locator('[data-example-id="components-button-button--default"]');
   await defaultButton.getByRole('button', { name: 'Example', exact: true }).waitFor();
+  const buttonShape = page
+    .locator('.reference-api tr')
+    .filter({ has: page.getByRole('cell', { name: 'shape', exact: true }) });
+  assert.equal(await buttonShape.getByRole('cell').nth(3).innerText(), "'circular'");
+  await page.locator('.reference-basic-source > summary').click();
   await page.locator('[data-copy-source="source-components-button-button--default"]').click();
   assert.equal(
     normalizeSource(await page.evaluate(() => navigator.clipboard.readText())),

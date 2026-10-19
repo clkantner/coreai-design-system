@@ -18,6 +18,7 @@ import { readStoryDescriptions } from './sources/story-descriptions.mjs';
 import { assertFluentStoryVersion } from './sources/fluent-story-version.mjs';
 import { readReferencePages } from './read-reference-pages.mjs';
 import { readSourceCatalog } from './sources/catalog.mjs';
+import { createComponentApiReader, componentApiMarkdown } from './sources/component-api.mjs';
 import {
   expandStandaloneMarkdown,
   rewriteDocumentationLinks,
@@ -341,16 +342,21 @@ function implementationMarkdown(page, metadata, extension = '.md') {
 
 export function pageMarkdown(page, metadata) {
   if (page.standalone) return stripPresentationMarkers(page.guidance);
+  const parts = pageGuidanceParts(page.guidance, page.resources);
+  const basic = page.examples.find((example) => example.id === page.defaultExampleId);
+  const exampleMarkdown = (example) =>
+    [
+      exampleHeading(example),
+      `[Download source](${metadata.basePath}${example.sourcePath})`,
+      codeFence(example.source),
+    ].join('\n\n');
   return [
-    page.guidance,
+    parts.introduction,
+    ...(basic ? [exampleMarkdown(basic)] : []),
+    componentApiMarkdown(page.api),
+    parts.body,
     implementationMarkdown(page, metadata),
-    ...page.examples.map((example) =>
-      [
-        exampleHeading(example),
-        `[Download source](${metadata.basePath}${example.sourcePath})`,
-        codeFence(example.source),
-      ].join('\n\n'),
-    ),
+    ...page.examples.filter((example) => example !== basic).map(exampleMarkdown),
     ...page.templateSources.map((source) =>
       [
         `## Template source: ${source.name}`,
@@ -358,7 +364,10 @@ export function pageMarkdown(page, metadata) {
         codeFence(source.source),
       ].join('\n\n'),
     ),
-  ].join('\n\n');
+    parts.resourcesMarkdown,
+  ]
+    .filter(Boolean)
+    .join('\n\n');
 }
 
 export async function resolveStandalonePage(page, { pages, basePath, generated, allExamples }) {
@@ -413,7 +422,9 @@ export function standalonePageHtml(page, metadata) {
 
 export function componentPageGuidanceHtml(page, metadata) {
   const parts = pageGuidanceParts(page.guidance, page.resources);
-  return `<div class="reference-page-introduction">${pageTemplateHeader(page, metadata, parts)}${pageTemplateResources(page, metadata)}<div class="component-markdown">${renderGuidance(parts.body).html}</div></div>`;
+  const basic = page.examples?.find((example) => example.id === page.defaultExampleId);
+  const api = componentApiMarkdown(page.api);
+  return `<div class="reference-page-introduction">${pageTemplateHeader(page, metadata, parts)}${basic ? exampleHtml(basic, metadata.basePath, true) : ''}${api ? `<section class="reference-api" aria-labelledby="guidance-api">${renderGuidance(api).html}</section>` : ''}${pageTemplateResources(page, metadata)}<div class="component-markdown">${renderGuidance(parts.body).html}</div></div>`;
 }
 
 function shell(title, body, metadata, assets, navigation, currentPath = '') {
@@ -444,6 +455,15 @@ function sourceHtml(source, id, downloadPath, base) {
 <pre><code id="${id}">${escapeHtml(source)}</code></pre>`;
 }
 
+function exampleHtml(example, basePath, basic = false) {
+  const source = sourceHtml(example.source, `source-${example.id}`, example.sourcePath, basePath);
+  return `<section class="example${basic ? ' reference-basic-example' : ''}" id="${example.id}"${basic ? ' data-basic-example' : ''}>${exampleHeadingHtml(example)}
+<div class="preview" data-example-id="${example.id}" aria-label="${escapeHtml(example.name)} preview">
+<p>Loading interactive example. Full source is available below.</p></div>
+<noscript>Enable JavaScript for the interactive preview. Guidance and source do not require JavaScript.</noscript>
+${basic ? `<details class="reference-basic-source"><summary>View example source</summary>${source}</details>` : source}</section>`;
+}
+
 export async function buildReferenceProof({ basePath = '/', outDir = outputDirectory } = {}) {
   basePath = normalizeBase(basePath);
   const pageScope = await readReferencePages(path.join(appRoot, 'content'));
@@ -454,6 +474,7 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
   ).version;
   assertFluentStoryVersion(sourceVersion, packageManifest('@fluentui/react-components').version);
   const inventory = await readSourceCatalog();
+  const apiReader = createComponentApiReader();
   const cacheDirectory = path.join(appRoot, '.cache/reference-proof');
   const exampleDirectory = path.join(cacheDirectory, 'examples');
   await fs.mkdir(exampleDirectory, { recursive: true });
@@ -508,6 +529,7 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
         ),
       ].filter(Boolean),
       singlePreview: Boolean(scope.singlePreview),
+      api: scope.kind === 'components' ? apiReader.readComponent(component, scope.api) : [],
     };
     const pageImports = [];
     const pageBindings = [];
@@ -543,6 +565,7 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
       );
       page.examples.push({
         id: story.id,
+        exportName: story.exportName,
         name: story.name,
         origin: story.origin,
         originalSource: story.implementationFile,
@@ -552,6 +575,15 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
         sha256: createHash('sha256').update(source).digest('hex'),
         dependencies: extracted.requirements,
       });
+    }
+    if (component) {
+      const defaults = page.examples.filter((example) => example.exportName === 'Default');
+      if (defaults.length !== 1)
+        throw new Error(
+          `${scope.component}: expected one selected Default example, found ${defaults.length}.`,
+        );
+      page.defaultExampleId = defaults[0].id;
+      page.examples = [defaults[0], ...page.examples.filter((example) => example !== defaults[0])];
     }
     const pageModuleDirectory = path.join(cacheDirectory, 'pages');
     await fs.mkdir(pageModuleDirectory, { recursive: true });
@@ -717,11 +749,7 @@ export async function buildReferenceProof({ basePath = '/', outDir = outputDirec
       ? standalonePageHtml(page, { ...metadata, pages })
       : `${componentPageGuidanceHtml(page, { ...metadata, pages })}\n${renderGuidance(implementationMarkdown(page, metadata, '/')).html}`;
     for (const example of page.standalone ? [] : page.examples) {
-      body += `<section class="example" id="${example.id}">${exampleHeadingHtml(example)}
-<div class="preview" data-example-id="${example.id}" aria-label="${escapeHtml(example.name)} preview">
-<p>Loading interactive example. Full source is available below.</p></div>
-<noscript>Enable JavaScript for the interactive preview. Guidance and source do not require JavaScript.</noscript>
-${sourceHtml(example.source, `source-${example.id}`, example.sourcePath, basePath)}</section>`;
+      if (example.id !== page.defaultExampleId) body += exampleHtml(example, basePath);
       await write(example.sourcePath, example.source);
     }
     for (const [index, source] of page.templateSources.entries()) {

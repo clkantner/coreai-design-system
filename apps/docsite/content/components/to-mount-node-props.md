@@ -6,6 +6,7 @@ status: under-construction
 resources: []
 reference:
   component: components-portal-tomountnodeprops
+  api: [toMountNodeProps]
 ---
 
 ## Guidance status

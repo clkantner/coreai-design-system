@@ -74,7 +74,7 @@ for generation and validation details.
 ## Static reference catalog (staged)
 
 The static reference app now covers **75 component groups and 11 template
-groups**, with **709 working examples**, plus **21 standalone Markdown pages**
+groups**, with **710 working examples**, plus **21 standalone Markdown pages**
 (107 pages total). It uses the existing CoreAI site layout
 styles, grouped sidebar navigation, logo, mobile navigation header, and shared
 theme provider. It does **not** require a Storybook build or server. The source
@@ -104,7 +104,7 @@ and its types, Fluent's JSX runtime, and drag-and-drop utilities.
 
 | Catalog                  | Groups |                   Executable examples |
 | ------------------------ | -----: | ------------------------------------: |
-| Core components          |     75 |                                   689 |
+| Core components          |     75 |                                   690 |
 | Copy-and-adapt templates |     11 |                                    20 |
 | Standalone content       |     21 | Shared examples embedded where useful |
 
@@ -129,7 +129,7 @@ and source without requiring JavaScript. Other outputs include:
 - `source/templates/empty-state/EmptyState.tsx`: the template source, not an npm export.
 - `llms.txt`: discovery links and exact package versions.
 - `llms/index.json`: page/source URLs, hashes, included/replaced/excluded examples,
-  pinned Fluent revision, and verified runtime peer versions.
+  member API metadata, the Default example ID, pinned Fluent revision, and verified runtime peer versions.
 - `.nojekyll` and `THIRD-PARTY-NOTICES.txt`: static publishing and source attribution.
 - Previous standalone directory URLs have static HTML redirects and raw Markdown
   aliases. All 19 standalone Storybook `llms/{id}.md` endpoints remain readable.
@@ -208,6 +208,36 @@ HTML retains readable tables, images, resources, and the static homepage logo.
 Presentation markers are stripped from published Markdown, not from fenced
 code examples. Add specialized layouts only to this bounded registry; do not
 restore hosted Storybook iframes or per-example providers.
+
+### Default examples and APIs
+
+Component and template pages put the selected `Default` story immediately below
+the page header. Its source is available in a native **View example source**
+disclosure. Each selected group must have exactly one `Default`; the build fails
+instead of guessing another example. Component pages then show APIs, resources,
+authored guidance, and the remaining examples. Markdown uses the same ordering
+with the complete Default source expanded.
+
+[`component-api.mjs`](scripts/sources/component-api.mjs) uses the standalone
+`react-docgen-typescript` library for descriptions, prop types, documented
+defaults, required flags, and deprecations. A thin TypeScript adapter resolves
+exports through the public CoreAI barrel first, so wrapped defaults are not
+replaced by Fluent defaults. The type program uses the docsite's installed
+Fluent barrel. It does not read a Storybook build, require MCP, or ship docgen
+in the browser bundle.
+
+API membership comes from the same primary component/subcomponent metadata used
+by Storybook. An Accordion page therefore lists Accordion, AccordionHeader,
+AccordionItem, and AccordionPanel separately, after one shared Default example.
+`reference.api` can explicitly name public exports for utility pages without
+component metadata; toMountNodeProps publishes its function signature.
+Complete template source remains copy-and-adapt code, not an npm API.
+
+Standard native DOM/event and ARIA props are omitted from the tables except
+common element/slot hooks. A missing default is not inferred. Conditional
+required props are labeled accordingly; complex type names use docgen's display
+form, and the exported Props type remains authoritative. Docgen instances are
+component-local so cached generic props cannot leak between contexts.
 
 The package README, changelog, skill, and router helper remain their canonical
 sources and are included at build time. The five authored Storybook MDX guides
@@ -338,6 +368,8 @@ checks the packed CoreAI artifact against that consumer version.
 - Uses a static preview server with no SPA fallback to check paired URLs, raw
   downloads, missing-page 404s, licenses, versions, coverage, and source hashes.
 - Checks exact guidance/source parity across HTML, Markdown, and downloads.
+- Checks Default-first ordering, separate member APIs, CoreAI defaults, and
+  copy/download parity for the collapsed basic-example source.
 - Runs Chromium checks for every preview, duplicate DOM IDs, clipboard copying,
   Dropdown inline-label selection, Dialog opening/closing, asynchronous Tree
   expansion, CodeBlock format selection, and template rendering.
@@ -354,17 +386,16 @@ checks the packed CoreAI artifact against that consumer version.
   all local article links, fragments, images, legacy aliases, and Markdown IDs.
 - Cleans up its temporary packed consumer, browser, and test server.
 
-This staged app still omits generated API tables, an editable playground,
-full-text search, archived releases, and the existing
-animated homepage. Some inherited guidance and new reference pages need UX review.
+This staged app still omits an editable playground, full-text search, and archived
+releases. Some inherited guidance and new reference pages need UX review.
 Examples demonstrate APIs and are explicitly subordinate to CoreAI design
 guidance. Task-based evaluation of designer/agent decision quality is still
 needed before replacing the public site.
 
-The old Colors page's brand tabs and the Content page's hidden panels are
-intentionally simplified into visible tables/text. Both theme values and all
-principles, examples, workflow steps, and support details are readable in both
-outputs. Live component demonstrations remain interactive.
+Colors has interactive brand tabs and token stacks, with complete tables in
+Markdown and no-JavaScript HTML. The Content page's former hidden panels are
+visible text. Principles, examples, workflow steps, and support details remain
+readable in both outputs. Live component demonstrations remain interactive.
 
 The build splits examples by page and shares common dependencies. Some common
 chunks still trigger Vite's large-chunk warning. GitHub Pages response headers and

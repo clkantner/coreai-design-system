@@ -29,6 +29,11 @@ export function pageGuidanceParts(markdown, resources = []) {
       )
     : -1;
   return {
+    introduction: markdown.slice(0, summary.position.end.offset).trim(),
+    resourcesMarkdown:
+      lastResources >= 0
+        ? markdown.slice(tree.children[lastResources].position.start.offset).trim()
+        : '',
     headingId: `guidance-${new GithubSlugger().slug(toString(heading))}`,
     summaryHtml: renderGuidance(
       markdown.slice(summary.position.start.offset, summary.position.end.offset),
