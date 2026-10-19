@@ -39,6 +39,10 @@ test('Pages preview deploys only the verified feature branch without touching Az
     'Build the package and fetch pinned sources before catalog tests on a clean runner',
   );
   assert.ok(build.steps.some((step) => step.run?.includes('--base=/coreai-design-system/')));
+  assert.ok(
+    build.steps.some((step) => step.run === 'npm --workspace apps/docsite run type-check'),
+    'Prepare legacy metadata through the canonical type-check script',
+  );
   assert.equal(workflow.jobs.deploy.needs, 'build');
   assert.equal(workflow.jobs.deploy.environment.name, 'github-pages');
   assert.deepEqual(workflow.jobs.deploy.permissions, { pages: 'write', 'id-token': 'write' });

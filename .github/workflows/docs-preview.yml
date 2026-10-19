@@ -35,7 +35,7 @@ jobs:
       - name: Test Markdown, navigation, APIs and preview workflow
         run: npm --workspace apps/docsite run test:reference-proof && node --test .github/workflows/scripts/docs-preview.test.mjs
       - name: Type-check documentation
-        run: npm exec -- tsc --noEmit -p apps/docsite/tsconfig.json
+        run: npm --workspace apps/docsite run type-check
       - name: Install Chromium
         run: npm exec -- playwright install --with-deps chromium
       - name: Verify pages, consumer source and browser behavior
