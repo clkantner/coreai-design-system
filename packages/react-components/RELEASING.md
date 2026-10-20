@@ -33,7 +33,8 @@ responses, rate limits, and network failures stop the workflow.
 Keep the **repository** Actions variable `NPM_PUBLISH_ENABLED` unset or `false`
 until all prerequisites are approved. The workflow only runs for successful CI
 from a `push` to `main` in exactly `microsoft/coreai-design-system`. PRs, forks,
-tags, and manual CI dispatches do not publish.
+tags, and manual CI dispatches do not publish. A manual publishing recovery dispatch
+on `main` may select an original successful CI push run as described below.
 
 Before enabling publication:
 
@@ -182,6 +183,28 @@ bump the version. If npm already has this version, recovery requires identical
 tarball integrity before skipping publication. A mismatched artifact fails visibly.
 If verification and tag creation succeeded but GitHub release creation failed, a
 rerun completes the missing release without replacing the tag.
+
+### Recover after a publishing workflow fix
+
+Rerunning an old run uses its original workflow definition, so it cannot pick up a
+fix to that definition. After merging a workflow fix, dispatch the updated
+**Publish npm package** workflow on `main`, selecting the original successful
+**CI push run ID**, not the failed publishing run ID:
+
+```bash
+gh workflow run publish-package.yml --repo microsoft/coreai-design-system --ref main \
+  -f ci_run_id=39469177924 \
+  -f 'confirmation=publish @coreai-ds/react-components@0.12.0'
+```
+
+Those values recover the first 0.12.0 release. For later releases use their original
+CI run and exact package/version confirmation. The resolver requires a successful,
+completed push run of `ci.yml` for this repository's `main`. Both release checkouts
+use its immutable SHA; the existing ancestry, version-change, registry, artifact,
+and tag checks still apply. The corrected workflow publishes an explicit local
+`./package-artifacts/...tgz` path so npm cannot interpret it as GitHub shorthand.
+Dispatching recovery can publish; opening or merging a workflow-only fix does not
+publish an unchanged package version.
 
 Versions are immutable. If a newer release has advanced the channel, an old run
 fails verification rather than moving `latest` or `next` backward. Have maintainers
