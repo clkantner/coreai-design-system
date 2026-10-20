@@ -19,9 +19,12 @@ successful push CI for that exact commit, and the publishing opt-in.
 Open [Actions](https://github.com/microsoft/coreai-design-system/actions), select
 the workflow, and inspect the failed job and step. For a manual run, select
 **Run workflow** and choose `main`; deployment rejects other branches.
-Publishing follows successful **CI** push runs on `main`, not manual dispatches.
+Automatic publishing follows successful **CI** push runs on `main`, not manual CI dispatches.
 Retry publication by rerunning its original failed **Publish npm package** run;
 do not merge an unrelated change to retry a release.
+If the workflow itself needed a fix, use the release guide's
+[manual recovery](../packages/react-components/RELEASING.md#recover-after-a-publishing-workflow-fix)
+on `main` with the original successful CI run ID and exact package/version confirmation.
 Disabled workflows must be enabled before they can run. Enabling a workflow alone
 does not satisfy its repository-variable gates.
 

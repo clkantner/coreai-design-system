@@ -7,6 +7,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { resolveReleaseTarget } from './release-target.mjs';
 import {
   checkTag,
   main,
@@ -18,6 +19,95 @@ import {
 } from './release-package.mjs';
 
 const integrity = 'sha512-test';
+const approvedRun = {
+  repository: { full_name: 'microsoft/coreai-design-system' },
+  head_repository: { full_name: 'microsoft/coreai-design-system' },
+  path: '.github/workflows/ci.yml',
+  event: 'push',
+  head_branch: 'main',
+  status: 'completed',
+  conclusion: 'success',
+  head_sha: '24fee07fbbe36e480efde8f0b14902be06191bb8',
+};
+const recoveryEnv = {
+  GITHUB_REPOSITORY: 'microsoft/coreai-design-system',
+  GITHUB_EVENT_NAME: 'workflow_dispatch',
+  GITHUB_REF: 'refs/heads/main',
+  GH_TOKEN: 'test-only',
+};
+
+test('manual recovery resolves the original successful CI run, not current main', async () => {
+  const sha = await resolveReleaseTarget(
+    { inputs: { ci_run_id: '39469177924' } },
+    recoveryEnv,
+    async (url) => {
+      assert.equal(
+        url,
+        'https://api.github.com/repos/microsoft/coreai-design-system/actions/runs/39469177924',
+      );
+      return { ok: true, json: async () => approvedRun };
+    },
+  );
+  assert.equal(sha, approvedRun.head_sha);
+});
+
+test('automatic release retains the successful CI source SHA', async () => {
+  assert.equal(
+    await resolveReleaseTarget(
+      { workflow_run: approvedRun },
+      { ...recoveryEnv, GITHUB_EVENT_NAME: 'workflow_run' },
+    ),
+    approvedRun.head_sha,
+  );
+});
+
+test('recovery rejects non-main dispatch, invalid run IDs, and failed API requests', async () => {
+  const event = { inputs: { ci_run_id: '39469177924' } };
+  await assert.rejects(
+    resolveReleaseTarget(event, { ...recoveryEnv, GITHUB_REF: 'refs/heads/feature' }),
+    /main only/,
+  );
+  await assert.rejects(
+    resolveReleaseTarget({ inputs: { ci_run_id: '../other' } }, recoveryEnv),
+    /run ID/,
+  );
+  for (const status of [401, 403, 404, 500]) {
+    await assert.rejects(
+      resolveReleaseTarget(event, recoveryEnv, async () => ({ ok: false, status })),
+      /Cannot verify/,
+    );
+  }
+});
+
+test('recovery rejects other workflows, failed CI, PRs, forks, and malformed source SHAs', async () => {
+  for (const invalid of [
+    { repository: { full_name: 'other/repository' } },
+    { head_repository: { full_name: 'other/repository' } },
+    { path: '.github/workflows/publish-package.yml' },
+    { event: 'pull_request' },
+    { head_branch: 'feature' },
+    { status: 'in_progress' },
+    { conclusion: 'failure' },
+    { head_sha: 'main' },
+  ]) {
+    await assert.rejects(
+      resolveReleaseTarget({ inputs: { ci_run_id: '39469177924' } }, recoveryEnv, async () => ({
+        ok: true,
+        json: async () => ({ ...approvedRun, ...invalid }),
+      })),
+    );
+  }
+});
+
+test('workflow publishes an explicit local tarball and pins both checkouts to the approved SHA', () => {
+  const workflow = readFileSync(new URL('../publish-package.yml', import.meta.url), 'utf8');
+  assert.ok(workflow.includes('npm publish "./$TARBALL" --ignore-scripts'));
+  assert.ok(workflow.includes('ref: ${{ steps.target.outputs.sha }}'));
+  assert.ok(workflow.includes('ref: ${{ needs.detect.outputs.sha }}'));
+  assert.ok(workflow.includes('RELEASE_SHA: ${{ needs.detect.outputs.sha }}'));
+  assert.ok(workflow.includes('assert.notEqual(before.version, after.version'));
+  assert.ok(workflow.includes('publish ${after.name}@${after.version}'));
+});
 const manifest = {
   name: '@coreai-ds/react-components',
   version: '0.12.0',

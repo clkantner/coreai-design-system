@@ -1,6 +1,16 @@
 name: Publish npm package
 
 on:
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: 'Successful CI push run ID for the original version-changing main commit'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type publish @coreai-ds/react-components@VERSION'
+        required: true
+        type: string
   workflow_run:
     workflows: [CI]
     types: [completed]
@@ -13,31 +23,55 @@ jobs:
   detect:
     if: >-
       github.repository == 'microsoft/coreai-design-system' &&
-      github.event.workflow_run.head_repository.full_name == 'microsoft/coreai-design-system' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main' &&
-      github.event.workflow_run.conclusion == 'success' &&
-      vars.NPM_PUBLISH_ENABLED == 'true'
+      vars.NPM_PUBLISH_ENABLED == 'true' &&
+      (
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_run' &&
+         github.event.workflow_run.head_repository.full_name == 'microsoft/coreai-design-system' &&
+         github.event.workflow_run.event == 'push' &&
+         github.event.workflow_run.head_branch == 'main' &&
+         github.event.workflow_run.conclusion == 'success')
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
     outputs:
       changed: ${{ steps.version.outputs.changed }}
+      sha: ${{ steps.target.outputs.sha }}
     steps:
+      - name: Check out release orchestration
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Resolve the CI-approved release commit
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/workflows/scripts/release-target.mjs
       - name: Check out the CI-approved main commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ steps.target.outputs.sha }}
           fetch-depth: 0
           persist-credentials: false
       - name: Detect a version-changing commit
         id: version
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
         run: |
           node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
           import { execFileSync } from 'node:child_process';
           import { appendFileSync, readFileSync } from 'node:fs';
           const path = 'packages/react-components/package.json';
           const before = JSON.parse(execFileSync('git', ['show', `HEAD^:${path}`], { encoding: 'utf8' }));
           const after = JSON.parse(readFileSync(path, 'utf8'));
+          if (process.env.GITHUB_EVENT_NAME === 'workflow_dispatch') {
+            assert.equal(process.env.CONFIRMATION, `publish ${after.name}@${after.version}`, 'Confirmation must match the original release version');
+            assert.notEqual(before.version, after.version, 'Recovery requires a version-changing commit');
+          }
           const changed = before.version !== after.version;
           console.log(changed ? `Release version changed: ${before.version} -> ${after.version}` : 'No version change; nothing to publish.');
           appendFileSync(process.env.GITHUB_OUTPUT, `changed=${changed}\n`);
@@ -55,12 +89,12 @@ jobs:
     permissions:
       contents: write
     env:
-      RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+      RELEASE_SHA: ${{ needs.detect.outputs.sha }}
     steps:
       - name: Check out the exact version-changing commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ needs.detect.outputs.sha }}
           fetch-depth: 0
           persist-credentials: false
       - name: Set up Node.js
@@ -97,7 +131,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$NODE_AUTH_TOKEN" || { echo 'Configure the npm-production environment NPM_TOKEN secret.' >&2; exit 1; }
-          npm publish "$TARBALL" --ignore-scripts --access public --registry https://registry.npmjs.org/ --tag "$DIST_TAG"
+          npm publish "./$TARBALL" --ignore-scripts --access public --registry https://registry.npmjs.org/ --tag "$DIST_TAG"
       - name: Verify npm and create the Git tag and GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
