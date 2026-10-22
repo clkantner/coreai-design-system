@@ -111,6 +111,26 @@ test('MCP publishes its scope, safety, and data-handling notice', async () => {
   assert.match(documentation, /Report security vulnerabilities privately/);
 });
 
+test('MCP discovers Form examples and returns the executed companion test source', async () => {
+  const listing = await callTool(7, 'docs-list', { withStoryIds: true });
+  assert.match(listing, /templates-form--default/);
+  assert.match(listing, /templates-form--with-drawer/);
+  assert.match(listing, /templates-form--input-options/);
+  assert.match(listing, /templates-form--source-code/);
+  const source = await callTool(8, 'docs-show', { id: 'templates-form--source-code' });
+  const component = await fs.readFile(
+    new URL('../src/stories/templates/Form.tsx', import.meta.url),
+    'utf8',
+  );
+  const companion = await fs.readFile(
+    new URL('../src/test/templates/Form.test.tsx', import.meta.url),
+    'utf8',
+  );
+  assert.ok(source.includes(component), 'MCP must return the complete copyable component');
+  assert.ok(source.includes(companion), 'MCP must return the exact executed companion suite');
+  assert.match(source, /## Companion browser tests/);
+});
+
 test('only explicitly known component extraction errors are allowed', () => {
   const expected = ['components-portal-tomountnodeprops', 'templates-shell-and-navigation'].map(
     (id) => ({ id, error: { name: 'No component found', message: 'Specify meta.component' } }),

@@ -210,10 +210,21 @@ const config: StorybookConfig = {
       configureServer(server) {
         const templatesDir = path.resolve(__dirname, '../src/stories/templates');
         const templatesDirNormalized = templatesDir.replace(/\\/g, '/') + '/';
+        const testsDir = path.resolve(__dirname, '../src/test/templates');
+        const testsDirNormalized = testsDir.replace(/\\/g, '/') + '/';
         generateTemplateDocs();
         server.watcher.add(templatesDir);
+        server.watcher.add(testsDir);
         const updateTemplateDocs = (file: string) => {
           const normalized = file.replace(/\\/g, '/');
+          if (normalized.startsWith(testsDirNormalized) && normalized.endsWith('.test.tsx')) {
+            const template = path.join(
+              templatesDir,
+              path.relative(testsDir, file).replace(/\.test\.tsx$/, '.tsx'),
+            );
+            if (fs.existsSync(template)) generateTemplateDocs(template);
+            return;
+          }
           // `server.watcher` covers the whole project (not just templatesDir,
           // which is only an extra watch root), so this fires for every
           // changed .tsx anywhere — filter to templatesDir itself or the

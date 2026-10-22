@@ -467,6 +467,39 @@ approximation. `<Meta name="Source Code">` renames the Docs tab and its id suffi
 **Never hand-edit a `.mdx` file under `templates/`** — any edits are silently overwritten on the
 next regeneration. If the content is wrong, fix `{Name}.tsx` or the generator script.
 
+#### Optional companion tests
+
+Interactive templates can include a copyable behavioral test suite at
+`src/test/templates/{Name}.test.tsx`, matching the template's relative path.
+Keep tests outside `src/stories/templates/` so they are not mistaken for template
+components by the source-docs generator. This optional test file supplements the
+two authored template files; it does not introduce another component source.
+
+The generator appends the exact test source and setup instructions to the
+template's Source Code page, making it available to humans and MCP consumers.
+The development watcher regenerates that page when a companion test is added,
+changed, or removed. Never maintain a second copy in stories or generated MDX.
+
+See [Form.tsx](src/stories/templates/Form.tsx) and its
+[companion tests](src/test/templates/Form.test.tsx) for typical forms, progressive
+disclosure, an advanced-options Drawer, and an input-choice reference. Tests
+should exercise the template's behavior through accessible names, user
+interactions, submitted values, and focus. Include provider setup in the
+copyable suite; do not require private repository helpers. Consumers adapt the
+component import, test runner configuration, and domain-specific expectations.
+
+The existing Vitest Browser Mode configuration includes `src/test/**/*.test.tsx`
+and runs in Playwright Chromium. From the repository root:
+
+```sh
+npm --workspace packages/react-components run test:component -- ../../apps/storybook/src/test/templates/Form.test.tsx
+```
+
+Install Chromium only if unavailable using
+`npm --workspace packages/react-components run test:install-browser`.
+Run `npm --workspace apps/storybook run test:templates` for source-doc generation
+regressions. Test-only dependencies are not requirements for copying the component.
+
 #### Quality checklist
 
 - [ ] `npm --workspace apps/storybook run type-check` and `run build` both pass
@@ -480,6 +513,8 @@ next regeneration. If the content is wrong, fix `{Name}.tsx` or the generator sc
 - [ ] Every story export has JSDoc (with `@summary` if likely to appear past the first 3)
 - [ ] No `{Name}.knowledge.md` / `.template.tsx` / `Variants.stories.tsx` / `.templateSource.ts`
       file exists for this template, and you haven't hand-edited the generated `{Name}.mdx`
+- [ ] If companion tests exist, they pass in Chromium and their complete source and setup
+      appear in the generated Source Code page without private repository dependencies
 
 ## Deployment
 
