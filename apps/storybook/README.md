@@ -19,6 +19,15 @@ npm -w apps/storybook run dev
 
 Toolbar dropdowns toggle theme (CoreAI / Web / Teams / Teams v2.1) and Light / Dark mode.
 
+## Illicon catalog
+
+**Illustrations / Illicon catalog** displays finished SVGs from
+[`assets/illicons/manifest.json`](../../assets/illicons/manifest.json).
+The same manifest and unchanged SVGs are served at `illicons/` in development
+and static builds. Validation runs when Storybook loads its configuration.
+See the [contribution guide](../../assets/illicons/README.md) to add artwork,
+and [usage documentation](src/stories/docs/Illicons.mdx) for consumption.
+
 ## Scripts
 
 | Script                   | What it does                                                                                |

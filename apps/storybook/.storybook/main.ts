@@ -12,10 +12,12 @@ import { generateSkillDoc } from '../scripts/generate-skill-doc.mjs';
 import { componentStoryDocsProvider } from '../scripts/component-story-docs.mjs';
 import { publicMarkdown } from '../scripts/public-markdown.mjs';
 import { generatedStoryIndexer } from '../scripts/generate-component-stories.mjs';
+import { validateCatalog } from '../../../scripts/validate-illicons.mjs';
 
 // Storybook 10 loads config files as native ESM, where `__dirname` doesn't
 // exist. Recreate it from `import.meta.url` for the path math below.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+validateCatalog(path.resolve(__dirname, '../../../assets/illicons'));
 if (!fs.existsSync(path.resolve(__dirname, '.cache/component-stories/inventory.json'))) {
   throw new Error(
     'Generated component stories are missing. Run `npm --workspace apps/storybook run stories:generate`.',
@@ -23,6 +25,7 @@ if (!fs.existsSync(path.resolve(__dirname, '.cache/component-stories/inventory.j
 }
 
 const config: StorybookConfig = {
+  staticDirs: [{ from: '../../../assets/illicons', to: '/illicons' }],
   stories: [
     '../src/**/*.mdx',
     '../src/stories/templates/**/*.stories.@(ts|tsx)',

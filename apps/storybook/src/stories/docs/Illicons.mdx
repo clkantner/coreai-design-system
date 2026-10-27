@@ -1,0 +1,68 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import { IlliconGallery } from '../../illicons/IlliconGallery';
+
+<Meta
+  title="Illustrations/Illicon catalog"
+  summary="Find finished Illicon SVGs, download unchanged artwork, and contribute new assets through a reviewed pull request."
+/>
+
+# Illicon catalog
+
+Illicons are dot-grid spot illustrations that support a clear message in an
+empty state, error, or invitation to act. Check this library before creating
+another illustration.
+
+This catalog displays finished SVGs exactly as contributed. It does not convert,
+rasterize, or regenerate their dots. Author and refine artwork in your chosen
+tool, then contribute it through a reviewed pull request.
+
+<IlliconGallery />
+
+## Use an illicon
+
+Download an SVG and serve it alongside your app's assets. For decorative artwork
+next to explanatory text, use an empty alternative:
+
+```tsx
+<img src="/assets/your-illicon.svg" width={140} height={140} alt="" />
+```
+
+If the illustration conveys information not already present in nearby text,
+provide a meaningful `alt`. SVGs loaded through an image do not inherit the
+page's text color. Check the original artwork against your light and dark
+backgrounds; this gallery does not silently recolor downloads.
+
+## Shared catalog for authoring tools
+
+The [versioned manifest](./illicons/manifest.json) and its SVGs are published
+together with this Storybook. Resolve each entry's `file` relative to the
+manifest URL, not relative to the caller's page:
+
+```ts
+const manifestUrl = new URL('./illicons/manifest.json', storybookBaseUrl);
+const response = await fetch(manifestUrl);
+if (!response.ok) throw new Error(`Catalog unavailable: ${response.status}`);
+const catalog = await response.json();
+if (catalog.version !== 1) throw new Error('Unsupported Illicon catalog version');
+const svgUrls = catalog.icons.map((icon) => new URL(icon.file, manifestUrl));
+```
+
+`storybookBaseUrl` must be the site's directory URL, including its trailing slash.
+An empty `icons` array is valid: no approved artwork is published yet. Handle it
+before selecting an entry. Consumers must handle load failures and cache
+invalidation after a release. This is a static catalog, not a submission API.
+
+## Contribute an illicon
+
+Follow the [Illicon contribution guide](https://github.com/microsoft/coreai-design-system/blob/main/assets/illicons/README.md).
+Add one original SVG and one manifest entry with a stable ID, name, search tags,
+and provenance. Contributions must have confirmed public redistribution rights.
+
+Run `npm run illicons:check`, preview this page, and include light/dark screenshots
+in your PR. Maintainers review visual consistency, naming, accessibility, and
+licensing before merging. An authoring-tool export or local save is not a
+published contribution: the asset appears here only after merge and deployment.
+
+Do not pass finished artwork through the runtime Illicon converter. The converter
+and this catalog serve different needs: generating a dotted silhouette versus
+preserving a reviewed illustration.

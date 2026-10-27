@@ -16,6 +16,12 @@ await fs.writeFile(
   path.join(root, 'storybook-static', 'manifests', 'components.json'),
   '{"components":{}}',
 );
+await fs.mkdir(path.join(root, 'storybook-static', 'illicons'));
+await fs.writeFile(
+  path.join(root, 'storybook-static', 'illicons', 'manifest.json'),
+  '{"version":1,"icons":[]}',
+);
+await fs.writeFile(path.join(root, 'storybook-static', 'illicons', 'example.svg'), '<svg/>');
 const { server } = await import(pathToFileURL(path.join(root, 'server.mjs')));
 let origin;
 before(async () => {
@@ -65,4 +71,21 @@ test('static routes implement HEAD and reject unsupported methods', async () => 
   assert.equal(await head.text(), '');
   const post = await fetch(origin, { method: 'POST' });
   assert.equal(post.status, 405);
+});
+
+test('public illicon catalogs support cross-origin consumers and revalidate stable URLs', async () => {
+  for (const endpoint of ['/illicons/manifest.json', '/illicons/example.svg']) {
+    const response = await fetch(`${origin}${endpoint}`, {
+      headers: { Origin: 'https://example.com' },
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('access-control-allow-origin'), '*');
+    assert.equal(response.headers.get('cache-control'), 'no-cache');
+  }
+  const svg = await fetch(`${origin}/illicons/example.svg`);
+  assert.equal(svg.headers.get('content-type'), 'image/svg+xml');
+  assert.equal(await svg.text(), '<svg/>');
+  const existing = await fetch(`${origin}/manifests/components.json`);
+  assert.equal(existing.headers.get('cache-control'), 'public, max-age=31536000, immutable');
+  assert.equal(existing.headers.get('access-control-allow-origin'), null);
 });
