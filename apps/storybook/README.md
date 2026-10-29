@@ -21,12 +21,11 @@ Toolbar dropdowns toggle theme (CoreAI / Web / Teams / Teams v2.1) and Light / D
 
 ## Illicon catalog
 
-**Illustrations / Illicon catalog** displays finished SVGs from
-[`assets/illicons/manifest.json`](../../assets/illicons/manifest.json).
-The same manifest and unchanged SVGs are served at `illicons/` in development
-and static builds. Validation runs when Storybook loads its configuration.
-See the [contribution guide](../../assets/illicons/README.md) to add artwork,
-and [usage documentation](src/stories/docs/Illicons.mdx) for consumption.
+**Components / Illicon** groups placeholder documentation and a searchable
+catalog story with Copy JSX actions. The component and starter assets belong to
+`@coreai-ds/react-components`; consumers do not download files or fetch a catalog.
+See the [asset contribution guide](../../packages/react-components/illicons/README.md)
+for SVG conventions and the title, file, tags, and author fields.
 
 ## Scripts
 

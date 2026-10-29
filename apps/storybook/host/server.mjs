@@ -128,12 +128,9 @@ function serveStatic(request, response, pathname) {
       return;
     }
     const extension = path.extname(file);
-    const isIllicon = file.startsWith(path.join(rootDir, 'illicons') + path.sep);
     const headers = {
       'Content-Type': contentTypes[extension] || 'application/octet-stream',
-      'Cache-Control':
-        extension === '.html' || isIllicon ? 'no-cache' : 'public, max-age=31536000, immutable',
-      ...(isIllicon ? { 'Access-Control-Allow-Origin': '*' } : {}),
+      'Cache-Control': extension === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable',
     };
     const send = (payload) => {
       response.writeHead(200, headers);

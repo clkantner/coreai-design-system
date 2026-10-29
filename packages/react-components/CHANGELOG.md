@@ -23,6 +23,11 @@ headings in this changelog.
 
 ## [Unreleased]
 
+### Added
+
+- `Illicon` preserves curated SVG geometry at a fixed 80px size with theme-aware monochrome ink, a searchable Storybook catalog, and copyable component JSX.
+- `CopyButton` accepts `copiedMessage` for illustration-specific confirmation in its anchored tooltip.
+
 ## [0.12.0] - 2026-10-16
 
 ### Breaking

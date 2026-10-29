@@ -132,44 +132,39 @@ export function validateCatalog(directory) {
   if (manifest.version !== 1 || !Array.isArray(manifest.icons)) {
     throw new Error('Catalog requires version 1 and an icons array');
   }
-  const ids = new Set();
-  const names = new Set();
+  const titles = new Set();
   const files = new Set();
   for (const icon of manifest.icons) {
-    if (!icon || !nonempty(icon.id) || !slug.test(icon.id) || ids.has(icon.id)) {
-      throw new Error('Invalid or duplicate icon id');
+    if (
+      !icon ||
+      !nonempty(icon.file) ||
+      !icon.file.endsWith('.svg') ||
+      !slug.test(icon.file.slice(0, -4)) ||
+      files.has(icon.file)
+    ) {
+      throw new Error('Invalid or duplicate SVG filename; use lowercase kebab-case.svg');
     }
-    if (!nonempty(icon.name) || names.has(icon.name.toLowerCase())) {
-      throw new Error(`${icon.id}: invalid or duplicate name`);
+    if (!nonempty(icon.title) || titles.has(icon.title.toLowerCase())) {
+      throw new Error(`${icon.file}: invalid or duplicate title`);
     }
     if (
       !Array.isArray(icon.tags) ||
-      !icon.tags.length ||
       icon.tags.some((tag) => !nonempty(tag) || tag !== tag.toLowerCase()) ||
       new Set(icon.tags).size !== icon.tags.length
     ) {
-      throw new Error(`${icon.id}: use unique, nonempty lowercase tags`);
+      throw new Error(`${icon.file}: use unique, nonempty lowercase tags`);
     }
-    if (icon.file !== `${icon.id}.svg` || files.has(icon.file)) {
-      throw new Error(`${icon.id}: file must be ${icon.id}.svg`);
-    }
-    if (
-      !icon.provenance ||
-      !nonempty(icon.provenance.author) ||
-      !nonempty(icon.provenance.source) ||
-      icon.provenance.license !== 'MIT'
-    ) {
-      throw new Error(`${icon.id}: author, source, and MIT redistribution rights are required`);
+    if (!nonempty(icon.author)) {
+      throw new Error(`${icon.file}: author is required`);
     }
     const filename = path.join(directory, icon.file);
-    if (!lstatSync(filename).isFile()) throw new Error(`${icon.id}: expected a regular SVG file`);
+    if (!lstatSync(filename).isFile()) throw new Error(`${icon.file}: expected a regular SVG file`);
     try {
       validateSvg(readFileSync(filename, 'utf8'));
     } catch (error) {
-      throw new Error(`${icon.id}: ${error.message}`, { cause: error });
+      throw new Error(`${icon.file}: ${error.message}`, { cause: error });
     }
-    ids.add(icon.id);
-    names.add(icon.name.toLowerCase());
+    titles.add(icon.title.toLowerCase());
     files.add(icon.file);
   }
   for (const filename of readdirSync(directory)) {
@@ -181,6 +176,8 @@ export function validateCatalog(directory) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const manifest = validateCatalog(fileURLToPath(new URL('../assets/illicons/', import.meta.url)));
+  const manifest = validateCatalog(
+    fileURLToPath(new URL('../packages/react-components/illicons/', import.meta.url)),
+  );
   console.log(`Validated ${manifest.icons.length} illicons`);
 }
